@@ -1,0 +1,369 @@
+#pragma once
+
+#include <string>
+#include <vector>
+#include <map>
+#include <fstream>
+#include <iostream>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include "models.hpp"
+#include "vector_index.hpp"
+
+#ifdef HAS_ZSTD
+#include <zstd.h>
+#endif
+
+namespace archaeophd {
+
+namespace fs_compat {
+    inline bool exists(const std::string& path) {
+        DWORD dw = GetFileAttributesA(path.c_str());
+        return (dw != INVALID_FILE_ATTRIBUTES);
+    }
+
+    inline bool create_directories(const std::string& path) {
+        if (exists(path)) return true;
+        char tmp[MAX_PATH];
+        if (path.length() >= MAX_PATH) return false;
+        strncpy(tmp, path.c_str(), sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = '\0';
+        for (char* p = tmp + 1; *p; p++) {
+            if (*p == '/' || *p == '\\') {
+                *p = '\0';
+                CreateDirectoryA(tmp, NULL);
+                *p = '/';
+            }
+        }
+        CreateDirectoryA(tmp, NULL);
+        return true;
+    }
+}
+
+class NativeStorage {
+private:
+    std::string data_dir_;
+    mutable NativeMutex mutex_;
+
+    // In-memory relational tables
+    std::map<std::string, Site> sites_;
+    std::map<std::string, Stratum> strata_;
+    std::map<std::string, Artifact> artifacts_;
+    std::map<std::string, Sample> samples_;
+    std::map<std::string, Claim> claims_;
+    std::map<std::string, EvidenceLink> evidence_;
+    std::map<std::string, Source> sources_;
+    std::map<std::string, Note> notes_;
+
+    VectorIndex vector_index_;
+
+    std::string state_path() const {
+        return data_dir_ + "/relational_state.json";
+    }
+
+    std::string chunks_dir() const {
+        return data_dir_ + "/chunks";
+    }
+
+public:
+    explicit NativeStorage(std::string data_dir = "data")
+        : data_dir_(std::move(data_dir)) {
+        fs_compat::create_directories(data_dir_);
+        fs_compat::create_directories(chunks_dir());
+        load_state();
+    }
+
+    VectorIndex& vectors() { return vector_index_; }
+    const VectorIndex& vectors() const { return vector_index_; }
+
+    void save_state() {
+        NativeGuard lock(mutex_);
+        json state;
+        state["sites"] = json::array();
+        for (const auto& kv : sites_) state["sites"].push_back(kv.second);
+
+        state["strata"] = json::array();
+        for (const auto& kv : strata_) state["strata"].push_back(kv.second);
+
+        state["artifacts"] = json::array();
+        for (const auto& kv : artifacts_) state["artifacts"].push_back(kv.second);
+
+        state["samples"] = json::array();
+        for (const auto& kv : samples_) state["samples"].push_back(kv.second);
+
+        state["claims"] = json::array();
+        for (const auto& kv : claims_) state["claims"].push_back(kv.second);
+
+        state["evidence"] = json::array();
+        for (const auto& kv : evidence_) state["evidence"].push_back(kv.second);
+
+        state["sources"] = json::array();
+        for (const auto& kv : sources_) state["sources"].push_back(kv.second);
+
+        state["notes"] = json::array();
+        for (const auto& kv : notes_) state["notes"].push_back(kv.second);
+
+        std::ofstream out(state_path().c_str());
+        if (out.is_open()) {
+            out << state.dump(2);
+        }
+    }
+
+    void load_state() {
+        NativeGuard lock(mutex_);
+        if (!fs_compat::exists(state_path())) return;
+
+        std::ifstream in(state_path().c_str());
+        if (!in.is_open()) return;
+
+        try {
+            json state;
+            in >> state;
+
+            if (state.contains("sites")) {
+                for (const auto& it : state["sites"]) {
+                    Site s = it.get<Site>();
+                    sites_[s.id] = s;
+                }
+            }
+            if (state.contains("strata")) {
+                for (const auto& it : state["strata"]) {
+                    Stratum s = it.get<Stratum>();
+                    strata_[s.id] = s;
+                }
+            }
+            if (state.contains("artifacts")) {
+                for (const auto& it : state["artifacts"]) {
+                    Artifact a = it.get<Artifact>();
+                    artifacts_[a.id] = a;
+                }
+            }
+            if (state.contains("samples")) {
+                for (const auto& it : state["samples"]) {
+                    Sample s = it.get<Sample>();
+                    samples_[s.id] = s;
+                }
+            }
+            if (state.contains("claims")) {
+                for (const auto& it : state["claims"]) {
+                    Claim c = it.get<Claim>();
+                    claims_[c.id] = c;
+                }
+            }
+            if (state.contains("evidence")) {
+                for (const auto& it : state["evidence"]) {
+                    EvidenceLink e = it.get<EvidenceLink>();
+                    evidence_[e.id] = e;
+                }
+            }
+            if (state.contains("sources")) {
+                for (const auto& it : state["sources"]) {
+                    Source s = it.get<Source>();
+                    sources_[s.id] = s;
+                }
+            }
+            if (state.contains("notes")) {
+                for (const auto& it : state["notes"]) {
+                    Note n = it.get<Note>();
+                    notes_[n.id] = n;
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading relational state: " << e.what() << std::endl;
+        }
+    }
+
+    // -------------------------------------------------------------
+    // Chunk Storage
+    // -------------------------------------------------------------
+    bool store_compressed_chunk(const std::string& chunk_id, const std::string& text) {
+#ifdef HAS_ZSTD
+        size_t bound = ZSTD_compressBound(text.size());
+        std::vector<char> comp(bound);
+
+        size_t c_size = ZSTD_compress(comp.data(), comp.size(), text.data(), text.size(), 3);
+        if (ZSTD_isError(c_size)) return false;
+
+        std::string filepath = chunks_dir() + "/" + chunk_id + ".zst";
+        std::ofstream out(filepath.c_str(), std::ios::binary);
+        if (!out.is_open()) return false;
+
+        out.write(comp.data(), static_cast<std::streamsize>(c_size));
+        return true;
+#else
+        std::string filepath = chunks_dir() + "/" + chunk_id + ".txt";
+        std::ofstream out(filepath.c_str(), std::ios::binary);
+        if (!out.is_open()) return false;
+        out.write(text.data(), static_cast<std::streamsize>(text.size()));
+        return true;
+#endif
+    }
+
+    std::string read_compressed_chunk(const std::string& chunk_id) {
+#ifdef HAS_ZSTD
+        std::string filepath = chunks_dir() + "/" + chunk_id + ".zst";
+        if (!fs_compat::exists(filepath)) return "";
+
+        std::ifstream in(filepath.c_str(), std::ios::binary | std::ios::ate);
+        if (!in.is_open()) return "";
+
+        std::streamsize size = in.tellg();
+        in.seekg(0, std::ios::beg);
+
+        std::vector<char> comp(size);
+        in.read(comp.data(), size);
+
+        unsigned long long r_size = ZSTD_getFrameContentSize(comp.data(), size);
+        if (r_size == ZSTD_CONTENTSIZE_ERROR || r_size == ZSTD_CONTENTSIZE_UNKNOWN) {
+            return "";
+        }
+
+        std::string decomp;
+        decomp.resize(r_size);
+
+        size_t d_res = ZSTD_decompress(&decomp[0], r_size, comp.data(), size);
+        if (ZSTD_isError(d_res)) return "";
+
+        return decomp;
+#else
+        std::string filepath = chunks_dir() + "/" + chunk_id + ".txt";
+        if (!fs_compat::exists(filepath)) return "";
+        std::ifstream in(filepath.c_str(), std::ios::binary);
+        if (!in.is_open()) return "";
+        return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+#endif
+    }
+
+    // -------------------------------------------------------------
+    // Generic Entity Getters & Mutators
+    // -------------------------------------------------------------
+    std::vector<Site> get_sites(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Site> res;
+        for (const auto& kv : sites_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Stratum> get_strata(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Stratum> res;
+        for (const auto& kv : strata_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Artifact> get_artifacts(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Artifact> res;
+        for (const auto& kv : artifacts_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Sample> get_samples(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Sample> res;
+        for (const auto& kv : samples_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Claim> get_claims(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Claim> res;
+        for (const auto& kv : claims_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<EvidenceLink> get_evidence(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<EvidenceLink> res;
+        for (const auto& kv : evidence_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Source> get_sources(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Source> res;
+        for (const auto& kv : sources_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    std::vector<Note> get_notes(const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Note> res;
+        for (const auto& kv : notes_) {
+            if (project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default")
+                res.push_back(kv.second);
+        }
+        return res;
+    }
+
+    void put_site(Site s) {
+        NativeGuard lock(mutex_);
+        sites_[s.id] = std::move(s);
+    }
+    void put_stratum(Stratum s) {
+        NativeGuard lock(mutex_);
+        strata_[s.id] = std::move(s);
+    }
+    void put_artifact(Artifact a) {
+        NativeGuard lock(mutex_);
+        artifacts_[a.id] = std::move(a);
+    }
+    void put_sample(Sample s) {
+        NativeGuard lock(mutex_);
+        samples_[s.id] = std::move(s);
+    }
+    void put_claim(Claim c) {
+        NativeGuard lock(mutex_);
+        claims_[c.id] = std::move(c);
+    }
+    void put_evidence(EvidenceLink e) {
+        NativeGuard lock(mutex_);
+        evidence_[e.id] = std::move(e);
+    }
+    void put_source(Source s) {
+        NativeGuard lock(mutex_);
+        sources_[s.id] = std::move(s);
+    }
+    void put_note(Note n) {
+        NativeGuard lock(mutex_);
+        notes_[n.id] = std::move(n);
+    }
+
+    bool delete_entity(const std::string& entity_type, const std::string& id) {
+        NativeGuard lock(mutex_);
+        if (entity_type == "sites") return sites_.erase(id) > 0;
+        if (entity_type == "strata") return strata_.erase(id) > 0;
+        if (entity_type == "artifacts") return artifacts_.erase(id) > 0;
+        if (entity_type == "samples") return samples_.erase(id) > 0;
+        if (entity_type == "claims") return claims_.erase(id) > 0;
+        if (entity_type == "evidence") return evidence_.erase(id) > 0;
+        if (entity_type == "sources") return sources_.erase(id) > 0;
+        if (entity_type == "notes") return notes_.erase(id) > 0;
+        return false;
+    }
+
+    size_t count_sites() const { NativeGuard lock(mutex_); return sites_.size(); }
+};
+
+} // namespace archaeophd

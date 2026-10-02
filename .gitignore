@@ -1,0 +1,15 @@
+# Build artifacts and temporary files
+payload.zip
+src/resource.res
+*.o
+*.obj
+*.i
+
+# Local user data / WebView2 cache
+WebView2Data/
+data/
+
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store

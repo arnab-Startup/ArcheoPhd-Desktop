@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html') {
+        window.history.replaceState(null, '', '/');
+      }
+      window.__B44_DB__ = window.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Primary SEO -->
+    <title>ArchaeoPhD — AI Research Workspace for Archaeology PhDs &amp; Researchers</title>
+    <meta name="title" content="ArchaeoPhD — AI Research Workspace for Archaeology PhDs & Researchers" />
+    <meta name="description" content="ArchaeoPhD is an AI-powered research workspace for archaeology PhD students, postdocs, supervisors, and cultural heritage professionals worldwide — connect literature, excavation reports, sites, artifacts, chronology, claims, and evidence into one traceable research graph." />
+    <meta name="keywords" content="archaeology research, cultural heritage management, heritage documentation, archaeological site documentation, PhD research tools, archaeological evidence, excavation reports, artifact cataloging, provenance research, heritage consultants, CRM archaeology, heritage impact assessment, museum collections research, dissertation research, AI for archaeology, AI for heritage, research knowledge graph, citation management archaeology, evidence-based research, archaeological chronology, digital heritage tools" />
+    <meta name="author" content="ArchaeoPhD" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="theme-color" content="#7a3b1f" />
+    <link rel="canonical" href="https://archaeophd.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ArchaeoPhD" />
+    <meta property="og:title" content="ArchaeoPhD — AI Research Workspace for Archaeology" />
+    <meta property="og:description" content="Connect literature, excavation reports, sites, artifacts, and evidence into a traceable research graph. Built for archaeology PhDs, postdocs, and supervisors." />
+    <meta property="og:url" content="https://archaeophd.com/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://media.db.com/images/public/6a6b78bf280a514897daba19/1ebc242b3_generated_image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ArchaeoPhD — AI research workspace for archaeology, connecting sources, sites, artifacts and evidence into a traceable research graph" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ArchaeoPhD — AI Research Workspace for Archaeology" />
+    <meta name="twitter:description" content="Connect archaeological evidence into a traceable, defensible research graph. Built for archaeology PhDs, postdocs, and supervisors." />
+    <meta name="twitter:image" content="https://media.db.com/images/public/6a6b78bf280a514897daba19/1ebc242b3_generated_image.png" />
+
+    <!-- Favicon: strata monogram mark -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23F5F0E6'/%3E%3Crect x='1.5' y='1.5' width='21' height='21' rx='4.5' fill='none' stroke='%23E3D5BC' stroke-width='1'/%3E%3Cpath d='M12 3.2 L18.8 20.6 H5.2 Z' fill='%2394462A'/%3E%3Cpath d='M12 8.4 L14.5 14.2 H9.5 Z' fill='%23F5F0E6'/%3E%3Crect x='7' y='16.4' width='10' height='1.1' fill='%23F5F0E6'/%3E%3Crect x='6.2' y='18.4' width='11.6' height='0.9' fill='%23F5F0E6' opacity='0.7'/%3E%3Ccircle cx='12' cy='3.2' r='1.9' fill='%23C89B3C'/%3E%3C/svg%3E" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Structured data: Organization + WebSite (GEO/LLM-friendly) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://archaeophd.com/#organization",
+          "name": "ArchaeoPhD",
+          "url": "https://archaeophd.com/",
+          "description": "An AI-powered research workspace for archaeology PhD students, postdoctoral researchers, supervisors, and cultural heritage professionals worldwide that connects literature, excavation reports, sites, artifacts, chronology, claims, and evidence into a traceable research graph.",
+          "sameAs": []
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://archaeophd.com/#website",
+          "url": "https://archaeophd.com/",
+          "name": "ArchaeoPhD",
+          "publisher": { "@id": "https://archaeophd.com/#organization" },
+          "inLanguage": "en",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://archaeophd.com/blog?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://archaeophd.com/#app",
+          "name": "ArchaeoPhD",
+          "url": "https://archaeophd.com/",
+          "applicationCategory": "ScienceApplication",
+          "operatingSystem": "Web browser",
+          "inLanguage": "en",
+          "description": "AI-powered research workspace for archaeology and cultural heritage: connect sources, excavation reports, sites, artifacts, chronology, claims, and evidence into a traceable research graph.",
+          "featureList": [
+            "Grounded AI research assistant that answers only from your uploaded sources with citations",
+            "Evidence graph linking claims to supporting and contradicting evidence",
+            "Chronology engine with conflict detection",
+            "Site and artifact records with spatial data and provenance",
+            "Excavation report and field note management",
+            "Citation management in APA, Chicago, and Harvard styles",
+            "PDF, CSV, and JSON export with offline backup"
+          ],
+          "audience": [
+            { "@type": "Audience", "audienceType": "Archaeology Master's and PhD students and postdoctoral researchers" },
+            { "@type": "Audience", "audienceType": "Cultural heritage professionals and heritage consultants" },
+            { "@type": "Audience", "audienceType": "Archaeologists and heritage site managers" },
+            { "@type": "Audience", "audienceType": "Museums, research labs, and academic institutions" }
+          ],
+          "publisher": { "@id": "https://archaeophd.com/#organization" }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://archaeophd.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is ArchaeoPhD?",
+              "acceptedAnswer": { "@type": "Answer", "text": "ArchaeoPhD is an AI-powered research workspace built for archaeology PhD students, postdoctoral researchers, and supervisors. It connects sources, excavation reports, sites, artifacts, chronology, claims, and evidence into a single traceable research graph." }
+            },
+            {
+              "@type": "Question",
+              "name": "Is my unpublished research kept private?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. ArchaeoPhD is private by default. Each user's research data is isolated to their account and projects; unpublished research is never exposed to other users." }
+            },
+            {
+              "@type": "Question",
+              "name": "Can AI answers be traced to evidence?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. AI responses separate evidence, interpretation, and uncertainty, and link back to the specific sources, pages, sites, and artifacts they draw from so every claim is verifiable." }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    <script type="module" crossorigin src="./assets/index-Bk7K3i_5.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DQrTJvUb.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="./data-root-dialog.js"></script>
+  </body>
+</html>
