@@ -23,23 +23,30 @@ A private, fully offline research assistant for archaeology PhD researchers
 
 ## Storage Algorithm (Final, Tested)
 
+**Zstandard compression, with a shared trained dictionary, applied independently per file.** This is the final method — it beat every alternative tested, including plain zip.
+
+### ONE-TIME SETUP
+Train a small (4–8 KB) Zstandard dictionary from a representative sample of real archaeology PDFs (shipped pre-trained with the app). Captures common structure — PDF headers, font tables, journal-template boilerplate — that recurs across documents.
+
 ### UPLOAD
 *(Any time, any quantity — one file today, one next month, fully independent)*
 - PDF arrives, read from its existing location (never copied first)
-  - `→` zip-compress it alone, immediately, DEFLATE level 6 (fast, same ratio as level 9 on real files)
-  - `→` store as its own small `.zip` in `archives/`
-  - `→` record in `index.db`: `doc_id → zip filename`
+  - `→` Zstandard-compress it alone, using the shared dictionary
+  - `→` store as its own small file in `archives/`
+  - `→` record in `index.db`: `doc_id → compressed filename`
   - `→` parse via Docling (from the file directly) `→` Markdown + chunks `→` embed `→` extract `→` store in LanceDB
 
 ### DOWNLOAD
 *("Give me back exactly what I uploaded")*
-- `index.db` lookup `→` unzip just that one file `→` hand back to researcher
-- Confirmed today: byte-for-byte identical (SHA-256 hash match), zero loss
+- `index.db` lookup `→` decompress just that one file (using the same shared dictionary) `→` hand back to researcher
+- Confirmed: byte-for-byte identical, zero loss
 
-### Why this exact approach, not alternatives considered and rejected:
+### Why this exact approach, not alternatives considered and tested along the way:
 - **qpdf-style PDF-structural recompression:** Tested, performed worse than plain zip on the same file (40% vs. 73–76%).
-- **Batching multiple files together before zipping:** Tested, added only ~1% over per-file compression; not worth the added complexity given incremental upload patterns.
-- **Newer algorithms (Zstandard, Brotli, LZMA):** Tested; 1–2 percentage points better at 10–60x the CPU time on large scans. Not worth it for MVP. Zstandard at a fast/low level is a cheap future upgrade if ingestion speed ever becomes a bottleneck — same ratio as zip, ~17x faster — worth remembering, not needed now.
+- **Batching multiple files together before compressing:** Tested, added only ~1% over per-file compression; not worth the complexity, and it would mean one corrupted archive could affect the whole library instead of just one document.
+- **Appending every upload into one growing shared archive over time:** Tested, same ~negligible difference as batching, plus real fault-isolation risk for a library meant to last 6+ years. Rejected in favor of keeping each document independent.
+- **Plain Zstandard/Brotli/LZMA with no dictionary:** Tested; 1–2 percentage points better than zip at 10–60x the CPU time on large scans. Not worth it alone.
+- **Zstandard WITH a trained shared dictionary:** Tested properly (dictionary trained on 20 documents, measured on 4 completely unseen holdout documents, avoiding the circularity of testing on the training set): **36.3% smaller than no-dictionary compression**, on genuinely new documents — the clear winner. Keeps every safety property of per-file independence (one corrupted file never touches another, deletion stays trivial, download-one-file stays simple) while capturing the real cross-document redundancy (shared headers, fonts, boilerplate) that plain per-file compression missed.
 
 ---
 
@@ -64,10 +71,11 @@ ArchaeoPhD-Data/
   └── libraries/
         └── <Library Name>/
               ├── library.lancedb/        ← chunks + vectors + knowledge graph, unified
+              ├── compression-dict.zstd   ← shared trained dictionary, used for every file
               ├── archives/
-              │     ├── <doc_id_1>.zip    ← one file per upload, independent
-              │     ├── <doc_id_2>.zip
-              │     └── index.db          ← doc_id → zip filename lookup
+              │     ├── <doc_id_1>.zst    ← one file per upload, independent, dictionary-compressed
+              │     ├── <doc_id_2>.zst
+              │     └── index.db          ← doc_id → compressed filename lookup
               └── library-manifest.json
 ```
 
@@ -80,7 +88,7 @@ ArchaeoPhD-Data/
 ```text
 Upload PDF (read in place, never copied)
         │
-        ├─→ zip-compress individually, immediately → archives/<doc_id>.zip
+        ├─→ Zstandard-compress individually (shared dictionary) → archives/<doc_id>.zst
         │
         ▼
    Docling parse → Markdown + structure (headings, tables, page refs)
@@ -135,10 +143,10 @@ Upload PDF (read in place, never copied)
 
 | Category | Build for MVP | Defer to post-MVP |
 | :--- | :--- | :--- |
-| **Storage** | Per-file lossless zip on upload, download-original feature | 3-tier archive system (exact/compact/discard), usage-based archive prompts, storage inspector UI |
+| **Storage** | Per-file Zstandard+dictionary compression on upload, download-original feature | 3-tier archive system (exact/compact/discard), usage-based archive prompts, storage inspector UI |
 | **Database** | LanceDB with default settings, schema as above | Compaction scheduling/tuning, embedding-dimension tuning |
 | **Model** | 7–8B model as-is | Hardware-tiered fallback (3B "fast mode"), model swapping |
-| **Core feature** | Docling extraction, knowledge graph, all 4 contradiction types with review-only guardrail on Types 2/4 | — *not optional, this is the product* |
+| **Core feature** | Docling extraction, knowledge graph, all 4 contradiction types with the review-only guardrail on Types 2/4 | — *not optional, this is the product* |
 | **Folder/UX** | User-chosen data root, cloud-sync warning, basic first-launch flow | "Move library" tool, multi-library-folder support |
 
 ---
@@ -149,12 +157,12 @@ Upload PDF (read in place, never copied)
 *(The only phase that can stop the project)*
 1. Run Docling on 10–15 real archaeology documents first (not synthetic) — cover the hard cases: old scans, data tables, stratigraphy diagrams, at least one low-quality scan.
 2. Hand-label and test 7–8B extraction accuracy on the same documents — the single most important validation step, since every downstream feature inherits extraction errors.
-3. Confirm per-file zip compression and reconstruction on real (not synthetic) PDFs.
+3. Confirm per-file Zstandard+dictionary compression and reconstruction on real (not synthetic) PDFs, and retrain the shared dictionary on a real sample once available — the ~36% dictionary improvement was validated on synthetic holdout documents; real academic PDFs should be checked too.
 4. **Go/no-go bar:** Decided in writing before Phase 1 starts: what extraction accuracy is "good enough to build on."
 
 ### Phase 1 — Ingestion pipeline (4–5 weeks)
 1. Docling behind a background job queue, reading files in place; PyMuPDF fallback for parse failures.
-2. Per-file zip compression + `index.db`, exactly as tested.
+2. Per-file Zstandard+dictionary compression + `index.db`, exactly as tested. Ship a pre-trained dictionary; retrain on real data once Phase 0 corpus is available.
 3. Chunk by section; extraction pass with structured-output prompting (fixed schema).
 4. First-launch flow: data root selection, cloud-sync warning, model download.
 
@@ -164,7 +172,7 @@ Upload PDF (read in place, never copied)
 
 ### Phase 3 — Contradiction engine (4–6 weeks)
 1. Type 1 and Type 3 first (lower risk, shown directly).
-2. Type 2 and Type 4 with review-only guardrail enforced in UI (visually distinct, no auto-accept).
+2. Type 2 and Type 4 with the review-only guardrail enforced in the UI (visually distinct, no auto-accept).
 3. Inline UI: live-check sentences while writing.
 
 ### Phase 4 — MVP hardening (1–2 weeks)
@@ -183,4 +191,4 @@ Upload PDF (read in place, never copied)
 - **Type 2/4 false positives are the main trust risk** — guardrail enforced in UI, not just the prompt.
 - **Docling ingestion speed on CPU-only 16 GB machines** needs a visible progress indicator.
 - **Single-field scope (archaeology) is permanent for v1** — expanding later means a new ontology from scratch.
-- **Real academic PDFs may compress less dramatically than synthetic test files** — verify the ~73–76% figure against real papers in Phase 0.
+- **Real academic PDFs may compress less dramatically than synthetic test files** — verify the ~73–76% figure against real papers in Phase 0, since born-digital PDFs are often already internally compressed by their originating software.
