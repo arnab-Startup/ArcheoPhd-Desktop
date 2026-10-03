@@ -96,13 +96,31 @@ public:
         std::string archivesDir = storage.get_data_dir() + "/archives";
         fs_compat::create_directories(archivesDir);
         std::string archivePath = archivesDir + "/" + sourceId + ".pdf.bin";
+        std::string tempPath = archivePath + ".tmp";
 
-        // Copy file as lossless bitstream preservation
-        std::ifstream src(filePath, std::ios::binary);
-        std::ofstream dst(archivePath, std::ios::binary);
-        dst << src.rdbuf();
-        src.close();
-        dst.close();
+        // Atomic write via temporary file
+        {
+            std::ifstream src(filePath, std::ios::binary);
+            if (!src.is_open()) {
+                res.success = false;
+                res.message = "Failed to open source file for reading: " + filePath;
+                return res;
+            }
+            std::ofstream dst(tempPath, std::ios::binary);
+            if (!dst.is_open()) {
+                res.success = false;
+                res.message = "Failed to create archive destination file: " + tempPath;
+                return res;
+            }
+            dst << src.rdbuf();
+        }
+
+        if (!fs_compat::rename_file(tempPath, archivePath)) {
+            fs_compat::remove_file(tempPath);
+            res.success = false;
+            res.message = "Failed to finalize archive file: MoveFileEx failed.";
+            return res;
+        }
 
         std::ifstream comp(archivePath, std::ios::binary | std::ios::ate);
         std::streamsize compSize = comp.tellg();

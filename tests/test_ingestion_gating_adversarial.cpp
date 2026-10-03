@@ -27,6 +27,8 @@ int main() {
         f << "%PDF-1.4 sample archaeological excavation report with stratigraphy data";
     }
 
+    std::string sourceIdForUpgradeTest;
+
     {
         NativeStorage storage(testDir);
         std::cout << "[TEST 1] Ingestion Defaults strictly to Class B (Default-Safe)...\n";
@@ -34,6 +36,7 @@ int main() {
         assert(res.success == true);
         assert(res.degradation_class == "CLASS_B");
         assert(res.status == "UNVERIFIED_ROUGH_SCAN");
+        sourceIdForUpgradeTest = res.source_id;
 
         auto sources = storage.get_sources();
         assert(sources.size() == 1);
@@ -64,6 +67,7 @@ int main() {
         c1.id = "claim_injected_1";
         c1.source_id = res.source_id;
         c1.claim_text = "Trench VII depth: 20-40 cm";
+        c1.origin_type = "scanned_ocr";
         c1.verification_status = "PENDING_VERIFICATION"; // Machine unconfirmed
         bool writeSuccess = storage.put_claim_safeguarded(c1, false);
         assert(writeSuccess == false);
@@ -91,30 +95,47 @@ int main() {
 
         IngestionManager::ProcessClassAFacts(storage, res.source_id, {f1, f2});
 
-        // Verify: 1 claim committed (consensus), 1 routed to verification queue
-        assert(storage.get_claims().size() == 1);
-        assert(storage.get_claims()[0].claim_text == "Chirki Discovery Year: 1963");
+        // Also add 1 prior manual transcription to verify selective survival
+        Claim manualPreReflag;
+        manualPreReflag.id = "manual_prior_001";
+        manualPreReflag.source_id = res.source_id;
+        manualPreReflag.claim_text = "Excavator: Gudrun Corvinus";
+        manualPreReflag.origin_type = "manual_transcription";
+        manualPreReflag.verification_status = "VERIFIED";
+        bool manualSaved = storage.put_claim_safeguarded(manualPreReflag, true);
+        assert(manualSaved == true);
+
+        // Verify: 1 machine consensus claim + 1 manual claim committed; 1 discrepancy queued
+        assert(storage.get_claims().size() == 2);
         assert(storage.get_verification_items().size() == 1);
         assert(storage.get_verification_items()[0].candidate_a == "2040 cm");
         assert(storage.get_verification_items()[0].candidate_b == "20-40 cm");
         assert(storage.get_verification_items()[0].status == "PENDING");
         std::cout << "  ✓ Consensus fact auto-committed; Discrepancy queued with image crop link.\n\n";
 
-        std::cout << "[TEST 6] Mid-Session Reflag (A -> B Purge) Completely Cleans Staged State...\n";
-        // Researcher finds bleed-through on page 50 and clicks 1-click reflag to Class B!
+        std::cout << "[TEST 6] RETROACTIVE PURGE on Mid-Session Reflag (A -> B)...\n";
+        // Researcher notices bleed-through on page 41 and clicks 1-click reflag to Class B!
         bool reflagged = IngestionManager::ReflagSourceToClassB(storage, res.source_id);
         assert(reflagged == true);
         assert(storage.get_sources()[0].degradation_class == "CLASS_B");
         assert(storage.get_sources()[0].confirmed_clean_offset == false);
 
-        // Verify verification item is purged / rejected
+        // Verify retroactive purge:
+        // 1. The auto-committed OCR consensus fact ('fact_001', 1963) MUST BE RETROACTIVELY PURGED!
+        // 2. The human manual transcription ('manual_prior_001') MUST SURVIVE!
+        auto claimsAfterReflag = storage.get_claims();
+        assert(claimsAfterReflag.size() == 1);
+        assert(claimsAfterReflag[0].id == "manual_prior_001");
+        assert(claimsAfterReflag[0].origin_type == "manual_transcription");
+
+        // Verify pending verification items are purged / rejected
         auto vItems = storage.get_verification_items();
         assert(vItems[0].status == "REJECTED_DUE_TO_RECLASSIFICATION");
 
         // Verify that subsequent automated writes are instantly rejected
         bool writeAfterReflag = storage.put_claim_safeguarded(c1, false);
         assert(writeAfterReflag == false);
-        std::cout << "  ✓ Mid-session reflag immediately purged staged queue and restored Class B hard-gate.\n\n";
+        std::cout << "  ✓ Retroactive purge wiped auto-committed OCR facts while preserving human double-entry.\n\n";
 
         std::cout << "[TEST 7] Search Indexing vs Knowledge Graph Truth-Plane Isolation...\n";
         // Rough text indexed for discovery
@@ -129,8 +150,8 @@ int main() {
         auto searchMatches = storage.vectors().search(queryEmb, 1);
         assert(!searchMatches.empty());
 
-        // BUT assert Knowledge Graph remains 100% clean (no automated claims created)
-        // Only the previously verified f1 claim exists
+        // BUT assert Knowledge Graph remains strictly protected
+        // Only the 1 manual claim that survived the reflag exists
         assert(storage.get_claims().size() == 1);
         std::cout << "  ✓ Rough scan indexed for semantic search while Knowledge Graph remains strictly protected.\n\n";
 
@@ -139,12 +160,12 @@ int main() {
             {{"entity_name", "Trench VII Rubble Thickness"}, {"value", "20-40 cm"}, {"type", "measurement"}},
             {{"entity_name", "Early Stone Age Tools Count"}, {"value", "694"}, {"type", "count"}}
         });
-        bool manualSaved = IngestionManager::SaveManualTranscription(storage, res.source_id, 53, manualFacts);
-        assert(manualSaved == true);
+        bool manualSaved2 = IngestionManager::SaveManualTranscription(storage, res.source_id, 53, manualFacts);
+        assert(manualSaved2 == true);
         assert(storage.get_sources()[0].ingestion_status == "VERIFIED_MANUAL");
 
         auto finalClaims = storage.get_claims();
-        assert(finalClaims.size() == 3); // 1 previous + 2 manual
+        assert(finalClaims.size() == 3); // 1 previous manual + 2 new manual
         bool foundManualCount = false;
         for (const auto& c : finalClaims) {
             if (c.claim_text == "Early Stone Age Tools Count: 694") {
@@ -172,10 +193,65 @@ int main() {
         badClaim.id = "bad_after_crash";
         badClaim.source_id = sources[0].id;
         badClaim.claim_text = "Phantom Date 1656";
+        badClaim.origin_type = "scanned_ocr";
         badClaim.verification_status = "PENDING";
         bool badWrite = recoveredStorage.put_claim_safeguarded(badClaim, false);
         assert(badWrite == false);
         std::cout << "  ✓ Recovered state across simulated app crash retained Class B hard-gate.\n\n";
+    }
+
+    std::cout << "[TEST 10] Interrupted Ingestion Atomicity (IO Failure Cleanup)...\n";
+    {
+        NativeStorage storage(testDir);
+        size_t sourceCountBefore = storage.get_sources().size();
+
+        // Attempt ingesting a non-existent file
+        auto failedRes = IngestionManager::IngestDocument(
+            storage,
+            "non_existent_file_path_12345.pdf",
+            "Ghost Document",
+            "Ghost Author",
+            "2026"
+        );
+        assert(failedRes.success == false);
+        assert(!failedRes.message.empty());
+
+        // Assert zero orphaned source records were committed
+        auto sources = storage.get_sources();
+        assert(sources.size() == sourceCountBefore);
+
+        // Verify archives directory does not contain lingering .tmp files
+        std::string archivesDir = testDir + "/archives";
+        if (std::filesystem::exists(archivesDir)) {
+            for (const auto& entry : std::filesystem::directory_iterator(archivesDir)) {
+                assert(entry.path().extension() != ".tmp");
+            }
+        }
+        std::cout << "  ✓ Failed ingestion rolled back atomically with zero orphaned records or leaked temp files.\n\n";
+    }
+
+    std::cout << "[TEST 11] Upgrading B -> A Mid-Session Preserves All Grounded Manual Facts...\n";
+    {
+        NativeStorage storage(testDir);
+        assert(!sourceIdForUpgradeTest.empty());
+
+        // Source currently has 3 manual claims
+        assert(storage.get_claims().size() == 3);
+
+        // Upgrade source to Class A with physical print confirmation
+        std::string err;
+        bool upgraded = IngestionManager::ClassifySource(storage, sourceIdForUpgradeTest, "CLASS_A", true, err);
+        assert(upgraded == true);
+        assert(storage.get_sources()[0].degradation_class == "CLASS_A");
+
+        // Verify that all 3 manual claims remain completely intact and VERIFIED
+        auto claims = storage.get_claims();
+        assert(claims.size() == 3);
+        for (const auto& c : claims) {
+            assert(c.origin_type == "manual_transcription");
+            assert(c.verification_status == "VERIFIED");
+        }
+        std::cout << "  ✓ Upgrading B -> A preserved 100% of human-transcribed claims without alteration.\n\n";
     }
 
     // Clean up test file and directory
@@ -183,7 +259,7 @@ int main() {
     std::filesystem::remove_all(testDir, ec);
 
     std::cout << "================================================================================\n";
-    std::cout << "  ALL 9 ADVERSARIAL INGESTION & GATING TESTS PASSED WITH ZERO FAILURES!         \n";
+    std::cout << "  ALL 11 ADVERSARIAL INGESTION & GATING TESTS PASSED WITH ZERO FAILURES!        \n";
     std::cout << "================================================================================\n";
     return 0;
 }

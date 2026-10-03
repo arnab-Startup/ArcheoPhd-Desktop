@@ -27,7 +27,6 @@ namespace fs_compat {
         char tmp[MAX_PATH];
         if (path.length() >= MAX_PATH) return false;
         strncpy(tmp, path.c_str(), sizeof(tmp) - 1);
-        tmp[sizeof(tmp) - 1] = '\0';
         for (char* p = tmp + 1; *p; p++) {
             if (*p == '/' || *p == '\\') {
                 *p = '\0';
@@ -37,6 +36,18 @@ namespace fs_compat {
         }
         CreateDirectoryA(tmp, NULL);
         return true;
+    }
+
+    inline bool remove_file(const std::string& path) {
+        return DeleteFileA(path.c_str()) != 0;
+    }
+
+    inline bool rename_file(const std::string& from, const std::string& to) {
+        // MOVEFILE_REPLACE_EXISTING: overwrite destination if it already exists.
+        // MOVEFILE_WRITE_THROUGH: flush the rename to disk before returning,
+        // so a power-loss event cannot leave a half-written .tmp as the canonical archive.
+        return MoveFileExA(from.c_str(), to.c_str(),
+            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
     }
 }
 
@@ -402,7 +413,9 @@ public:
         return true;
     }
 
-    // ADVERSARIAL PROTECTION: Reflagging source to Class B purges any unconfirmed machine extractions
+    // ADVERSARIAL PROTECTION: Reflagging source to Class B retroactively purges
+    // ALL automated extractions (even if previously accepted by dual-engine consensus).
+    // ONLY human manual double-entry (origin_type == "manual_transcription") is preserved.
     bool reflag_source_to_class_b(const std::string& project_id, const std::string& source_id) {
         NativeGuard lock(mutex_);
         auto s_it = sources_.find(source_id);
@@ -412,10 +425,16 @@ public:
             s_it->second.ingestion_status = "MANUAL_TRANSCRIPTION_PENDING";
         }
 
-        // Purge unverified claims linked to this source
+        // RETROACTIVE PURGE: Purge any machine-extracted claim for this source.
+        // If a document was mistakenly classified as Class A and consensus facts were committed,
+        // reflagging to Class B invalidates those automated extractions immediately.
         for (auto it = claims_.begin(); it != claims_.end(); ) {
-            if (it->second.source_id == source_id && it->second.verification_status != "VERIFIED") {
-                it = claims_.erase(it);
+            if (it->second.source_id == source_id) {
+                if (it->second.origin_type != "manual_transcription") {
+                    it = claims_.erase(it);
+                } else {
+                    ++it;
+                }
             } else {
                 ++it;
             }
@@ -438,9 +457,12 @@ public:
         NativeGuard lock(mutex_);
         auto s_it = sources_.find(c.source_id);
         if (s_it != sources_.end()) {
-            if (s_it->second.degradation_class == "CLASS_B" && !is_human_verified && c.verification_status != "VERIFIED") {
-                // HARD-GATE ENFORCED: Refuse automated write to Class B
-                return false;
+            if (s_it->second.degradation_class == "CLASS_B") {
+                // For Class B sources, ONLY explicit manual transcription or verified human entry is permitted
+                if (c.origin_type != "manual_transcription" && !is_human_verified) {
+                    // HARD-GATE ENFORCED: Refuse automated write to Class B
+                    return false;
+                }
             }
         }
         claims_[c.id] = std::move(c);
