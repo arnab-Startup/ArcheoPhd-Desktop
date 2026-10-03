@@ -90,8 +90,8 @@ ArchaeoPhD-Data/
 | Experiment | 2.1.1 | pdfplumber | Tables, text layout, page detection | ⏳ |
 | Experiment | 2.1.2 | PyMuPDF (fitz) | Speed, annotations, edge cases | ⏳ |
 | Experiment | 2.1.3 | pdfminer.six | Layout accuracy, footnotes | ⏳ |
-| Experiment | 2.1.4 | Tesseract OCR | Scanned old excavation reports | ⏳ |
-| Experiment | 2.1.5 | **Pick winner** | Best on real archaeology PDFs | ⏳ |
+| Experiment | 2.1.4 | Tesseract OCR + Windows OCR | Scanned excavation reports & letterpress | ✅ DONE (50 pages, 166 facts benchmarked) |
+| Experiment | 2.1.5 | **Pick winner** | Best on real archaeology PDFs | ✅ **DECIDED (Class A: Dual-Engine Consensus; Class B: Permanent Manual Transcription; VLM Rejected Tier 3)** |
 | MVP | 2.2.1 | Upload pipeline | Lossless PDF preservation (.pdf.zst, reversible) → extract chunks | ✅ DONE |
 | MVP | 2.2.2 | Page tracking | Page number & count per document | ✅ DONE |
 | MVP | 2.2.3 | Multi-language | German, French, Arabic documents | ⏳ |
