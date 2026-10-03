@@ -98,23 +98,64 @@ public:
         std::string archivePath = archivesDir + "/" + sourceId + ".pdf.bin";
         std::string tempPath = archivePath + ".tmp";
 
-        // Atomic write via temporary file
+        // Atomic write via temporary file (Gap 2b — content-flush before rename)
+        //
+        // Sequence: CreateFile -> WriteFile -> FlushFileBuffers -> CloseHandle -> MoveFileExA
+        //
+        // FlushFileBuffers() forces file *content* from the OS page cache to disk
+        // before the handle is closed. Without this call, closing an ofstream only
+        // flushes C++ buffers to the OS; the OS write cache can still hold dirty
+        // pages when MoveFileExA commits the directory entry, leaving a window where
+        // a power-loss event produces a correctly-named file with truncated content.
+        //
+        // MoveFileExA(MOVEFILE_WRITE_THROUGH) then ensures the *directory entry*
+        // update (the rename) is also flushed before returning. Together these two
+        // calls close both dimensions of the power-loss gap.
         {
+            // Read source into memory buffer
             std::ifstream src(filePath, std::ios::binary);
             if (!src.is_open()) {
                 res.success = false;
                 res.message = "Failed to open source file for reading: " + filePath;
                 return res;
             }
-            std::ofstream dst(tempPath, std::ios::binary);
-            if (!dst.is_open()) {
+            std::string content((std::istreambuf_iterator<char>(src)),
+                                 std::istreambuf_iterator<char>());
+            src.close();
+
+            // Write via Win32 handle so we can call FlushFileBuffers
+            HANDLE hTmp = CreateFileA(
+                tempPath.c_str(),
+                GENERIC_WRITE, 0, nullptr,
+                CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr
+            );
+            if (hTmp == INVALID_HANDLE_VALUE) {
                 res.success = false;
-                res.message = "Failed to create archive destination file: " + tempPath;
+                res.message = "Failed to create archive temp file: " + tempPath;
                 return res;
             }
-            dst << src.rdbuf();
+
+            DWORD written = 0;
+            BOOL writeOk = WriteFile(hTmp,
+                content.data(), static_cast<DWORD>(content.size()),
+                &written, nullptr);
+
+            // Flush content to disk BEFORE closing or renaming
+            if (writeOk && written == static_cast<DWORD>(content.size())) {
+                FlushFileBuffers(hTmp);
+            }
+            CloseHandle(hTmp);
+
+            if (!writeOk || written != static_cast<DWORD>(content.size())) {
+                fs_compat::remove_file(tempPath);
+                res.success = false;
+                res.message = "Failed to write archive temp file: write incomplete.";
+                return res;
+            }
         }
 
+        // Rename temp -> final: MOVEFILE_WRITE_THROUGH flushes the directory
+        // entry update to disk before returning (complements FlushFileBuffers above).
         if (!fs_compat::rename_file(tempPath, archivePath)) {
             fs_compat::remove_file(tempPath);
             res.success = false;
