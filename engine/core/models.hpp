@@ -101,9 +101,16 @@ struct Claim {
     std::string topic;               // Chronology, Warfare, Trade, Function
     std::vector<std::string> site_ids;
     std::vector<std::string> strata_ids;
+    std::string origin_type = "digital_stream"; // "digital_stream" or "scanned_ocr"
+    std::string verification_status = "VERIFIED"; // "VERIFIED" or "PENDING_VERIFICATION"
+    bool is_quantitative = false;
+    bool anomaly_flag = false;
+    std::string anomaly_reason;
+    std::string optical_crop_path;
+    double ocr_confidence = 1.0;
     std::string created_date;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Claim, id, project_id, claim_text, scholar_name, source_id, publication_year, page_ref, chapter, status, topic, site_ids, strata_ids, created_date)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Claim, id, project_id, claim_text, scholar_name, source_id, publication_year, page_ref, chapter, status, topic, site_ids, strata_ids, origin_type, verification_status, is_quantitative, anomaly_flag, anomaly_reason, optical_crop_path, ocr_confidence, created_date)
 };
 
 // -------------------------------------------------------------
@@ -171,9 +178,14 @@ struct Contradiction {
     json details;
     std::string resolution_guidance;
     bool is_confirmed = false;
+    bool requires_grounding = false;
+    std::string grounding_crop_path;
+    std::string anomaly_description;
+    std::string suggested_correction;
+    std::string flagged_claim_id;
     std::string created_date;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Contradiction, id, project_id, type, severity, title, entity_name, source_a, claim_a, source_b, claim_b, details, resolution_guidance, is_confirmed, created_date)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Contradiction, id, project_id, type, severity, title, entity_name, source_a, claim_a, source_b, claim_b, details, resolution_guidance, is_confirmed, requires_grounding, grounding_crop_path, anomaly_description, suggested_correction, flagged_claim_id, created_date)
 };
 
 } // namespace archaeophd

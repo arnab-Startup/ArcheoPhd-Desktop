@@ -1,0 +1,2 @@
+FROM swar-ai-service:latest
+RUN pip install --no-cache-dir transformers pillow sentencepiece protobuf

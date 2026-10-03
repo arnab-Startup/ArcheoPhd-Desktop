@@ -1,0 +1,550 @@
+{
+  "summary": {
+    "total_facts": 166,
+    "windows_accuracy": 77.11,
+    "tesseract_accuracy": 83.73,
+    "both_correct": 119,
+    "win_only": 9,
+    "tess_only": 20,
+    "both_failed": 18,
+    "total_errors": 47,
+    "disagreement_recall": 100,
+    "verdict": "TIER_3"
+  },
+  "corpus_breakdown": {
+    "sankalia": {
+      "total": 62,
+      "win": 33,
+      "tess": 39
+    },
+    "rajan": {
+      "total": 71,
+      "win": 62,
+      "tess": 67
+    },
+    "chakrabarti": {
+      "total": 33,
+      "win": 33,
+      "tess": 33
+    }
+  },
+  "failures": [
+    {
+      "page_id": "sankalia_p052-052",
+      "corpus": "sankalia",
+      "description": "Year Chirki site was discovered",
+      "true_value": "1963",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p053-053",
+      "corpus": "sankalia",
+      "description": "Excavation season year range",
+      "true_value": "1966 to 1969",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p053-053",
+      "corpus": "sankalia",
+      "description": "Exposed horizon area in meters",
+      "true_value": "74 mtrs",
+      "type": "measurement",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p053-053",
+      "corpus": "sankalia",
+      "description": "Number of Early Stone Age tools recovered",
+      "true_value": "694",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p056-056",
+      "corpus": "sankalia",
+      "description": "Total assemblage count of Acheulian industry",
+      "true_value": "2050",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p056-056",
+      "corpus": "sankalia",
+      "description": "Count of finished and unfinished tools",
+      "true_value": "1511",
+      "type": "count",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p056-056",
+      "corpus": "sankalia",
+      "description": "Count of cores in assemblage",
+      "true_value": "95",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p056-056",
+      "corpus": "sankalia",
+      "description": "Count of waste flakes",
+      "true_value": "444",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p057-057",
+      "corpus": "sankalia",
+      "description": "Handaxes in pebble group",
+      "true_value": "330",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p057-057",
+      "corpus": "sankalia",
+      "description": "Choppers and polyhedrons count",
+      "true_value": "546",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p057-057",
+      "corpus": "sankalia",
+      "description": "Pebble group subtotal count",
+      "true_value": "971",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p058-058",
+      "corpus": "sankalia",
+      "description": "Cleavers count in flake group",
+      "true_value": "382",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p058-058",
+      "corpus": "sankalia",
+      "description": "Scrappers, knives, borers count",
+      "true_value": "66",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p061-061",
+      "corpus": "sankalia",
+      "description": "Stone circles at Junapani",
+      "true_value": "300",
+      "type": "count",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p064-064",
+      "corpus": "sankalia",
+      "description": "Proposed stratigraphic date for megalithic period",
+      "true_value": "2000 B.C.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p065-065",
+      "corpus": "sankalia",
+      "description": "Paunar excavation year",
+      "true_value": "1967",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p065-065",
+      "corpus": "sankalia",
+      "description": "Takalghat and Khapa exploration year",
+      "true_value": "1968",
+      "type": "date",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p065-065",
+      "corpus": "sankalia",
+      "description": "Height of Takalghat mound",
+      "true_value": "8 metres",
+      "type": "measurement",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p070-070",
+      "corpus": "sankalia",
+      "description": "C-14 date for bottom of Phase IB at Takalghat",
+      "true_value": "555",
+      "type": "date",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p025-025",
+      "corpus": "sankalia",
+      "description": "Bibliography publication year item 59",
+      "true_value": "1943",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p025-025",
+      "corpus": "sankalia",
+      "description": "Item 63 Deccan College Bulletin issue date",
+      "true_value": "March 1945",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p025-025",
+      "corpus": "sankalia",
+      "description": "Bibliography publication year item 70",
+      "true_value": "1953",
+      "type": "date",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p025-025",
+      "corpus": "sankalia",
+      "description": "Bibliography publication year item 74",
+      "true_value": "1957",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p104-104",
+      "corpus": "sankalia",
+      "description": "Burkitt and Cammiade publication year",
+      "true_value": "1925",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p104-104",
+      "corpus": "sankalia",
+      "description": "Charlesworth Quaternary Era publication year",
+      "true_value": "1967",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p104-104",
+      "corpus": "sankalia",
+      "description": "De Terra and Paterson publication year",
+      "true_value": "1939",
+      "type": "date",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p104-104",
+      "corpus": "sankalia",
+      "description": "Fairbridge African Ice-Age publication year",
+      "true_value": "1964",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p150-150",
+      "corpus": "sankalia",
+      "description": "Thickness of sub-recent alluvium",
+      "true_value": "6 to 8 m.",
+      "type": "measurement",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p150-150",
+      "corpus": "sankalia",
+      "description": "Level of pot holes in gravel II",
+      "true_value": "5 m",
+      "type": "measurement",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Death year of Divakarasena",
+      "true_value": "428 A.D.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Pravarasena ascension year",
+      "true_value": "431 A.D.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Duration of Pravarasena reign",
+      "true_value": "30 years",
+      "type": "count",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Death year of father in 460 A.D.",
+      "true_value": "460 A.D.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Birth year of Prithivishena II",
+      "true_value": "455 A.D.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p210-210",
+      "corpus": "sankalia",
+      "description": "Death year of father in 490 A.D.",
+      "true_value": "490 A.D.",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "sankalia_p280-280",
+      "corpus": "sankalia",
+      "description": "Gazetteer of Bombay Presidency publication year",
+      "true_value": "1884",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "rajan_p020-020",
+      "corpus": "rajan",
+      "description": "Winckelmann History of Ancient Art year",
+      "true_value": "1764",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p020-020",
+      "corpus": "rajan",
+      "description": "Rosette stone discovery year",
+      "true_value": "1799",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p021-021",
+      "corpus": "rajan",
+      "description": "Gustavus II Adolphus dates",
+      "true_value": "1611-1632",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p023-023",
+      "corpus": "rajan",
+      "description": "Descent of Man publication year",
+      "true_value": "1871",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p024-024",
+      "corpus": "rajan",
+      "description": "Edward Long argument year",
+      "true_value": "1774",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p024-024",
+      "corpus": "rajan",
+      "description": "John Lubbock lifespan dates",
+      "true_value": "1834-1913",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p050-050",
+      "corpus": "rajan",
+      "description": "Field techniques development date range",
+      "true_value": "1881 and 1896",
+      "type": "date",
+      "win_hit": false,
+      "tess_hit": true,
+      "win_status": "FAILED",
+      "tess_status": "CORRECT"
+    },
+    {
+      "page_id": "rajan_p110-110",
+      "corpus": "rajan",
+      "description": "Isotope enrichment C-14 limit in BP",
+      "true_value": "70,000",
+      "type": "measurement",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "rajan_p110-110",
+      "corpus": "rajan",
+      "description": "Potassium-argon time range",
+      "true_value": "10,000-20,000,000",
+      "type": "measurement",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "rajan_p110-110",
+      "corpus": "rajan",
+      "description": "Dendrochronology time range in years",
+      "true_value": "7,400",
+      "type": "measurement",
+      "win_hit": true,
+      "tess_hit": false,
+      "win_status": "CORRECT",
+      "tess_status": "FAILED"
+    },
+    {
+      "page_id": "rajan_p110-110",
+      "corpus": "rajan",
+      "description": "Archaeomagnetism time range",
+      "true_value": "5,000-40,000",
+      "type": "measurement",
+      "win_hit": false,
+      "tess_hit": false,
+      "win_status": "FAILED",
+      "tess_status": "FAILED"
+    }
+  ]
+}

@@ -196,6 +196,40 @@ inline void seed_benchmark_corpus(NativeStorage& storage, const std::string& pro
     c_regional.site_ids = {"site-jericho", "site-megiddo", "site-hazor"};
     storage.put_claim(c_regional);
 
+    // Chirki on Pravara - Real scanned OCR anomaly benchmark case
+    Claim c_corvinus;
+    c_corvinus.id = "claim-chirki-corvinus";
+    c_corvinus.project_id = project_id;
+    c_corvinus.claim_text = "Rubble boulder horizon resting on trap bedrock measured 20 to 40 cm in thickness.";
+    c_corvinus.scholar_name = "Corvinus (1968)";
+    c_corvinus.source_id = "src-corvinus-1968";
+    c_corvinus.topic = "Stratigraphy";
+    c_corvinus.status = "Verified";
+    c_corvinus.chapter = "Chapter 2: Lower Palaeolithic Stratigraphy";
+    c_corvinus.strata_ids = {"stratum-chirki-rubble"};
+    c_corvinus.origin_type = "digital_stream";
+    c_corvinus.verification_status = "VERIFIED";
+    storage.put_claim(c_corvinus);
+
+    Claim c_sankalia;
+    c_sankalia.id = "claim-chirki-sankalia";
+    c_sankalia.project_id = project_id;
+    c_sankalia.claim_text = "The rubble horizon was 2040 cm thick, overlying the bedrock of trap basalt.";
+    c_sankalia.scholar_name = "Sankalia (1974 Monograph Scan)";
+    c_sankalia.source_id = "src-sankalia-1974";
+    c_sankalia.topic = "Stratigraphy";
+    c_sankalia.status = "Contested";
+    c_sankalia.chapter = "Chapter 2: Lower Palaeolithic Stratigraphy";
+    c_sankalia.strata_ids = {"stratum-chirki-rubble"};
+    c_sankalia.origin_type = "scanned_ocr";
+    c_sankalia.verification_status = "PENDING_VERIFICATION";
+    c_sankalia.is_quantitative = true;
+    c_sankalia.anomaly_flag = true;
+    c_sankalia.anomaly_reason = "Outlier: 2040 cm (20.4 m) exceeds typical Acheulian gravel deposit by ~70x. Scan optical hyphen omitted.";
+    c_sankalia.optical_crop_path = "/crops/crop_2040_raw.png";
+    c_sankalia.ocr_confidence = 0.64;
+    storage.put_claim(c_sankalia);
+
     // -------------------------------------------------------------
     // Layer C: Evidence Links
     // -------------------------------------------------------------

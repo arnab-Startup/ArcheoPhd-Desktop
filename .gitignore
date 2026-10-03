@@ -5,9 +5,19 @@ src/resource.res
 *.obj
 *.i
 
+# Test binaries & build folders
+tests/bin/
+build/
+*.exe
+!release/ArchaeoPhD.exe
+
 # Local user data / WebView2 cache
 WebView2Data/
 data/
+engine/data/
+.cache/
+**/.cache/
+*.log
 
 # OS metadata
 Thumbs.db

@@ -19,14 +19,15 @@
 // Include Native C++ Engine headers (Zero HTTP / Zero Socket dependencies)
 #include <json.hpp>
 #include <memory>
-#include "models.hpp"
-#include "storage.hpp"
-#include "vector_index.hpp"
-#include "contradictions.hpp"
-#include "thesis_audit.hpp"
-#include "system_inspector.hpp"
-#include "benchmark_seed.hpp"
-#include "data_root.hpp"
+#include "core/models.hpp"
+#include "storage/storage.hpp"
+#include "analysis/vector_index.hpp"
+#include "analysis/contradictions.hpp"
+#include "analysis/thesis_audit.hpp"
+#include "core/system_inspector.hpp"
+#include "validation/benchmark_seed.hpp"
+#include "storage/data_root.hpp"
+#include "extraction/document_extractor.hpp"
 
 using json = nlohmann::json;
 
@@ -429,6 +430,26 @@ inline std::string DispatchNativeMessage(const std::string& inputJson) {
             json arr = json::array();
             for (const auto& c : claims) arr.push_back(c);
             res["result"] = arr;
+        } else if (action == "verify_claim_grounding") {
+            std::string claimId = payload.value("claim_id", "");
+            std::string correctedText = payload.value("corrected_text", "");
+            std::string act = payload.value("action", "correct");
+            auto claims = g_storage->get_claims(projectId);
+            bool found = false;
+            for (auto& c : claims) {
+                if (c.id == claimId) {
+                    if (act == "correct" && !correctedText.empty()) {
+                        c.claim_text = correctedText;
+                    }
+                    c.verification_status = "VERIFIED";
+                    c.anomaly_flag = false;
+                    c.anomaly_reason = "";
+                    g_storage->put_claim(c);
+                    found = true;
+                    break;
+                }
+            }
+            res["result"] = {{"success", found}};
         } else if (action == "get_evidence") {
             auto evidence = g_storage->get_evidence(projectId);
             json arr = json::array();
@@ -451,6 +472,46 @@ inline std::string DispatchNativeMessage(const std::string& inputJson) {
         } else if (action == "load_benchmark") {
             archaeophd::seed_benchmark_corpus(*g_storage, projectId);
             res["result"] = {{"status", "success"}, {"message", "Benchmark corpus loaded into native storage."}};
+        } else if (action == "run_document_extraction" || action == "get_extraction_report" || action == "run_phase0_validation") {
+            auto report = archaeophd::DocumentExtractor::RunExtractionEvaluation();
+            json r;
+            r["timestamp"] = report.timestamp;
+            r["documents_processed"] = report.documents_processed;
+            r["total_words_analyzed"] = report.total_words_analyzed;
+            r["overall_precision"] = report.overall_precision;
+            r["overall_recall"] = report.overall_recall;
+            r["hallucination_rate"] = report.hallucination_rate;
+            r["bce_ce_chronological_fidelity"] = report.bce_ce_chronological_fidelity;
+            r["compression_sha256_lossless"] = report.compression_sha256_lossless;
+            r["avg_compression_ratio"] = report.avg_compression_ratio;
+            r["type1_date_clashes_detected"] = report.type1_date_clashes_detected;
+            r["type2_interpretive_conflicts_flagged"] = report.type2_interpretive_conflicts_flagged;
+            r["type3_stratigraphic_cycles_caught"] = report.type3_stratigraphic_cycles_caught;
+            r["review_guardrail_enforced"] = report.review_guardrail_enforced;
+            r["minimum_precision_threshold"] = report.minimum_precision_threshold;
+            r["passed_quality_gate"] = report.passed_quality_gate;
+            r["status_verdict"] = report.status_verdict;
+            r["evaluation_summary"] = report.evaluation_summary;
+            
+            json docsArr = json::array();
+            for (const auto& d : report.document_results) {
+                json dj;
+                dj["doc_id"] = d.doc_id;
+                dj["word_count"] = d.word_count;
+                dj["entity_precision"] = d.entity_precision;
+                dj["entity_recall"] = d.entity_recall;
+                dj["hallucinated_claims"] = d.hallucinated_claims;
+                dj["citation_grounded"] = d.citation_grounded;
+                dj["extraction_duration_ms"] = d.extraction_duration_ms;
+                dj["extracted_sites"] = d.extracted_sites;
+                dj["extracted_strata"] = d.extracted_strata;
+                dj["extracted_loci"] = d.extracted_loci;
+                dj["extracted_artifacts"] = d.extracted_artifacts;
+                dj["extracted_date_claims"] = d.extracted_date_claims;
+                docsArr.push_back(dj);
+            }
+            r["document_results"] = docsArr;
+            res["result"] = r;
         } else {
             res["error"] = "Unknown native action: " + action;
         }

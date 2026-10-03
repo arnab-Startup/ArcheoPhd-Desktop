@@ -9,8 +9,10 @@ cd /d "%~dp0"
 REM Terminate any running instance of ArchaeoPhD.exe to avoid file lock
 taskkill /F /IM ArchaeoPhD.exe >nul 2>&1
 
-REM Clean stale AppData cache if present
-if exist "%LOCALAPPDATA%\ArchaeoPhD\app" rmdir /s /q "%LOCALAPPDATA%\ArchaeoPhD\app" >nul 2>&1
+REM Prefer modern 64-bit C++20 toolchain (WinLibs / GCC 16)
+if exist "%LOCALAPPDATA%\Microsoft\WinGet\Packages\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\mingw64\bin" (
+    set "PATH=%LOCALAPPDATA%\Microsoft\WinGet\Packages\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\mingw64\bin;%PATH%"
+)
 
 REM 1. Package runtime payload archive (WebView2Loader.dll + dist)
 echo Packaging runtime payload archive...
@@ -30,10 +32,15 @@ REM 3. Ensure release directory exists
 if not exist "release" mkdir release
 
 REM 4. Compile standalone ArchaeoPhD.exe with MinGW G++ (Statically linked: zero MinGW DLL dependencies)
-echo Compiling self-contained ArchaeoPhD.exe with MinGW G++ (statically linked)...
-g++ -std=c++14 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
+echo Compiling self-contained ArchaeoPhD.exe with MinGW G++ C++20 (statically linked)...
+g++ -std=c++20 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
     -I include ^
-    -I engine\src ^
+    -I engine ^
+    -I engine\core ^
+    -I engine\storage ^
+    -I engine\analysis ^
+    -I engine\extraction ^
+    -I engine\validation ^
     src\main.cpp ^
     src\resource.res ^
     -o release\ArchaeoPhD.exe ^

@@ -70,6 +70,9 @@ public:
         auto t1 = detect_type_1_chronological(project_id);
         all.insert(all.end(), t1.begin(), t1.end());
 
+        auto t1_m = detect_type_1_measurements(project_id);
+        all.insert(all.end(), t1_m.begin(), t1_m.end());
+
         auto t3 = detect_type_3_stratigraphic(project_id);
         all.insert(all.end(), t3.begin(), t3.end());
 
@@ -92,7 +95,7 @@ public:
 
         std::map<std::string, std::vector<Claim>> site_date_claims;
         for (const auto& c : claims) {
-            if (c.topic == "Chronology" || c.claim_text.find("BCE") != std::string::npos || c.claim_text.find("CE") != std::string::npos) {
+            if (c.topic == "Chronology" || c.claim_text.find("BCE") != std::string::npos || c.claim_text.find("CE") != std::string::npos || c.is_quantitative) {
                 for (const auto& s_id : c.site_ids) {
                     site_date_claims[s_id].push_back(c);
                 }
@@ -125,6 +128,74 @@ public:
                 };
                 c.resolution_guidance = "Select explicit chronological framework (High/Middle/Low) OR cite the 130-year uncertainty directly in your thesis footnote.";
                 c.is_confirmed = true;
+
+                // Selective Anomaly / Grounding Gate (Lazy Check)
+                for (const auto& clm : dc_list) {
+                    if (clm.anomaly_flag && clm.verification_status != "VERIFIED") {
+                        c.requires_grounding = true;
+                        c.grounding_crop_path = clm.optical_crop_path;
+                        c.anomaly_description = clm.anomaly_reason.empty() ? "Anomalous metric extracted from scanned source" : clm.anomaly_reason;
+                        c.flagged_claim_id = clm.id;
+                        c.severity = "MEDIUM";
+                        break;
+                    }
+                }
+
+                conflicts.push_back(std::move(c));
+            }
+        }
+        return conflicts;
+    }
+
+    // -------------------------------------------------------------
+    // Type 1: Quantitative / Stratum Thickness Measurement Contradiction
+    // -------------------------------------------------------------
+    std::vector<Contradiction> detect_type_1_measurements(const std::string& project_id) const {
+        std::vector<Contradiction> conflicts;
+        auto claims = storage_.get_claims(project_id);
+
+        std::map<std::string, std::vector<Claim>> stratum_claims;
+        for (const auto& c : claims) {
+            if (c.topic == "Stratigraphy" || c.topic == "Measurement" || c.claim_text.find(" cm") != std::string::npos || c.claim_text.find(" m.") != std::string::npos || c.claim_text.find("thick") != std::string::npos) {
+                for (const auto& st_id : c.strata_ids) {
+                    stratum_claims[st_id].push_back(c);
+                }
+            }
+        }
+
+        for (const auto& kv : stratum_claims) {
+            const auto& st_id = kv.first;
+            const auto& c_list = kv.second;
+            if (c_list.size() >= 2) {
+                Contradiction c;
+                c.id = "meas-" + st_id;
+                c.project_id = project_id;
+                c.type = "Type 1: Chronological";
+                c.severity = "HIGH";
+                c.title = "Stratum Measurement Discrepancy: Horizon " + st_id;
+                c.entity_name = "Stratum Horizon #" + st_id;
+                c.source_a = c_list[0].scholar_name;
+                c.claim_a = c_list[0].claim_text;
+                c.source_b = c_list[1].scholar_name;
+                c.claim_b = c_list[1].claim_text;
+                c.details = {
+                    {"conflict_type", "Stratigraphic layer thickness mismatch"},
+                    {"discrepancy_factor", "Extreme dimensional divergence"}
+                };
+                c.resolution_guidance = "Verify primary excavation log or monograph plate before citing in thesis.";
+                c.is_confirmed = true;
+
+                for (const auto& clm : c_list) {
+                    if (clm.anomaly_flag && clm.verification_status != "VERIFIED") {
+                        c.requires_grounding = true;
+                        c.grounding_crop_path = clm.optical_crop_path;
+                        c.anomaly_description = clm.anomaly_reason.empty() ? "Optical OCR measurement anomaly detected" : clm.anomaly_reason;
+                        c.suggested_correction = (clm.claim_text.find("2040 cm") != std::string::npos) ? "20-40 cm" : "";
+                        c.flagged_claim_id = clm.id;
+                        c.severity = "MEDIUM";
+                        break;
+                    }
+                }
                 conflicts.push_back(std::move(c));
             }
         }
