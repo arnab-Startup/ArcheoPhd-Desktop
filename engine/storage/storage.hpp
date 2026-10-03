@@ -54,6 +54,7 @@ private:
     std::map<std::string, EvidenceLink> evidence_;
     std::map<std::string, Source> sources_;
     std::map<std::string, Note> notes_;
+    std::map<std::string, VerificationItem> verification_items_;
 
     VectorIndex vector_index_;
 
@@ -75,6 +76,7 @@ public:
 
     VectorIndex& vectors() { return vector_index_; }
     const VectorIndex& vectors() const { return vector_index_; }
+    const std::string& get_data_dir() const { return data_dir_; }
 
     void save_state() {
         NativeGuard lock(mutex_);
@@ -102,6 +104,9 @@ public:
 
         state["notes"] = json::array();
         for (const auto& kv : notes_) state["notes"].push_back(kv.second);
+
+        state["verification_items"] = json::array();
+        for (const auto& kv : verification_items_) state["verification_items"].push_back(kv.second);
 
         std::ofstream out(state_path().c_str());
         if (out.is_open()) {
@@ -166,6 +171,12 @@ public:
                 for (const auto& it : state["notes"]) {
                     Note n = it.get<Note>();
                     notes_[n.id] = n;
+                }
+            }
+            if (state.contains("verification_items")) {
+                for (const auto& it : state["verification_items"]) {
+                    VerificationItem v = it.get<VerificationItem>();
+                    verification_items_[v.id] = v;
                 }
             }
         } catch (const std::exception& e) {
@@ -348,6 +359,92 @@ public:
     void put_note(Note n) {
         NativeGuard lock(mutex_);
         notes_[n.id] = std::move(n);
+    }
+
+    std::vector<VerificationItem> get_verification_items(const std::string& project_id = "", const std::string& source_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<VerificationItem> res;
+        for (const auto& kv : verification_items_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                (source_id.empty() || kv.second.source_id == source_id)) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    void put_verification_item(VerificationItem v) {
+        NativeGuard lock(mutex_);
+        verification_items_[v.id] = std::move(v);
+    }
+
+    bool resolve_verification_item(const std::string& item_id, const std::string& resolution_type, const std::string& override_value) {
+        NativeGuard lock(mutex_);
+        auto it = verification_items_.find(item_id);
+        if (it == verification_items_.end()) return false;
+
+        if (resolution_type == "CANDIDATE_A") {
+            it->second.resolved_value = it->second.candidate_a;
+            it->second.status = "RESOLVED_A";
+        } else if (resolution_type == "CANDIDATE_B") {
+            it->second.resolved_value = it->second.candidate_b;
+            it->second.status = "RESOLVED_B";
+        } else if (resolution_type == "MANUAL_OVERRIDE") {
+            it->second.resolved_value = override_value;
+            it->second.status = "RESOLVED_MANUAL_OVERRIDE";
+        } else if (resolution_type == "REJECT") {
+            it->second.status = "REJECTED";
+        } else {
+            return false;
+        }
+
+        save_state();
+        return true;
+    }
+
+    // ADVERSARIAL PROTECTION: Reflagging source to Class B purges any unconfirmed machine extractions
+    bool reflag_source_to_class_b(const std::string& project_id, const std::string& source_id) {
+        NativeGuard lock(mutex_);
+        auto s_it = sources_.find(source_id);
+        if (s_it != sources_.end()) {
+            s_it->second.degradation_class = "CLASS_B";
+            s_it->second.confirmed_clean_offset = false;
+            s_it->second.ingestion_status = "MANUAL_TRANSCRIPTION_PENDING";
+        }
+
+        // Purge unverified claims linked to this source
+        for (auto it = claims_.begin(); it != claims_.end(); ) {
+            if (it->second.source_id == source_id && it->second.verification_status != "VERIFIED") {
+                it = claims_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Reject pending verification items for this source
+        for (auto& kv : verification_items_) {
+            if (kv.second.source_id == source_id && kv.second.status == "PENDING") {
+                kv.second.status = "REJECTED_DUE_TO_RECLASSIFICATION";
+                kv.second.audit_note = "Purged: source was reflagged to Class B (Hard-Gated Manual).";
+            }
+        }
+
+        save_state();
+        return true;
+    }
+
+    // ADVERSARIAL PROTECTION: Put claim with strict Class B automated write prevention
+    bool put_claim_safeguarded(Claim c, bool is_human_verified = false) {
+        NativeGuard lock(mutex_);
+        auto s_it = sources_.find(c.source_id);
+        if (s_it != sources_.end()) {
+            if (s_it->second.degradation_class == "CLASS_B" && !is_human_verified && c.verification_status != "VERIFIED") {
+                // HARD-GATE ENFORCED: Refuse automated write to Class B
+                return false;
+            }
+        }
+        claims_[c.id] = std::move(c);
+        return true;
     }
 
     bool delete_entity(const std::string& entity_type, const std::string& id) {

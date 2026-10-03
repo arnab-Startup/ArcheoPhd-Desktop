@@ -103,6 +103,16 @@ public:
         return results;
     }
 
+    static std::vector<float> embed_text(const std::string& text) {
+        std::vector<float> vec(VECTOR_DIM, 0.0f);
+        for (size_t i = 0; i < text.size(); ++i) {
+            uint8_t c = static_cast<uint8_t>(text[i]);
+            vec[c % VECTOR_DIM] += 1.0f;
+        }
+        l2_normalize(vec);
+        return vec;
+    }
+
     size_t size() const {
         NativeGuard lock(mutex_);
         return records_.size();

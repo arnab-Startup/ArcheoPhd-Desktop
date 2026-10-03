@@ -143,9 +143,35 @@ struct Source {
     std::string pages;
     std::string source_type = "Monograph";
     std::string file_path;
+    std::string degradation_class = "CLASS_B"; // Default-safe: CLASS_B (Porous/Letterpress) or CLASS_A (Clean Offset)
+    bool confirmed_clean_offset = false;       // Must be explicitly confirmed by researcher to enable Class A
+    std::string ingestion_status = "UNVERIFIED_ROUGH_SCAN"; // UNVERIFIED_ROUGH_SCAN, VERIFICATION_PENDING, VERIFIED_MANUAL, COMPLETED
+    std::string archive_path;                  // e.g. archives/<id>.pdf.zst
+    std::string file_sha256;
+    uint64_t file_size_bytes = 0;
+    uint64_t compressed_size_bytes = 0;
+    int page_count = 0;
     std::string created_date;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Source, id, project_id, title, author, year, publication, journal, pages, source_type, file_path, created_date)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Source, id, project_id, title, author, year, publication, journal, pages, source_type, file_path, degradation_class, confirmed_clean_offset, ingestion_status, archive_path, file_sha256, file_size_bytes, compressed_size_bytes, page_count, created_date)
+};
+
+struct VerificationItem {
+    std::string id;
+    std::string project_id = "default";
+    std::string source_id;
+    int page_number = 1;
+    std::string field_type = "measurement"; // date, measurement, count, locus
+    std::string context_text;
+    std::string crop_image_path;            // Mandatory visual crop for optical verification
+    std::string candidate_a;                // Windows Native OCR output
+    std::string candidate_b;                // Tesseract LSTM output
+    std::string resolved_value;
+    std::string status = "PENDING";         // PENDING, RESOLVED_A, RESOLVED_B, RESOLVED_MANUAL_OVERRIDE, REJECTED_DUE_TO_RECLASSIFICATION
+    std::string audit_note;
+    std::string created_date;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(VerificationItem, id, project_id, source_id, page_number, field_type, context_text, crop_image_path, candidate_a, candidate_b, resolved_value, status, audit_note, created_date)
 };
 
 struct Note {

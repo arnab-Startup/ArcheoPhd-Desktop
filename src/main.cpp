@@ -28,6 +28,7 @@
 #include "validation/benchmark_seed.hpp"
 #include "storage/data_root.hpp"
 #include "extraction/document_extractor.hpp"
+#include "extraction/ingestion_manager.hpp"
 
 using json = nlohmann::json;
 
@@ -512,6 +513,71 @@ inline std::string DispatchNativeMessage(const std::string& inputJson) {
             }
             r["document_results"] = docsArr;
             res["result"] = r;
+        } else if (action == "ingest_document") {
+            std::string filePath = payload.value("file_path", "");
+            std::string title = payload.value("title", "");
+            std::string author = payload.value("author", "");
+            std::string year = payload.value("year", "");
+            auto ingRes = archaeophd::IngestionManager::IngestDocument(*g_storage, filePath, title, author, year, projectId);
+            res["result"] = {
+                {"success", ingRes.success},
+                {"source_id", ingRes.source_id},
+                {"degradation_class", ingRes.degradation_class},
+                {"status", ingRes.status},
+                {"original_bytes", ingRes.original_bytes},
+                {"compressed_bytes", ingRes.compressed_bytes},
+                {"sha256", ingRes.sha256_checksum},
+                {"message", ingRes.message}
+            };
+        } else if (action == "classify_source") {
+            std::string sourceId = payload.value("source_id", "");
+            std::string targetClass = payload.value("target_class", "CLASS_B");
+            bool confirmedCleanOffset = payload.value("confirmed_clean_offset", false);
+            std::string err;
+            bool ok = archaeophd::IngestionManager::ClassifySource(*g_storage, sourceId, targetClass, confirmedCleanOffset, err, projectId);
+            if (!ok) {
+                res["error"] = err.empty() ? "Classification failed" : err;
+            } else {
+                res["result"] = {{"success", true}, {"source_id", sourceId}, {"degradation_class", targetClass}};
+            }
+        } else if (action == "reflag_source_class") {
+            std::string sourceId = payload.value("source_id", "");
+            bool ok = archaeophd::IngestionManager::ReflagSourceToClassB(*g_storage, sourceId, projectId);
+            res["result"] = {{"success", ok}, {"source_id", sourceId}, {"degradation_class", "CLASS_B"}};
+        } else if (action == "get_verification_queue") {
+            std::string sourceId = payload.value("source_id", "");
+            auto items = g_storage->get_verification_items(projectId, sourceId);
+            json arr = json::array();
+            for (const auto& v : items) arr.push_back(v);
+            res["result"] = arr;
+        } else if (action == "resolve_verification_item") {
+            std::string itemId = payload.value("item_id", "");
+            std::string resolutionType = payload.value("resolution_type", "");
+            std::string overrideValue = payload.value("override_value", "");
+            bool ok = g_storage->resolve_verification_item(itemId, resolutionType, overrideValue);
+            res["result"] = {{"success", ok}, {"item_id", itemId}};
+        } else if (action == "save_manual_transcription") {
+            std::string sourceId = payload.value("source_id", "");
+            int pageNumber = payload.value("page_number", 1);
+            json facts = payload.value("facts", json::array());
+            bool ok = archaeophd::IngestionManager::SaveManualTranscription(*g_storage, sourceId, pageNumber, facts, projectId);
+            res["result"] = {{"success", ok}, {"source_id", sourceId}, {"page_number", pageNumber}};
+        } else if (action == "search_semantic_passages") {
+            std::string query = payload.value("query", "");
+            int topK = payload.value("top_k", 5);
+            auto queryEmb = archaeophd::VectorIndex::embed_text(query);
+            auto matches = g_storage->vectors().search(queryEmb, topK);
+            json arr = json::array();
+            for (const auto& m : matches) {
+                arr.push_back({
+                    {"chunk_id", m.chunk_id},
+                    {"doc_id", m.doc_id},
+                    {"page_ref", m.page_ref},
+                    {"score", m.score},
+                    {"text", g_storage->read_compressed_chunk(m.chunk_id)}
+                });
+            }
+            res["result"] = arr;
         } else {
             res["error"] = "Unknown native action: " + action;
         }

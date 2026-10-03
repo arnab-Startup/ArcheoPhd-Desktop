@@ -1,0 +1,189 @@
+#include <iostream>
+#include <cassert>
+#include <string>
+#include <vector>
+#include <filesystem>
+#include <fstream>
+#include "models.hpp"
+#include "storage.hpp"
+#include "extraction/ingestion_manager.hpp"
+
+using namespace archaeophd;
+
+int main() {
+    std::cout << "================================================================================\n";
+    std::cout << "  ArchaeoPhD Engine — Adversarial Ingestion Gating & Safeguard Test Suite       \n";
+    std::cout << "================================================================================\n\n";
+
+    std::string testDir = "test_adversarial_data";
+    // Clean previous run
+    std::error_code ec;
+    std::filesystem::remove_all(testDir, ec);
+
+    // Create dummy PDF file for ingestion tests
+    std::string dummyPdf = "test_sample_paper.pdf";
+    {
+        std::ofstream f(dummyPdf, std::ios::binary);
+        f << "%PDF-1.4 sample archaeological excavation report with stratigraphy data";
+    }
+
+    {
+        NativeStorage storage(testDir);
+        std::cout << "[TEST 1] Ingestion Defaults strictly to Class B (Default-Safe)...\n";
+        auto res = IngestionManager::IngestDocument(storage, dummyPdf, "Excavation Report", "Sankalia", "1974");
+        assert(res.success == true);
+        assert(res.degradation_class == "CLASS_B");
+        assert(res.status == "UNVERIFIED_ROUGH_SCAN");
+
+        auto sources = storage.get_sources();
+        assert(sources.size() == 1);
+        assert(sources[0].degradation_class == "CLASS_B");
+        assert(sources[0].confirmed_clean_offset == false);
+        std::cout << "  ✓ Ingested document automatically defaults to CLASS_B with zero automated writes.\n\n";
+
+        std::cout << "[TEST 2] Malformed & Date-Heuristic Class Strings Fail-Safe to Class B...\n";
+        std::vector<std::string> malformedInputs = {"", "CLASS_C", "1980", ">1980", "MODERN_OFFSET", "random_junk"};
+        for (const auto& badInput : malformedInputs) {
+            std::string err;
+            bool ok = IngestionManager::ClassifySource(storage, res.source_id, badInput, false, err);
+            auto sList = storage.get_sources();
+            assert(sList[0].degradation_class == "CLASS_B");
+        }
+        std::cout << "  ✓ 100% of malformed inputs ('', '1980', 'CLASS_C', etc.) fail-safe strictly to CLASS_B.\n\n";
+
+        std::cout << "[TEST 3] Class A Rejection Without Explicit Physical Print Confirmation...\n";
+        std::string err;
+        bool ok = IngestionManager::ClassifySource(storage, res.source_id, "CLASS_A", false, err);
+        assert(ok == false);
+        assert(!err.empty());
+        assert(storage.get_sources()[0].degradation_class == "CLASS_B");
+        std::cout << "  ✓ Unconfirmed Class A upgrade blocked: '" << err << "'\n\n";
+
+        std::cout << "[TEST 4] Direct Automated Write Injection on Class B is Programmatically Blocked...\n";
+        Claim c1;
+        c1.id = "claim_injected_1";
+        c1.source_id = res.source_id;
+        c1.claim_text = "Trench VII depth: 20-40 cm";
+        c1.verification_status = "PENDING_VERIFICATION"; // Machine unconfirmed
+        bool writeSuccess = storage.put_claim_safeguarded(c1, false);
+        assert(writeSuccess == false);
+        assert(storage.get_claims().empty());
+        std::cout << "  ✓ Attempted automated claim write to Class B rejected by storage hard-gate.\n\n";
+
+        std::cout << "[TEST 5] Valid Class A Upgrade and Dual-Engine Verification Routing...\n";
+        ok = IngestionManager::ClassifySource(storage, res.source_id, "CLASS_A", true, err);
+        assert(ok == true);
+        assert(storage.get_sources()[0].degradation_class == "CLASS_A");
+        assert(storage.get_sources()[0].confirmed_clean_offset == true);
+
+        // Feed candidate facts (1 consensus, 1 disagreement)
+        ExtractedFact f1;
+        f1.fact_id = "fact_001";
+        f1.entity_name = "Chirki Discovery Year";
+        f1.value_engine_a = "1963";
+        f1.value_engine_b = "1963"; // Exact consensus!
+
+        ExtractedFact f2;
+        f2.fact_id = "fact_002";
+        f2.entity_name = "Rubble Thickness";
+        f2.value_engine_a = "2040 cm";
+        f2.value_engine_b = "20-40 cm"; // Disagreement!
+
+        IngestionManager::ProcessClassAFacts(storage, res.source_id, {f1, f2});
+
+        // Verify: 1 claim committed (consensus), 1 routed to verification queue
+        assert(storage.get_claims().size() == 1);
+        assert(storage.get_claims()[0].claim_text == "Chirki Discovery Year: 1963");
+        assert(storage.get_verification_items().size() == 1);
+        assert(storage.get_verification_items()[0].candidate_a == "2040 cm");
+        assert(storage.get_verification_items()[0].candidate_b == "20-40 cm");
+        assert(storage.get_verification_items()[0].status == "PENDING");
+        std::cout << "  ✓ Consensus fact auto-committed; Discrepancy queued with image crop link.\n\n";
+
+        std::cout << "[TEST 6] Mid-Session Reflag (A -> B Purge) Completely Cleans Staged State...\n";
+        // Researcher finds bleed-through on page 50 and clicks 1-click reflag to Class B!
+        bool reflagged = IngestionManager::ReflagSourceToClassB(storage, res.source_id);
+        assert(reflagged == true);
+        assert(storage.get_sources()[0].degradation_class == "CLASS_B");
+        assert(storage.get_sources()[0].confirmed_clean_offset == false);
+
+        // Verify verification item is purged / rejected
+        auto vItems = storage.get_verification_items();
+        assert(vItems[0].status == "REJECTED_DUE_TO_RECLASSIFICATION");
+
+        // Verify that subsequent automated writes are instantly rejected
+        bool writeAfterReflag = storage.put_claim_safeguarded(c1, false);
+        assert(writeAfterReflag == false);
+        std::cout << "  ✓ Mid-session reflag immediately purged staged queue and restored Class B hard-gate.\n\n";
+
+        std::cout << "[TEST 7] Search Indexing vs Knowledge Graph Truth-Plane Isolation...\n";
+        // Rough text indexed for discovery
+        int chunks = IngestionManager::IndexRoughTextForSearch(
+            storage,
+            res.source_id,
+            {{53, "In trench VII the rubble horizon overlying trap basalt was 20-40 cm thick and produced 694 early stone age tools."}}
+        );
+        assert(chunks > 0);
+        // Verify vector index has chunks
+        auto queryEmb = VectorIndex::embed_text("rubble horizon tools");
+        auto searchMatches = storage.vectors().search(queryEmb, 1);
+        assert(!searchMatches.empty());
+
+        // BUT assert Knowledge Graph remains 100% clean (no automated claims created)
+        // Only the previously verified f1 claim exists
+        assert(storage.get_claims().size() == 1);
+        std::cout << "  ✓ Rough scan indexed for semantic search while Knowledge Graph remains strictly protected.\n\n";
+
+        std::cout << "[TEST 8] Manual Transcription Commits Clean Grounded Facts (No Pre-Fill)...\n";
+        json manualFacts = json::array({
+            {{"entity_name", "Trench VII Rubble Thickness"}, {"value", "20-40 cm"}, {"type", "measurement"}},
+            {{"entity_name", "Early Stone Age Tools Count"}, {"value", "694"}, {"type", "count"}}
+        });
+        bool manualSaved = IngestionManager::SaveManualTranscription(storage, res.source_id, 53, manualFacts);
+        assert(manualSaved == true);
+        assert(storage.get_sources()[0].ingestion_status == "VERIFIED_MANUAL");
+
+        auto finalClaims = storage.get_claims();
+        assert(finalClaims.size() == 3); // 1 previous + 2 manual
+        bool foundManualCount = false;
+        for (const auto& c : finalClaims) {
+            if (c.claim_text == "Early Stone Age Tools Count: 694") {
+                foundManualCount = true;
+                assert(c.origin_type == "manual_transcription");
+                assert(c.verification_status == "VERIFIED");
+            }
+        }
+        assert(foundManualCount == true);
+        std::cout << "  ✓ Manual transcription recorded verbatim human-entered facts into Knowledge Graph.\n\n";
+    }
+
+    std::cout << "[TEST 9] Crash/Restart State Recovery Preserves Class B Gating from Disk...\n";
+    {
+        // Re-open brand new NativeStorage instance from the saved directory
+        NativeStorage recoveredStorage(testDir);
+        auto sources = recoveredStorage.get_sources();
+        assert(sources.size() == 1);
+        assert(sources[0].degradation_class == "CLASS_B");
+        assert(sources[0].confirmed_clean_offset == false);
+        assert(sources[0].ingestion_status == "VERIFIED_MANUAL");
+
+        // Attempt automated injection on recovered instance
+        Claim badClaim;
+        badClaim.id = "bad_after_crash";
+        badClaim.source_id = sources[0].id;
+        badClaim.claim_text = "Phantom Date 1656";
+        badClaim.verification_status = "PENDING";
+        bool badWrite = recoveredStorage.put_claim_safeguarded(badClaim, false);
+        assert(badWrite == false);
+        std::cout << "  ✓ Recovered state across simulated app crash retained Class B hard-gate.\n\n";
+    }
+
+    // Clean up test file and directory
+    std::filesystem::remove(dummyPdf, ec);
+    std::filesystem::remove_all(testDir, ec);
+
+    std::cout << "================================================================================\n";
+    std::cout << "  ALL 9 ADVERSARIAL INGESTION & GATING TESTS PASSED WITH ZERO FAILURES!         \n";
+    std::cout << "================================================================================\n";
+    return 0;
+}
