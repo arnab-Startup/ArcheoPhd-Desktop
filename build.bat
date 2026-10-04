@@ -44,7 +44,7 @@ g++ -std=c++20 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
     src\main.cpp ^
     src\resource.res ^
     -o release\ArchaeoPhD.exe ^
-    -lole32 -loleaut32 -luuid -luser32 -lshell32 -lshlwapi
+    -lole32 -loleaut32 -luuid -luser32 -lshell32 -lshlwapi -lcomdlg32
 
 if %ERRORLEVEL% EQU 0 (
     REM Clean up temporary build artifacts

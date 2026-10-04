@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+#include <commdlg.h>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -311,6 +312,28 @@ public:
                 return true;
             }
             CoTaskMemFree(pidl);
+        }
+        return false;
+    }
+
+    static inline bool BrowseForFile(HWND hWndOwner, const std::string& initialDirUtf8, std::string& outSelectedPath) {
+        wchar_t szFile[MAX_PATH] = { 0 };
+        OPENFILENAMEW ofn = { 0 };
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = hWndOwner;
+        static const wchar_t filter[] = L"PDF Documents (*.pdf)\0*.pdf\0Excavation Data (*.pdf;*.txt;*.csv)\0*.pdf;*.txt;*.csv\0All Files (*.*)\0*.*\0\0";
+        ofn.lpstrFilter = filter;
+        ofn.lpstrFile = szFile;
+        ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
+        std::wstring initialDirWide = Utf8ToWide(initialDirUtf8);
+        if (!initialDirWide.empty()) {
+            ofn.lpstrInitialDir = initialDirWide.c_str();
+        }
+        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+        if (GetOpenFileNameW(&ofn)) {
+            outSelectedPath = WideToUtf8(szFile);
+            return true;
         }
         return false;
     }

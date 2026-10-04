@@ -116,6 +116,8 @@ inline void seed_benchmark_corpus(NativeStorage& storage, const std::string& pro
     s_kenyon.year = "1978";
     s_kenyon.publication = "British Museum Publications";
     s_kenyon.pages = "47–53";
+    s_kenyon.degradation_class = "CLASS_B";
+    s_kenyon.ingestion_status = "UNVERIFIED_ROUGH_SCAN";
     storage.put_source(s_kenyon);
 
     Source s_wood;
@@ -126,6 +128,9 @@ inline void seed_benchmark_corpus(NativeStorage& storage, const std::string& pro
     s_wood.year = "1990";
     s_wood.journal = "Biblical Archaeology Review";
     s_wood.pages = "44–58";
+    s_wood.degradation_class = "CLASS_A";
+    s_wood.confirmed_clean_offset = true;
+    s_wood.ingestion_status = "VERIFIED";
     storage.put_source(s_wood);
 
     // -------------------------------------------------------------
@@ -266,6 +271,54 @@ inline void seed_benchmark_corpus(NativeStorage& storage, const std::string& pro
     ev_s_con.physical_entity_id = "sample-charred-seeds";
     ev_s_con.source_ids = {"src-wood-1990"};
     storage.put_evidence(ev_s_con);
+
+    // -------------------------------------------------------------
+    // Layer D: Discrepancy Verification Items (Optical Anti-Anchoring)
+    // -------------------------------------------------------------
+    VerificationItem v1;
+    v1.id = "vitem-chirki-rubble";
+    v1.project_id = project_id;
+    v1.source_id = "src-sankalia-1974";
+    v1.page_number = 42;
+    v1.field_type = "measurement";
+    v1.context_text = "The rubble horizon was 2040 cm thick, overlying the bedrock of trap basalt.";
+    v1.crop_image_path = "/crops/crop_2040_raw.png";
+    v1.candidate_a = "2040 cm";
+    v1.candidate_b = "20-40 cm";
+    v1.status = "PENDING";
+    v1.audit_note = "Engines disagreed: Windows OCR = '2040 cm' vs VLM = '20-40 cm'. Hyphen broken in letterpress lead slug.";
+    v1.created_date = "1727740800";
+    storage.put_verification_item(v1);
+
+    VerificationItem v2;
+    v2.id = "vitem-jericho-catalogue";
+    v2.project_id = project_id;
+    v2.source_id = "src-kenyon-1978";
+    v2.page_number = 51;
+    v2.field_type = "catalogue_id";
+    v2.context_text = "Registration catalogue index 694 recorded in locus B";
+    v2.crop_image_path = "/crops/crop_694_raw.png";
+    v2.candidate_a = "694";
+    v2.candidate_b = "69-4";
+    v2.status = "PENDING";
+    v2.audit_note = "Catalogue sub-index hyphen split across damaged lead slug.";
+    v2.created_date = "1727740800";
+    storage.put_verification_item(v2);
+
+    VerificationItem v3;
+    v3.id = "vitem-hazor-unlinked";
+    v3.project_id = project_id;
+    v3.source_id = "src-kenyon-1978";
+    v3.page_number = 73;
+    v3.field_type = "chronology";
+    v3.context_text = "Fortification phase attributed to Solomonic stratum XA vs XB";
+    v3.crop_image_path = ""; // Deliberately missing crop: demonstrates Anti-Anchoring Lockout!
+    v3.candidate_a = "Stratum XA";
+    v3.candidate_b = "Stratum XB";
+    v3.status = "PENDING";
+    v3.audit_note = "Optical scan crop unlinked. Resolution locked to prevent cognitive bias.";
+    v3.created_date = "1727740800";
+    storage.put_verification_item(v3);
 
     storage.save_state();
 }

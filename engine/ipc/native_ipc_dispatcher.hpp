@@ -130,6 +130,23 @@ public:
                     };
                 }
                 return res.dump();
+            } else if (action == "browse_file") {
+                if (payload.contains("mock_path")) {
+                    std::string mp = payload["mock_path"].get<std::string>();
+                    res["result"] = {
+                        {"cancelled", mp.empty()},
+                        {"path", mp}
+                    };
+                    return res.dump();
+                }
+                std::string initialDir = payload.value("initial_dir", "");
+                std::string picked;
+                bool ok = DataRootManager::BrowseForFile(hWnd_, initialDir, picked);
+                res["result"] = {
+                    {"cancelled", !ok},
+                    {"path", ok ? picked : ""}
+                };
+                return res.dump();
             } else if (action == "check_cloud_sync") {
                 std::string p = payload.value("path", "");
                 std::string cloud = DataRootManager::DetectCloudSyncService(DataRootManager::Utf8ToWide(p));

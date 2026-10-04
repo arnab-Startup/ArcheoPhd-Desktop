@@ -812,12 +812,283 @@ int main() {
         std::cout << "  ✓ 500 KB payload transmitted, indexed, and retrieved with zero truncation or memory corruption.\n\n";
     }
 
+    // -------------------------------------------------------------------------
+    // TEST 19: Step 3 UI: Native browse_file Endpoint Contract
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 19] Step 3 UI: Native browse_file Endpoint Contract...\n";
+        // A. Mock cancelled selection
+        auto browseCancel = bridge.call("browse_file", {{"mock_path", ""}});
+        assert(browseCancel.resolved == true);
+        assert(browseCancel.result["cancelled"] == true);
+        assert(browseCancel.result["path"].get<std::string>().empty());
+
+        // B. Mock picked PDF selection
+        auto browsePick = bridge.call("browse_file", {{"mock_path", "D:\\Excavations\\Kenyon_1957.pdf"}});
+        assert(browsePick.resolved == true);
+        assert(browsePick.result["cancelled"] == false);
+        assert(browsePick.result["path"] == "D:\\Excavations\\Kenyon_1957.pdf");
+        std::cout << "  ✓ Native browse_file IPC endpoint conforms to cancellation & return contract.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 20: Step 3 UI: Verification Queue Optical Crop Binding
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 20] Step 3 UI: Verification Queue Optical Crop Binding...\n";
+        // Load benchmark corpus to seed realistic discrepancy items
+        auto seedRes = bridge.call("load_benchmark");
+        assert(seedRes.resolved == true);
+
+        auto queueRes = bridge.call("get_verification_queue");
+        assert(queueRes.resolved == true);
+        assert(queueRes.result.is_array());
+        assert(queueRes.result.size() >= 3);
+
+        bool foundChirkiCrop = false;
+        bool foundUnlinkedItem = false;
+        for (const auto& item : queueRes.result) {
+            std::string id = item.value("id", "");
+            if (id == "vitem-chirki-rubble") {
+                foundChirkiCrop = true;
+                assert(item["crop_image_path"] == "/crops/crop_2040_raw.png");
+                assert(item["candidate_a"] == "2040 cm");
+                assert(item["candidate_b"] == "20-40 cm");
+                assert(item["status"] == "PENDING");
+            } else if (id == "vitem-hazor-unlinked") {
+                foundUnlinkedItem = true;
+                assert(item["crop_image_path"].get<std::string>().empty());
+                assert(item["status"] == "PENDING");
+            }
+        }
+        assert(foundChirkiCrop);
+        assert(foundUnlinkedItem);
+        std::cout << "  ✓ Verification queue returns items with optical crops and unlinked test cases.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 21: Step 3 UI: Anti-Anchoring Resolution Hard-Gate Enforcement
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 21] Step 3 UI: Anti-Anchoring Resolution Hard-Gate Enforcement...\n";
+
+        // A. Attempting to resolve item WITHOUT crop using CANDIDATE_A must be REJECTED
+        auto lockedRes1 = bridge.call("resolve_verification_item", {
+            {"item_id", "vitem-hazor-unlinked"},
+            {"resolution_type", "CANDIDATE_A"}
+        });
+        assert(lockedRes1.rejected == true);
+        assert(lockedRes1.error.find("Anti-anchoring violation") != std::string::npos);
+
+        // B. Attempting to resolve item WITHOUT crop using MANUAL_OVERRIDE must be REJECTED
+        auto lockedRes2 = bridge.call("resolve_verification_item", {
+            {"item_id", "vitem-hazor-unlinked"},
+            {"resolution_type", "MANUAL_OVERRIDE"},
+            {"override_value", "Stratum XA"}
+        });
+        assert(lockedRes2.rejected == true);
+        assert(lockedRes2.error.find("Anti-anchoring violation") != std::string::npos);
+
+        // C. Resolving item WITHOUT crop using REJECT is permitted
+        auto rejectRes = bridge.call("resolve_verification_item", {
+            {"item_id", "vitem-hazor-unlinked"},
+            {"resolution_type", "REJECT"}
+        });
+        assert(rejectRes.resolved == true);
+        assert(rejectRes.result["status"] == "REJECT");
+
+        // D. Resolving item WITH crop using CANDIDATE_B must SUCCEED
+        auto okRes = bridge.call("resolve_verification_item", {
+            {"item_id", "vitem-chirki-rubble"},
+            {"resolution_type", "CANDIDATE_B"}
+        });
+        assert(okRes.resolved == true);
+        assert(okRes.result["status"] == "CANDIDATE_B");
+
+        std::cout << "  ✓ Anti-anchoring strictly locks candidate choices when crop is missing; allows resolution when crop is present.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 22: Step 3 UI: Strict Zero Pre-Fill Manual Transcription Contract
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 22] Step 3 UI: Strict Zero Pre-Fill Manual Transcription Contract...\n";
+
+        // A. Template query enforces prefill_enabled: false and strictly empty fields
+        auto tplRes = bridge.call("get_transcription_template", {
+            {"source_id", "src-sankalia-1974"},
+            {"page_number", 42}
+        });
+        assert(tplRes.resolved == true);
+        assert(tplRes.result["prefill_enabled"] == false);
+        assert(tplRes.result["fields"].is_array());
+        for (const auto& f : tplRes.result["fields"]) {
+            std::string name = f.value("field_name", "");
+            if (name == "entity_name" || name == "value") {
+                assert(f["value"].get<std::string>().empty()); // Must be completely blank!
+            }
+        }
+
+        // B. Save manual human double-entry facts
+        json factsPayload = {
+            {"source_id", "src-sankalia-1974"},
+            {"page_number", 42},
+            {"facts", json::array({
+                {{"entity_name", "Rubble Horizon"}, {"value", "20-40 cm"}, {"type", "measurement"}},
+                {{"entity_name", "Trap Bedrock"}, {"value", "Lower Acheulian contact"}, {"type", "stratum"}}
+            })}
+        };
+        auto saveRes = bridge.call("save_manual_transcription", factsPayload);
+        assert(saveRes.resolved == true);
+        assert(saveRes.result["success"] == true);
+
+        // Verify claims are created with origin_type: "manual_transcription" and status: "VERIFIED"
+        auto claimsRes = bridge.call("get_claims");
+        assert(claimsRes.resolved == true);
+        bool foundManualClaim = false;
+        for (const auto& c : claimsRes.result) {
+            if (c.value("source_id", "") == "src-sankalia-1974" &&
+                c.value("origin_type", "") == "manual_transcription") {
+                foundManualClaim = true;
+                assert(c["verification_status"] == "VERIFIED");
+            }
+        }
+        assert(foundManualClaim);
+        std::cout << "  ✓ Zero pre-fill template verified; manual claims saved with ground-truth provenance.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 23: Step 3 UI: Gated Ingestion Screen Life-cycle & Hard-Gate
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 23] Step 3 UI: Gated Ingestion Screen Life-cycle & Hard-Gate...\n";
+
+        std::string sampleDoc = "test_step3_gated_doc.pdf";
+        {
+            std::ofstream f(sampleDoc, std::ios::binary);
+            f << "%PDF-1.5 ArchaeoPhD Step 3 Ingestion Validation File";
+        }
+
+        auto ingRes = bridge.call("ingest_document", {
+            {"file_path", sampleDoc},
+            {"title", "Stratigraphy of Trench C at Megiddo"},
+            {"author", "Gordon Loud"},
+            {"year", "1948"}
+        });
+        assert(ingRes.resolved == true);
+        assert(ingRes.result["degradation_class"] == "CLASS_B");
+        assert(ingRes.result["status"] == "UNVERIFIED_ROUGH_SCAN");
+        assert(!ingRes.result["sha256"].get<std::string>().empty());
+        std::string step3SrcId = ingRes.result["source_id"].get<std::string>();
+
+        // Storage hard-gate blocks automated claims for this source
+        json claimPayload = {
+            {"claim", {
+                {"id", "claim-auto-attempt"},
+                {"source_id", step3SrcId},
+                {"claim_text", "Automated unverified claim"},
+                {"origin_type", "scanned_ocr"}
+            }}
+        };
+        auto gateRes = bridge.call("put_claim", claimPayload);
+        assert(gateRes.rejected == true);
+        assert(gateRes.error.find("Hard gate violation") != std::string::npos);
+
+        std::filesystem::remove(sampleDoc, ec);
+        std::cout << "  ✓ Ingestion defaults to CLASS_B / UNVERIFIED_ROUGH_SCAN with storage hard-gate blocking automated claims.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 24: Step 3 UI: Classification Promotion & Retroactive Purge Lifecycle
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 24] Step 3 UI: Classification Promotion & Retroactive Purge Lifecycle...\n";
+
+        // Create a new source for classification lifecycle testing
+        std::string monoDoc = "test_step3_monograph.pdf";
+        {
+            std::ofstream f(monoDoc, std::ios::binary);
+            f << "%PDF-1.4 Modern Offset Monograph";
+        }
+        auto ingRes = bridge.call("ingest_document", {
+            {"file_path", monoDoc},
+            {"title", "Modern Offset Excavations at Tell Hazor"},
+            {"author", "Amnon Ben-Tor"},
+            {"year", "2015"}
+        });
+        assert(ingRes.resolved == true);
+        std::string hazorSrcId = ingRes.result["source_id"].get<std::string>();
+
+        // A. Attempt Class A promotion with confirmed_clean_offset == false (MUST FAIL)
+        auto failPromo = bridge.call("classify_source", {
+            {"source_id", hazorSrcId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", false}
+        });
+        assert(failPromo.rejected == true);
+
+        // B. Promote to Class A with confirmed_clean_offset == true (MUST SUCCEED)
+        auto okPromo = bridge.call("classify_source", {
+            {"source_id", hazorSrcId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", true}
+        });
+        assert(okPromo.resolved == true);
+        assert(okPromo.result["degradation_class"] == "CLASS_A");
+
+        // C. Insert automated consensus claim (now permitted for Class A)
+        json autoClaim = {
+            {"claim", {
+                {"id", "claim-hazor-consensus"},
+                {"source_id", hazorSrcId},
+                {"claim_text", "Solomonic 6-chambered gate foundation dated to Stratum X"},
+                {"origin_type", "scanned_ocr_dual_consensus"},
+                {"verification_status", "VERIFIED"}
+            }}
+        };
+        auto autoClaimRes = bridge.call("put_claim", autoClaim);
+        assert(autoClaimRes.resolved == true);
+
+        // Also add a manual double-entry claim for comparison
+        bridge.call("save_manual_transcription", {
+            {"source_id", hazorSrcId},
+            {"page_number", 1},
+            {"facts", json::array({
+                {{"entity_name", "Gate Bastion"}, {"value", "Stone socle 1.2m"}, {"type", "stratum"}}
+            })}
+        });
+
+        // D. 1-Click Reflag to Class B (Retroactive Purge Protection)
+        auto reflagRes = bridge.call("reflag_source_class", {{"source_id", hazorSrcId}});
+        assert(reflagRes.resolved == true);
+        assert(reflagRes.result["degradation_class"] == "CLASS_B");
+
+        // Confirm automated claim was PURGED, but manual claim remains
+        auto finalClaims = bridge.call("get_claims");
+        assert(finalClaims.resolved == true);
+        bool foundPurgedAutoClaim = false;
+        bool foundPreservedManualClaim = false;
+        for (const auto& c : finalClaims.result) {
+            if (c.value("id", "") == "claim-hazor-consensus") {
+                foundPurgedAutoClaim = true;
+            }
+            if (c.value("source_id", "") == hazorSrcId && c.value("origin_type", "") == "manual_transcription") {
+                foundPreservedManualClaim = true;
+            }
+        }
+        assert(!foundPurgedAutoClaim);       // Automated claim PURGED!
+        assert(foundPreservedManualClaim);   // Manual claim PRESERVED!
+
+        std::filesystem::remove(monoDoc, ec);
+        std::cout << "  ✓ Classification promotion verified; reflag to Class B retroactively purges automated claims while preserving manual transcription.\n\n";
+    }
+
     // Clean up temporary files
     std::filesystem::remove(dummyPdf, ec);
     std::filesystem::remove_all(testDir, ec);
 
     std::cout << "================================================================================\n";
-    std::cout << "  ALL 18 WEBVIEW2 IPC BRIDGE & ADVERSARIAL TESTS PASSED WITH ZERO FAILURES!     \n";
+    std::cout << "  ALL 24 WEBVIEW2 IPC BRIDGE & NATIVE UI TESTS PASSED WITH ZERO FAILURES!       \n";
     std::cout << "================================================================================\n";
     return 0;
 }
