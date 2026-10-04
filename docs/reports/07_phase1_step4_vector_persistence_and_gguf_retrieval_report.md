@@ -13,15 +13,16 @@
    - Zero-external-daemon architecture: Static in-process GGUF embedding via `llama.cpp` (`nomic-embed-text-v1.5.Q4_K_M.gguf`, SHA-256 verified).
    - 128-dimensional Matryoshka representation learning truncation with guarded L2 normalization (512 bytes per passage chunk).
    - Compile-time exclusion of test mock stub via `#ifdef ARCHAEOPHD_ENABLE_TEST_STUB` (production binary physically cannot fall back to character-frequency hashing).
-   - Pre-registered 20-query archaeological retrieval benchmark across 4 monographs (50 ground-truth passages):
+   - Pre-registered 20-query archaeological retrieval benchmark across 4 excavation corpuses plus methodology texts (50 ground-truth passages):
      - Recall@5: 85.0% (17/20, Wilson 95% Score Interval: [64.0%, 94.8%])
      - MRR@10: 0.7571
-     - Average Latency: 23.4 ms
+     - Average Latency: 23.9 ms
    - Named limitation: Intra-document disambiguation weaker than cross-monograph discrimination; tracked for Step 5 resolution via hybrid lexical/entity filtering alongside cosine similarity.
    - Commit gate rule: Milestone gate met, but production-grade confidence requires re-validation at $n \ge 100$ queries.
 3. **End-to-End Live Pipeline Join (Check 9)**:
    - Added native IPC endpoint `extract_archive_text`: reads archived binary from disk via `Source.archive_path` and parses PDF `BT`/`ET` and `Tj`/`TJ` text streams in pure C++.
    - Extended Live UI test suite to 9 checks: verified real PDF ingestion $\to$ lossless archive $\to$ stream extraction $\to$ vector embedding $\to$ semantic search retrieval in an unbroken, live WebView2 run.
+   - Scope caveat: Validates that the end-to-end architectural pipe is properly wired; does not substitute for the full Class A/B dual-engine OCR consensus pipeline required for degraded historical scans.
 
 **Implementation Files:**
 - `desktop/engine/analysis/embedding_engine.hpp` (In-process GGUF embedding engine, 128-dim Matryoshka truncation, L2 normalization)
@@ -56,19 +57,21 @@ Phase 1, Step 4 transitions ArchaeoPhD from mock/stub embeddings to a fully oper
 3. **Unbroken Live Join (Check 9)**:
    - The gap between binary ingestion (Checks 1–7) and vector retrieval (Check 8) is closed.
    - In Check 9, a real PDF (`test_live_sample.pdf`) is submitted via the live DOM $\to$ compressed and archived $\to$ extracted via native `extract_archive_text` $\to$ indexed into the vector store $\to$ searched via `search_semantic_passages` $\to$ retrieved with verified source grounding.
+   - **Scope Boundary Caveat:** Check 9 strictly proves that the architectural pipe is wired end-to-end (ingest $\to$ archive $\to$ extract $\to$ embed $\to$ search), not that real-world PDF text extraction is production-ready. The lightweight C++ stream-operator scanner (`BT...ET`, `Tj`/`TJ`) validates the pipeline join on text-bearing PDF streams; it does not substitute for the full OCR / Class A/B dual-engine consensus pipeline required for scanned, compressed, or degraded historical letterpress.
 
 ---
 
 ## 2. Benchmark Methodology & Statistical Analysis
 
 ### Benchmark Dataset
-The retrieval benchmark evaluated 50 ground-truth passages spanning 4 classical archaeological monographs with contrasting excavation methodologies, chronologies, and terminologies:
-1. **Sankalia (1974)**: *Pre- and Proto-History of India and Pakistan* (Chirki-on-Pravara Acheulian lithics).
-2. **Kenyon (1981)** vs. **Wood (1990)**: *Excavations at Jericho / Tell es-Sultan* (Middle/Late Bronze destruction horizon conflict).
-3. **Petrie (1901)**: *The Royal Tombs of the Earliest Dynasties* (Abydos First Dynasty stratigraphy and seriation).
-4. **Wheeler (1968)**: *The Indus Civilization* (Harappa cemetery R-37 and Citadel ramparts).
+The retrieval benchmark evaluated 50 ground-truth passages spanning 4 classical excavation corpuses plus foundational archaeological methodology texts:
+1. **Sankalia (1974)**: *Pre- and Proto-History of India and Pakistan* (Chirki-on-Pravara Acheulian lithics, 10 passages: `chirki_c01`–`c10`).
+2. **Kenyon (1981) vs. Wood (1990)**: *Excavations at Jericho / Tell es-Sultan* (Middle/Late Bronze destruction horizon conflict, 10 passages: `jericho_c11`–`c20`).
+3. **Yadin (1972)**: *Hazor* (Iron Age stratigraphy & fortifications, 10 passages: `hazor_c21`–`c30`).
+4. **Marshall (1931) & Mackay (1938)**: *Mohenjo-daro and the Indus Civilization* (Indus urbanism, architecture, drainage, 10 passages: `indus_c31`–`c40`).
+5. **Archaeological Method & Theory**: *Harris (1989), Aitken (1990), Schiffer (1987), Courty (1989)* (Stratigraphy, C-14/TL dating, formation processes, micromorphology, 10 passages: `method_c41`–`c50`).
 
-*Methodological Note:* The corpus was expanded from an initial 3-monograph draft to 4 monographs during test suite preparation to ensure balanced thematic coverage across Palaeolithic, Levantine Bronze Age, Dynastic Egyptian, and South Asian Urban contexts.
+*Methodological Note:* The corpus was expanded from an initial 3-monograph draft to 4 excavation corpuses plus methodology texts during test suite preparation to ensure balanced thematic coverage across Palaeolithic, Levantine Bronze/Iron Age, South Asian Urban, and stratigraphic/dating theory contexts.
 
 ### Results Against Pre-Registered Gates
 
