@@ -73,6 +73,10 @@ private:
         return data_dir_ + "/relational_state.json";
     }
 
+    std::string vectors_path() const {
+        return data_dir_ + "/vectors.bin";
+    }
+
     std::string chunks_dir() const {
         return data_dir_ + "/chunks";
     }
@@ -119,80 +123,93 @@ public:
         state["verification_items"] = json::array();
         for (const auto& kv : verification_items_) state["verification_items"].push_back(kv.second);
 
-        std::ofstream out(state_path().c_str());
-        if (out.is_open()) {
-            out << state.dump(2);
+        // 1. Atomic write-through for relational state JSON
+        std::string tmp_state = state_path() + ".tmp";
+        std::string payload = state.dump(2);
+        HANDLE hFile = CreateFileA(tmp_state.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile != INVALID_HANDLE_VALUE) {
+            DWORD written = 0;
+            WriteFile(hFile, payload.data(), static_cast<DWORD>(payload.size()), &written, NULL);
+            FlushFileBuffers(hFile);
+            CloseHandle(hFile);
+            fs_compat::rename_file(tmp_state, state_path());
         }
+
+        // 2. Atomic write-through for contiguous binary vectors.bin
+        vector_index_.save(vectors_path());
     }
 
     void load_state() {
         NativeGuard lock(mutex_);
-        if (!fs_compat::exists(state_path())) return;
+        if (fs_compat::exists(state_path())) {
+            std::ifstream in(state_path().c_str());
+            if (in.is_open()) {
+                try {
+                    json state;
+                    in >> state;
 
-        std::ifstream in(state_path().c_str());
-        if (!in.is_open()) return;
-
-        try {
-            json state;
-            in >> state;
-
-            if (state.contains("sites")) {
-                for (const auto& it : state["sites"]) {
-                    Site s = it.get<Site>();
-                    sites_[s.id] = s;
+                    if (state.contains("sites")) {
+                        for (const auto& it : state["sites"]) {
+                            Site s = it.get<Site>();
+                            sites_[s.id] = s;
+                        }
+                    }
+                    if (state.contains("strata")) {
+                        for (const auto& it : state["strata"]) {
+                            Stratum s = it.get<Stratum>();
+                            strata_[s.id] = s;
+                        }
+                    }
+                    if (state.contains("artifacts")) {
+                        for (const auto& it : state["artifacts"]) {
+                            Artifact a = it.get<Artifact>();
+                            artifacts_[a.id] = a;
+                        }
+                    }
+                    if (state.contains("samples")) {
+                        for (const auto& it : state["samples"]) {
+                            Sample s = it.get<Sample>();
+                            samples_[s.id] = s;
+                        }
+                    }
+                    if (state.contains("claims")) {
+                        for (const auto& it : state["claims"]) {
+                            Claim c = it.get<Claim>();
+                            claims_[c.id] = c;
+                        }
+                    }
+                    if (state.contains("evidence")) {
+                        for (const auto& it : state["evidence"]) {
+                            EvidenceLink e = it.get<EvidenceLink>();
+                            evidence_[e.id] = e;
+                        }
+                    }
+                    if (state.contains("sources")) {
+                        for (const auto& it : state["sources"]) {
+                            Source s = it.get<Source>();
+                            sources_[s.id] = s;
+                        }
+                    }
+                    if (state.contains("notes")) {
+                        for (const auto& it : state["notes"]) {
+                            Note n = it.get<Note>();
+                            notes_[n.id] = n;
+                        }
+                    }
+                    if (state.contains("verification_items")) {
+                        for (const auto& it : state["verification_items"]) {
+                            VerificationItem v = it.get<VerificationItem>();
+                            verification_items_[v.id] = v;
+                        }
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error loading relational state: " << e.what() << std::endl;
                 }
             }
-            if (state.contains("strata")) {
-                for (const auto& it : state["strata"]) {
-                    Stratum s = it.get<Stratum>();
-                    strata_[s.id] = s;
-                }
-            }
-            if (state.contains("artifacts")) {
-                for (const auto& it : state["artifacts"]) {
-                    Artifact a = it.get<Artifact>();
-                    artifacts_[a.id] = a;
-                }
-            }
-            if (state.contains("samples")) {
-                for (const auto& it : state["samples"]) {
-                    Sample s = it.get<Sample>();
-                    samples_[s.id] = s;
-                }
-            }
-            if (state.contains("claims")) {
-                for (const auto& it : state["claims"]) {
-                    Claim c = it.get<Claim>();
-                    claims_[c.id] = c;
-                }
-            }
-            if (state.contains("evidence")) {
-                for (const auto& it : state["evidence"]) {
-                    EvidenceLink e = it.get<EvidenceLink>();
-                    evidence_[e.id] = e;
-                }
-            }
-            if (state.contains("sources")) {
-                for (const auto& it : state["sources"]) {
-                    Source s = it.get<Source>();
-                    sources_[s.id] = s;
-                }
-            }
-            if (state.contains("notes")) {
-                for (const auto& it : state["notes"]) {
-                    Note n = it.get<Note>();
-                    notes_[n.id] = n;
-                }
-            }
-            if (state.contains("verification_items")) {
-                for (const auto& it : state["verification_items"]) {
-                    VerificationItem v = it.get<VerificationItem>();
-                    verification_items_[v.id] = v;
-                }
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Error loading relational state: " << e.what() << std::endl;
         }
+
+        // Restore contiguous binary vectors from vectors.bin
+        vector_index_.load(vectors_path());
     }
 
     // -------------------------------------------------------------

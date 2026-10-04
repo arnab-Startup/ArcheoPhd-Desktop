@@ -258,7 +258,7 @@
           </div>
           <h1 class="apd-title">Select Research Data Root</h1>
           <p class="apd-subtitle">
-            Choose where your archaeological libraries, LanceDB vector indexes, and local AI model weights (GGUF) will be stored.
+            Choose where your archaeological libraries, native vector indexes, and local AI model weights (GGUF) will be stored.
           </p>
         </div>
         <div class="apd-body">
@@ -488,7 +488,7 @@
             <span>💾</span> Workstation Storage &amp; Data Root
           </h3>
           <p style="margin:0; font-size:12.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">
-            Location where local AI models, LanceDB vectors, and research libraries are stored.
+            Location where local AI models, native vector indexes, and research libraries are stored.
           </p>
         </div>
         <div>${cloudBadge}</div>

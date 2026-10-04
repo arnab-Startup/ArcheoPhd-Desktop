@@ -26,7 +26,7 @@ ArchaeoPhD solves this by using an **Offline Cryptographic Lease System**:
 | Tier | Target Audience | Pricing Model | Features Unlocked |
 | :--- | :--- | :--- | :--- |
 | **Free Trial** | Prospective researchers | 14-day full access | All features enabled, local benchmark corpus, export enabled |
-| **PhD Pro (Individual)** | PhD students, postdocs, independent scholars | Monthly / Annual ($12–$19/mo) | Unlimited projects, full local vector search (LanceDB), contradiction engine, thesis audit, unlimited PDF ingestion |
+| **PhD Pro (Individual)** | PhD students, postdocs, independent scholars | Monthly / Annual ($12–$19/mo) | Unlimited projects, full local vector search (Native VectorIndex), contradiction engine, thesis audit, unlimited PDF ingestion |
 | **Institutional / Lab** | University departments, museum labs, CRM firms | Annual per-seat ($499–$1,200/yr per lab) | Multi-seat license keys, centralized university billing, air-gapped offline key generator for field teams |
 
 ---
@@ -105,7 +105,7 @@ The server emits the following JSON structure before digital signing:
   "tier": "phd_pro",
   "capabilities": [
     "unlimited_projects",
-    "lancedb_vector_search",
+    "native_vector_search",
     "contradiction_engine",
     "thesis_auditor",
     "offline_llm_inference",

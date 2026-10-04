@@ -113,6 +113,165 @@ public:
         return vec;
     }
 
+    void clear() {
+        NativeGuard lock(mutex_);
+        records_.clear();
+    }
+
+    bool save(const std::string& filepath) const {
+        NativeGuard lock(mutex_);
+        std::string tmp_path = filepath + ".tmp";
+
+        HANDLE hFile = CreateFileA(tmp_path.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+
+        DWORD written = 0;
+        const char magic[4] = {'A', 'P', 'V', '1'};
+        if (!WriteFile(hFile, magic, 4, &written, NULL) || written != 4) {
+            CloseHandle(hFile);
+            DeleteFileA(tmp_path.c_str());
+            return false;
+        }
+
+        uint32_t dim = static_cast<uint32_t>(VECTOR_DIM);
+        if (!WriteFile(hFile, &dim, sizeof(dim), &written, NULL) || written != sizeof(dim)) {
+            CloseHandle(hFile);
+            DeleteFileA(tmp_path.c_str());
+            return false;
+        }
+
+        uint32_t count = static_cast<uint32_t>(records_.size());
+        if (!WriteFile(hFile, &count, sizeof(count), &written, NULL) || written != sizeof(count)) {
+            CloseHandle(hFile);
+            DeleteFileA(tmp_path.c_str());
+            return false;
+        }
+
+        for (const auto& rec : records_) {
+            uint16_t cid_len = static_cast<uint16_t>(rec.chunk_id.size());
+            if (!WriteFile(hFile, &cid_len, sizeof(cid_len), &written, NULL) || written != sizeof(cid_len)) {
+                CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+            }
+            if (cid_len > 0) {
+                if (!WriteFile(hFile, rec.chunk_id.data(), cid_len, &written, NULL) || written != cid_len) {
+                    CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+                }
+            }
+
+            uint16_t did_len = static_cast<uint16_t>(rec.doc_id.size());
+            if (!WriteFile(hFile, &did_len, sizeof(did_len), &written, NULL) || written != sizeof(did_len)) {
+                CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+            }
+            if (did_len > 0) {
+                if (!WriteFile(hFile, rec.doc_id.data(), did_len, &written, NULL) || written != did_len) {
+                    CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+                }
+            }
+
+            int32_t pref = static_cast<int32_t>(rec.page_ref);
+            if (!WriteFile(hFile, &pref, sizeof(pref), &written, NULL) || written != sizeof(pref)) {
+                CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+            }
+
+            DWORD emb_bytes = static_cast<DWORD>(VECTOR_DIM * sizeof(float));
+            if (!WriteFile(hFile, rec.embedding.data(), emb_bytes, &written, NULL) || written != emb_bytes) {
+                CloseHandle(hFile); DeleteFileA(tmp_path.c_str()); return false;
+            }
+        }
+
+        // Flush OS file buffer to physical drive before promoting
+        FlushFileBuffers(hFile);
+        CloseHandle(hFile);
+
+        // Atomic rename with write-through
+        if (!MoveFileExA(tmp_path.c_str(), filepath.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+            DeleteFileA(tmp_path.c_str());
+            return false;
+        }
+
+        return true;
+    }
+
+    bool load(const std::string& filepath) {
+        NativeGuard lock(mutex_);
+        records_.clear();
+
+        HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            // No saved index on disk yet - valid initial state
+            return true;
+        }
+
+        DWORD read = 0;
+        char magic[4] = {0};
+        if (!ReadFile(hFile, magic, 4, &read, NULL) || read != 4 ||
+            magic[0] != 'A' || magic[1] != 'P' || magic[2] != 'V' || magic[3] != '1') {
+            CloseHandle(hFile);
+            return false; // Invalid or corrupt header
+        }
+
+        uint32_t dim = 0;
+        if (!ReadFile(hFile, &dim, sizeof(dim), &read, NULL) || read != sizeof(dim) || dim != VECTOR_DIM) {
+            CloseHandle(hFile);
+            return false; // Vector dimension mismatch
+        }
+
+        uint32_t count = 0;
+        if (!ReadFile(hFile, &count, sizeof(count), &read, NULL) || read != sizeof(count)) {
+            CloseHandle(hFile);
+            return false;
+        }
+
+        records_.reserve(count);
+
+        for (uint32_t i = 0; i < count; ++i) {
+            uint16_t cid_len = 0;
+            if (!ReadFile(hFile, &cid_len, sizeof(cid_len), &read, NULL) || read != sizeof(cid_len)) {
+                CloseHandle(hFile); return false;
+            }
+            std::string chunk_id(cid_len, '\0');
+            if (cid_len > 0) {
+                if (!ReadFile(hFile, &chunk_id[0], cid_len, &read, NULL) || read != cid_len) {
+                    CloseHandle(hFile); return false;
+                }
+            }
+
+            uint16_t did_len = 0;
+            if (!ReadFile(hFile, &did_len, sizeof(did_len), &read, NULL) || read != sizeof(did_len)) {
+                CloseHandle(hFile); return false;
+            }
+            std::string doc_id(did_len, '\0');
+            if (did_len > 0) {
+                if (!ReadFile(hFile, &doc_id[0], did_len, &read, NULL) || read != did_len) {
+                    CloseHandle(hFile); return false;
+                }
+            }
+
+            int32_t page_ref = 0;
+            if (!ReadFile(hFile, &page_ref, sizeof(page_ref), &read, NULL) || read != sizeof(page_ref)) {
+                CloseHandle(hFile); return false;
+            }
+
+            std::vector<float> emb(VECTOR_DIM, 0.0f);
+            DWORD emb_bytes = static_cast<DWORD>(VECTOR_DIM * sizeof(float));
+            if (!ReadFile(hFile, emb.data(), emb_bytes, &read, NULL) || read != emb_bytes) {
+                CloseHandle(hFile); return false;
+            }
+
+            records_.push_back({std::move(chunk_id), std::move(doc_id), static_cast<int>(page_ref), std::move(emb)});
+        }
+
+        CloseHandle(hFile);
+        return true;
+    }
+
+    const std::vector<VectorRecord>& records() const {
+        NativeGuard lock(mutex_);
+        return records_;
+    }
+
     size_t size() const {
         NativeGuard lock(mutex_);
         return records_.size();
