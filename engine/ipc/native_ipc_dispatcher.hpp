@@ -695,6 +695,109 @@ public:
                     pages.push_back({{"page_number", 1}, {"text", extracted}});
                 }
                 res["result"] = {{"source_id", sourceId}, {"pages", pages}, {"char_count", extracted.size()}};
+            } else if (action == "build_harris_matrix") {
+                std::string siteId = payload.value("site_id", "");
+                auto allStrata = storage_->get_strata(projectId);
+                std::vector<Stratum> targetStrata;
+                for (const auto& s : allStrata) {
+                    if (siteId.empty() || s.site_id == siteId) {
+                        targetStrata.push_back(s);
+                    }
+                }
+                auto allSamples = storage_->get_samples(projectId);
+                std::vector<Sample> targetSamples;
+                for (const auto& smp : allSamples) {
+                    if (siteId.empty() || smp.site_id == siteId) {
+                        targetSamples.push_back(smp);
+                    }
+                }
+
+                auto hRes = HarrisMatrixEngine::build_matrix(targetStrata, targetSamples);
+
+                json invArr = json::array();
+                for (const auto& inv : hRes.inversions) {
+                    invArr.push_back({
+                        {"upper_stratum_id", inv.upper_stratum_id},
+                        {"upper_stratum_name", inv.upper_stratum_name},
+                        {"upper_date_bce", inv.upper_date_bce},
+                        {"lower_stratum_id", inv.lower_stratum_id},
+                        {"lower_stratum_name", inv.lower_stratum_name},
+                        {"lower_date_bce", inv.lower_date_bce},
+                        {"reason", inv.reason}
+                    });
+                }
+
+                res["result"] = {
+                    {"site_id", siteId},
+                    {"is_valid_dag", hRes.is_valid_dag},
+                    {"chronological_sequence", hRes.chronological_sequence},
+                    {"cycles", hRes.cycles},
+                    {"inversions", invArr},
+                    {"stratigraphic_levels", hRes.stratigraphic_levels},
+                    {"direct_older_than", hRes.direct_older_than},
+                    {"direct_younger_than", hRes.direct_younger_than}
+                };
+            } else if (action == "get_entity_subgraph") {
+                std::string entityType = payload.value("entity_type", "");
+                std::string entityId = payload.value("entity_id", "");
+                if (entityType.empty() || entityId.empty()) {
+                    res["error"] = "Required: 'entity_type' and 'entity_id'";
+                    return res.dump();
+                }
+                res["result"] = storage_->get_entity_subgraph(entityType, entityId, projectId);
+            } else if (action == "query_knowledge_graph") {
+                // Unified Compound Query: Combines hybrid retrieval with structured graph entities
+                std::string query = payload.value("query", "");
+                std::string siteId = payload.value("site_id", "");
+                std::string stratumId = payload.value("stratum_id", "");
+                int topK = payload.value("top_k", 5);
+
+                // 1. Hybrid semantic/lexical search
+                auto queryEmb = VectorIndex::embed_text(query, /*is_query=*/true);
+                HybridSearchFilter filter;
+                auto matches = HybridSearchEngine::search(
+                    storage_->vectors(),
+                    storage_->lexical(),
+                    query,
+                    topK,
+                    1.0f,
+                    1.0f,
+                    filter,
+                    60.0f,
+                    queryEmb
+                );
+
+                // 2. Fetch related graph entities
+                auto claims = storage_->get_claims(projectId);
+                json matchingClaims = json::array();
+                for (const auto& c : claims) {
+                    bool matchSite = siteId.empty() || std::find(c.site_ids.begin(), c.site_ids.end(), siteId) != c.site_ids.end();
+                    bool matchStratum = stratumId.empty() || std::find(c.strata_ids.begin(), c.strata_ids.end(), stratumId) != c.strata_ids.end();
+                    if (matchSite && matchStratum) {
+                        matchingClaims.push_back(c);
+                    }
+                }
+
+                json passages = json::array();
+                for (const auto& m : matches) {
+                    passages.push_back({
+                        {"chunk_id", m.chunk_id},
+                        {"doc_id", m.doc_id},
+                        {"page_ref", m.page_ref},
+                        {"score", m.score},
+                        {"dense_score", m.dense_score},
+                        {"lexical_score", m.lexical_score},
+                        {"text", storage_->read_compressed_chunk(m.chunk_id)}
+                    });
+                }
+
+                res["result"] = {
+                    {"query", query},
+                    {"site_id", siteId},
+                    {"stratum_id", stratumId},
+                    {"passages", passages},
+                    {"claims", matchingClaims}
+                };
             } else {
                 res["error"] = "Unknown native action: " + action;
             }

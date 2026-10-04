@@ -11,6 +11,7 @@
 #include "vector_index.hpp"
 #include "lexical_index.hpp"
 #include "hybrid_search.hpp"
+#include "harris_matrix.hpp"
 
 #ifdef HAS_ZSTD
 #include <zstd.h>
@@ -426,6 +427,137 @@ public:
     void put_note(Note n) {
         NativeGuard lock(mutex_);
         notes_[n.id] = std::move(n);
+    }
+
+    // -------------------------------------------------------------
+    // Phase 2 Knowledge Graph Relational Cross-Referencing
+    // -------------------------------------------------------------
+    std::vector<Claim> get_claims_by_site(const std::string& site_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Claim> res;
+        for (const auto& kv : claims_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                std::find(kv.second.site_ids.begin(), kv.second.site_ids.end(), site_id) != kv.second.site_ids.end()) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<Claim> get_claims_by_stratum(const std::string& stratum_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Claim> res;
+        for (const auto& kv : claims_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                std::find(kv.second.strata_ids.begin(), kv.second.strata_ids.end(), stratum_id) != kv.second.strata_ids.end()) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<Stratum> get_strata_by_site(const std::string& site_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Stratum> res;
+        for (const auto& kv : strata_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                kv.second.site_id == site_id) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<Artifact> get_artifacts_by_stratum(const std::string& stratum_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Artifact> res;
+        for (const auto& kv : artifacts_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                kv.second.stratum_id == stratum_id) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<Sample> get_samples_by_stratum(const std::string& stratum_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Sample> res;
+        for (const auto& kv : samples_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                kv.second.stratum_id == stratum_id) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<EvidenceLink> get_evidence_by_claim(const std::string& claim_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<EvidenceLink> res;
+        for (const auto& kv : evidence_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                kv.second.claim_id == claim_id) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    std::vector<Claim> get_claims_by_source(const std::string& source_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        std::vector<Claim> res;
+        for (const auto& kv : claims_) {
+            if ((project_id.empty() || kv.second.project_id == project_id || kv.second.project_id == "default") &&
+                kv.second.source_id == source_id) {
+                res.push_back(kv.second);
+            }
+        }
+        return res;
+    }
+
+    json get_entity_subgraph(const std::string& entity_type, const std::string& entity_id, const std::string& project_id = "") const {
+        NativeGuard lock(mutex_);
+        json sub = json::object();
+        sub["entity_type"] = entity_type;
+        sub["entity_id"] = entity_id;
+
+        if (entity_type == "site") {
+            auto it = sites_.find(entity_id);
+            if (it != sites_.end()) sub["site"] = it->second;
+            sub["strata"] = json::array();
+            for (const auto& kv : strata_) {
+                if (kv.second.site_id == entity_id) sub["strata"].push_back(kv.second);
+            }
+            sub["claims"] = json::array();
+            for (const auto& kv : claims_) {
+                if (std::find(kv.second.site_ids.begin(), kv.second.site_ids.end(), entity_id) != kv.second.site_ids.end()) {
+                    sub["claims"].push_back(kv.second);
+                }
+            }
+        } else if (entity_type == "stratum") {
+            auto it = strata_.find(entity_id);
+            if (it != strata_.end()) {
+                sub["stratum"] = it->second;
+                auto sit = sites_.find(it->second.site_id);
+                if (sit != sites_.end()) sub["site"] = sit->second;
+            }
+            sub["artifacts"] = json::array();
+            for (const auto& kv : artifacts_) {
+                if (kv.second.stratum_id == entity_id) sub["artifacts"].push_back(kv.second);
+            }
+            sub["samples"] = json::array();
+            for (const auto& kv : samples_) {
+                if (kv.second.stratum_id == entity_id) sub["samples"].push_back(kv.second);
+            }
+            sub["claims"] = json::array();
+            for (const auto& kv : claims_) {
+                if (std::find(kv.second.strata_ids.begin(), kv.second.strata_ids.end(), entity_id) != kv.second.strata_ids.end()) {
+                    sub["claims"].push_back(kv.second);
+                }
+            }
+        }
+        return sub;
     }
 
     std::vector<VerificationItem> get_verification_items(const std::string& project_id = "", const std::string& source_id = "") const {
