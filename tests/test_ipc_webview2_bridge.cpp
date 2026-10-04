@@ -147,6 +147,9 @@ public:
 };
 
 int main() {
+#ifdef ARCHAEOPHD_ENABLE_TEST_STUB
+    EmbeddingEngine::instance().enable_test_mock_mode(true);
+#endif
     std::cout << "================================================================================\n";
     std::cout << "  ArchaeoPhD Engine — Step 2: WebView2 IPC Bridge & Adversarial Test Suite      \n";
     std::cout << "================================================================================\n\n";

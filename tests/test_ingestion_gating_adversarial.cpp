@@ -11,6 +11,9 @@
 using namespace archaeophd;
 
 int main() {
+#ifdef ARCHAEOPHD_ENABLE_TEST_STUB
+    EmbeddingEngine::instance().enable_test_mock_mode(true);
+#endif
     std::cout << "================================================================================\n";
     std::cout << "  ArchaeoPhD Engine — Adversarial Ingestion Gating & Safeguard Test Suite       \n";
     std::cout << "================================================================================\n\n";
