@@ -10,6 +10,9 @@ tests/bin/
 build/
 *.exe
 !release/ArchaeoPhD.exe
+release/dist/
+release/WebView2Loader.dll
+test_live_sample.pdf
 
 # Local user data / WebView2 cache
 WebView2Data/

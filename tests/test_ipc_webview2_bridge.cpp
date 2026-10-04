@@ -300,6 +300,13 @@ int main() {
         f2.value_engine_b = "20-40 cm"; // Disagreement!
         f2.context_snippet = "rubble boulder horizon measured 20-40 cm";
 
+        // Create physical crop on disk to satisfy tightened anti-anchoring file existence check
+        std::filesystem::create_directories("crops");
+        {
+            std::ofstream cf("crops/fact_ipc_002.png", std::ios::binary);
+            cf << "PNG_DATA_CROP_TEST";
+        }
+
         IngestionManager::ProcessClassAFacts(storage, createdSourceId, {f1, f2});
 
         // Verify consensus fact was committed to knowledge graph
@@ -897,7 +904,7 @@ int main() {
         assert(rejectRes.resolved == true);
         assert(rejectRes.result["status"] == "REJECT");
 
-        // D. Resolving item WITH crop using CANDIDATE_B must SUCCEED
+        // D. Resolving item WITH valid physical crop using CANDIDATE_B must SUCCEED
         auto okRes = bridge.call("resolve_verification_item", {
             {"item_id", "vitem-chirki-rubble"},
             {"resolution_type", "CANDIDATE_B"}
@@ -905,7 +912,25 @@ int main() {
         assert(okRes.resolved == true);
         assert(okRes.result["status"] == "CANDIDATE_B");
 
-        std::cout << "  ✓ Anti-anchoring strictly locks candidate choices when crop is missing; allows resolution when crop is present.\n\n";
+        // E. Attempting to resolve item where crop_image_path is non-empty string but file does not exist on disk
+        VerificationItem v_ghost;
+        v_ghost.id = "vitem-ghost-crop";
+        v_ghost.project_id = "default";
+        v_ghost.source_id = "src-kenyon-1978";
+        v_ghost.crop_image_path = "/crops/deleted_unrenderable_crop_9999.png";
+        v_ghost.candidate_a = "10 cm";
+        v_ghost.candidate_b = "15 cm";
+        v_ghost.status = "PENDING";
+        storage.put_verification_item(v_ghost);
+
+        auto ghostRes = bridge.call("resolve_verification_item", {
+            {"item_id", "vitem-ghost-crop"},
+            {"resolution_type", "CANDIDATE_A"}
+        });
+        assert(ghostRes.rejected == true);
+        assert(ghostRes.error.find("does not exist or cannot be rendered") != std::string::npos);
+
+        std::cout << "  ✓ Anti-anchoring strictly locks candidate choices when crop is missing or unrenderable on disk; allows resolution when verified crop is present.\n\n";
     }
 
     // -------------------------------------------------------------------------
@@ -1086,6 +1111,7 @@ int main() {
     // Clean up temporary files
     std::filesystem::remove(dummyPdf, ec);
     std::filesystem::remove_all(testDir, ec);
+    std::filesystem::remove_all("crops", ec);
 
     std::cout << "================================================================================\n";
     std::cout << "  ALL 24 WEBVIEW2 IPC BRIDGE & NATIVE UI TESTS PASSED WITH ZERO FAILURES!       \n";

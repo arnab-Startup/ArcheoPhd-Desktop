@@ -28,8 +28,10 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-REM 3. Ensure release directory exists
+REM 3. Ensure release directory exists and is populated with up-to-date dist assets
 if not exist "release" mkdir release
+xcopy /E /I /Y "dist" "release\dist" >nul
+copy /y "lib\WebView2Loader.dll" "release\WebView2Loader.dll" >nul
 
 REM 4. Compile standalone ArchaeoPhD.exe with MinGW G++ (Statically linked: zero MinGW DLL dependencies)
 echo Compiling self-contained ArchaeoPhD.exe with MinGW G++ C++20 (statically linked)...

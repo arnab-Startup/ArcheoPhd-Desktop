@@ -436,9 +436,38 @@ public:
 
                 if (!targetItem) {
                     res["error"] = "Verification item not found: " + itemId;
-                } else if (resolutionType != "REJECT" && targetItem->crop_image_path.empty()) {
-                    res["error"] = "Anti-anchoring violation: Optical crop is mandatory for verification. Item cannot be resolved without visual crop evidence.";
                 } else {
+                    if (resolutionType != "REJECT") {
+                        if (targetItem->crop_image_path.empty()) {
+                            res["error"] = "Anti-anchoring violation: Optical crop is mandatory for verification. Item cannot be resolved without visual crop evidence.";
+                            return res.dump();
+                        }
+                        // ANTI-ANCHORING TIGHTENED GUARD: Verify physical file presence on disk
+                        std::string rawPath = targetItem->crop_image_path;
+                        if (!rawPath.empty() && (rawPath[0] == '/' || rawPath[0] == '\\')) {
+                            rawPath = rawPath.substr(1);
+                        }
+                        std::vector<std::string> candidatePaths = {
+                            targetItem->crop_image_path,
+                            rawPath,
+                            "dist/" + rawPath,
+                            currentDataRoot_ + "/" + rawPath,
+                            currentDataRoot_ + "/dist/" + rawPath
+                        };
+                        bool cropFoundOnDisk = false;
+                        for (const auto& cp : candidatePaths) {
+                            std::error_code ec;
+                            if (std::filesystem::exists(cp, ec) && std::filesystem::file_size(cp, ec) > 0) {
+                                cropFoundOnDisk = true;
+                                break;
+                            }
+                        }
+                        if (!cropFoundOnDisk) {
+                            res["error"] = "Anti-anchoring violation: Optical crop file does not exist or cannot be rendered ('" + targetItem->crop_image_path + "'). Visual evidence is mandatory to resolve discrepancies.";
+                            return res.dump();
+                        }
+                    }
+
                     bool ok = storage_->resolve_verification_item(itemId, resolutionType, overrideValue);
                     if (!ok) {
                         res["error"] = "Failed to resolve verification item: invalid resolution type or internal error.";

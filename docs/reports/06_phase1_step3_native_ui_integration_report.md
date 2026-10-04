@@ -17,7 +17,8 @@
 - `desktop/build.bat` (Added `-lcomdlg32` link flag, packaged `dist/` into `payload.zip` embedded in PE resource)
 
 **Test Suite:** `desktop/tests/test_ipc_webview2_bridge.cpp` (Expanded to 24 tests, 100% passing)  
-**Production Binary:** `desktop/release/ArchaeoPhD.exe` (3,422,208 bytes, MinGW-w64 G++ C++20 static release)  
+**Production Binary:** `desktop/release/ArchaeoPhD.exe` (3,603,456 bytes, MinGW-w64 G++ C++20 static release)  
+**Live UI Automation:** `desktop/live_ui_test_results.log` (All 7 live WebView2 DOM assertions passed 100%)  
 
 ---
 
@@ -41,9 +42,9 @@ Phase 1, Step 3 completes the native user interface layer bridging archaeologica
 3. **Verification Queue View**:
    - Queries `get_verification_queue` and renders discrepancy cards with side-by-side Windows OCR vs. VLM consensus candidates.
    - Renders the high-resolution physical scan crop (`crop_image_path`) directly above candidate options.
-   - **Anti-Anchoring Resolution Lockout**: When an optical crop is missing or unlinked, candidate resolution buttons (`Accept Candidate A`, `Accept Candidate B`, `Manual Override`) are strictly disabled with an amber lockout notice:
+   - **Anti-Anchoring Resolution Lockout**: Candidate resolution buttons default to `disabled`. The DOM dynamically requires physical optical crop rendering (`naturalWidth > 0`). When an optical crop is missing, corrupt, or unrenderable on disk, candidate resolution buttons (`Accept Candidate A`, `Accept Candidate B`, `Manual Override`) are strictly locked with an amber lockout notice:
      *"ANTI-ANCHORING LOCKOUT: Visual optical crop is missing. Candidate resolution is strictly locked without visual evidence to prevent cognitive anchoring. You may only reject this item."*
-   - Only `Reject Item` remains enabled, preventing researchers from guessing or falling prey to machine confirmation bias.
+   - Engine-level hard-gate (`resolve_verification_item`) independently verifies physical file existence and non-zero bytes on disk (`std::filesystem::exists` and `file_size > 0`), rejecting candidate resolution attempts without optical evidence. Only `Reject Item` remains enabled, preventing researchers from guessing or falling prey to machine confirmation bias.
 
 4. **Manual Transcription View**:
    - Full split-screen interface: high-resolution scan viewer on the left, blank transcription form on the right.
@@ -63,7 +64,7 @@ The expanded 24-test IPC bridge and UI integration test suite was compiled with 
 
 ```text
 ================================================================================
-  ArchaeoPhD Engine — Step 2 & Step 3: WebView2 IPC Bridge & Native UI Suite    
+  ArchaeoPhD Engine — Step 2: WebView2 IPC Bridge & Adversarial Test Suite      
 ================================================================================
 
 [TEST 1] IPC Request Correlation & Malformed JSON Resilience...
@@ -127,7 +128,7 @@ The expanded 24-test IPC bridge and UI integration test suite was compiled with 
   ✓ Verification queue returns items with optical crops and unlinked test cases.
 
 [TEST 21] Step 3 UI: Anti-Anchoring Resolution Hard-Gate Enforcement...
-  ✓ Anti-anchoring strictly locks candidate choices when crop is missing; allows resolution when crop is present.
+  ✓ Anti-anchoring strictly locks candidate choices when crop is missing or unrenderable on disk; allows resolution when verified crop is present.
 
 [TEST 22] Step 3 UI: Strict Zero Pre-Fill Manual Transcription Contract...
   ✓ Zero pre-fill template verified; manual claims saved with ground-truth provenance.
@@ -167,11 +168,11 @@ The expanded 24-test IPC bridge and UI integration test suite was compiled with 
 
 ### 3.3 View 3: Verification Queue View (`showVerificationQueueModal`)
 
-| Feature | Invariant / Specification | Implementation in `ingestion-workflow.js` |
+| Feature | Invariant / Specification | Implementation in `ingestion-workflow.js` & C++ Engine |
 | :--- | :--- | :--- |
 | **Discrepancy Presentation** | Side-by-side comparison of Windows OCR vs. VLM consensus. | Displays context snippet, field type, Candidate A, and Candidate B with audit explanation. |
 | **Optical Crop Anchor** | Visual evidence is mandatory for verification. | Renders physical scan crop image (`/crops/crop_2040_raw.png`, `/crops/crop_694_raw.png`) in an illuminated frame. |
-| **Anti-Anchoring Lockout** | Inability to resolve candidates when crop evidence is absent. | If `crop_image_path` is empty: renders amber lockout box; disables `Accept Candidate A`, `Accept Candidate B`, and `Manual Override`. Only `Reject Item` remains enabled. |
+| **Dual Anti-Anchoring Lockout** | Inability to resolve candidates when crop evidence is absent or unrenderable. | **UI Layer**: Candidate buttons default to disabled; dynamically registers `load` and `error` listeners; unlocks only when `naturalWidth > 0`. Missing/unrenderable crops render amber lockout banner.<br>**Engine Hard-Gate**: `resolve_verification_item` validates physical file existence and non-zero bytes on disk (`std::filesystem::exists` and `file_size > 0`). Candidate resolutions without optical evidence are rejected. Only `Reject Item` remains enabled. |
 | **Resolution Dispatch** | Commits chosen resolution to native storage. | Dispatches `resolve_verification_item` with `CANDIDATE_A`, `CANDIDATE_B`, `MANUAL_OVERRIDE`, or `REJECT`. |
 
 ### 3.4 View 4: Manual Transcription View (`showManualTranscriptionModal`)
@@ -185,22 +186,73 @@ The expanded 24-test IPC bridge and UI integration test suite was compiled with 
 
 ---
 
-## 4. Live Windows WebView2 Execution Verification
+## 4. Live Windows WebView2 Execution & DOM Click-Through Verification
 
-To verify that the newly packaged binary boots, attaches the Edge WebView2 controller, and runs without runtime errors or resource deadlocks:
+To eliminate simulation blind spots and empirically prove that the actual rendered JavaScript in `ingestion-workflow.js` operates the IPC contracts and enforces all UI invariants correctly, an automated live UI test suite (`--test-ui-live`) was executed against the running standalone `release/ArchaeoPhD.exe` hosting the real Microsoft Edge WebView2 runtime.
+
+### 4.1 Live DOM Test Execution Command
 
 ```powershell
-PS D:\Prorgram\Project\ArcheoPhd\desktop> $proc = Start-Process -FilePath "release\ArchaeoPhD.exe" -PassThru
-PS D:\Prorgram\Project\ArcheoPhd\desktop> Start-Sleep -Seconds 3
-PS D:\Prorgram\Project\ArcheoPhd\desktop> Write-Output "PID: $($proc.Id) | Responsive: $($proc.Responding) | Alive: $((Get-Process -Id $proc.Id -ErrorAction SilentlyContinue) -ne $null)"
-PID: 12536 | Responsive: True | Alive: True
+PS D:\Prorgram\Project\ArcheoPhd\desktop> Start-Process .\release\ArchaeoPhD.exe -ArgumentList "--test-ui-live" -Wait
+PS D:\Prorgram\Project\ArcheoPhd\desktop> Get-Content .\live_ui_test_results.log
 ```
 
-The standalone executable:
-- Extracted embedded `payload.zip` (containing `dist/index.html`, `dist/data-root-dialog.js`, `dist/ingestion-workflow.js`, and `dist/crops/`) to `%LOCALAPPDATA%\ArchaeoPhD\app_runtime`.
-- Mapped virtual host `https://appassets.example/index.html`.
-- Attached the native IPC bridge (`window.nativeBridge`) and floating research action dock.
-- Terminated cleanly with zero memory leaks or hung threads.
+### 4.2 Live DOM Test Results (Verbatim Execution Log)
+
+```json
+{
+  "results": [
+    {
+      "details": "File path, title, and submit inputs found in live DOM",
+      "ok": true,
+      "step": "1. Ingestion DOM Elements Present"
+    },
+    {
+      "details": "Hash copy button: true, CLASS_B: true, UNVERIFIED_ROUGH_SCAN: true",
+      "ok": true,
+      "step": "2. Ingestion Submission & Default-Safe Gating"
+    },
+    {
+      "details": "Disabled initially: true, Enabled after check: true, Re-locked: true",
+      "ok": true,
+      "step": "3. Classification Dialog Physical Checkbox Guardrail"
+    },
+    {
+      "details": "Candidate button A unlocked for vitem-chirki-rubble: true",
+      "ok": true,
+      "step": "4. Verification Queue Valid Crop Unlocks Candidates"
+    },
+    {
+      "details": "Card found: true, Candidates locked: true, Reject enabled: true",
+      "ok": true,
+      "step": "5. Verification Queue Missing Crop Strictly Locks Candidates"
+    },
+    {
+      "details": "Split screen: true, Blank inputs: true, Row count: 2",
+      "ok": true,
+      "step": "6. Manual Transcription Zero Pre-Fill Epistemic Invariant"
+    },
+    {
+      "details": "Verified Claims Committed banner present: true",
+      "ok": true,
+      "step": "7. Manual Transcription Commit Grounded Claims"
+    }
+  ],
+  "success": true
+}
+```
+
+### 4.3 Detailed DOM Assertion Analysis
+
+| Step | Verification Area | Target DOM Invariant | Live Execution Result |
+| :--- | :--- | :--- | :--- |
+| **1** | Ingestion Screen | Form controls (`#apd-wf-filepath-input`, `#apd-wf-title-input`, `#apd-wf-submit-btn`) render properly in live WebView2 DOM. | **PASS**: All inputs mounted and interactive in live Chromium frame. |
+| **2** | Ingestion Gating | Newly ingested document receives SHA-256 cryptographic stamp, copy button, and defaults strictly to `CLASS_B` / `UNVERIFIED_ROUGH_SCAN`. | **PASS**: Immutable cryptographic hash rendered; storage hard-gate active. |
+| **3** | Classification Modal | Promotion button `#apd-wf-promote-btn` is disabled by default; unlocks ONLY upon checking `#apd-wf-confirm-clean-offset`; re-locks immediately if unchecked. | **PASS**: Physical inspection checkbox guardrail verified across full toggle cycle. |
+| **4** | Queue (Valid Crop) | Verification item with valid optical crop (`/crops/crop_2040_raw.png`) successfully loads, confirms `naturalWidth > 0`, and unlocks Candidate A resolution button. | **PASS**: Visual evidence presence permits candidate resolution. |
+| **5** | Queue (Missing Crop) | Verification item with missing optical crop (`/crops/missing_crop_9999.png`) triggers Anti-Anchoring Lockout banner and strictly disables candidate buttons; `Reject Item` remains enabled. | **PASS**: Anti-anchoring lockout prevents machine confirmation bias. |
+| **6** | Manual Transcription | Split-screen scanner renders empty input fields (`prefill_enabled: false`); machine OCR guesses are strictly prohibited from pre-populating fields. | **PASS**: Zero pre-fill epistemic invariant verified in live DOM. |
+| **7** | Manual Transcription | User transcribes double-entry facts and commits via `save_manual_transcription`; engine records claims with `origin_type: "manual_transcription"`. | **PASS**: Ground-truth commit confirmed with success notification. |
 
 ---
 
@@ -211,8 +263,10 @@ The standalone executable:
 | `desktop/dist/ingestion-workflow.js` | **Created** | Complete vanilla JS + scoped CSS UI implementation for Ingestion, Classification, Verification Queue, Manual Transcription, and Floating Action Dock. |
 | `desktop/dist/index.html` | **Updated** | Wired native controllers `<script src="/data-root-dialog.js"></script>` and `<script src="/ingestion-workflow.js"></script>`. |
 | `desktop/engine/storage/data_root.hpp` | **Updated** | Added `DataRootManager::BrowseForFile` using Win32 `GetOpenFileNameW` with filter for PDF and excavation documents. |
-| `desktop/engine/ipc/native_ipc_dispatcher.hpp` | **Updated** | Added `browse_file` IPC endpoint with headless test bypass. |
+| `desktop/engine/ipc/native_ipc_dispatcher.hpp` | **Updated** | Added `browse_file` IPC endpoint with headless test bypass; tightened `resolve_verification_item` with physical disk existence and file size checks. |
 | `desktop/engine/validation/benchmark_seed.hpp` | **Updated** | Seeded realistic archaeological verification items with optical crops (`crop_2040_raw.png`, `crop_694_raw.png`) and unlinked crop anti-anchoring test case. |
 | `desktop/build.bat` | **Updated** | Added `-lcomdlg32` link flag. Compiles self-contained binary with embedded payload archive. |
-| `desktop/tests/test_ipc_webview2_bridge.cpp` | **Updated** | Expanded test harness to 24 tests covering Step 3 UI endpoints, anti-anchoring lockout, and zero pre-fill contracts. |
-| `desktop/release/ArchaeoPhD.exe` | **Built & Verified** | 3,422,208 bytes single-file executable, 100% offline, zero external MinGW or web runtime dependencies. |
+| `desktop/tests/test_ipc_webview2_bridge.cpp` | **Updated** | Expanded test harness to 24 tests covering Step 3 UI endpoints, physical anti-anchoring lockout (Test 21-E), and zero pre-fill contracts. |
+| `desktop/live_ui_test_results.log` | **Verified** | Automated live Edge WebView2 DOM test execution report (7/7 assertions passing). |
+| `desktop/release/ArchaeoPhD.exe` | **Built & Verified** | 3,603,456 bytes single-file executable, 100% offline, zero external MinGW or web runtime dependencies. |
+

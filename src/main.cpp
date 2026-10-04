@@ -84,6 +84,21 @@ HWND g_hWnd = nullptr;
 ICoreWebView2Controller* g_controller = nullptr;
 ICoreWebView2* g_webview = nullptr;
 static std::wstring g_appDistFolder;
+static bool g_runLiveUiTests = false;
+static std::wstring g_extraBrowserArgs = L"";
+
+inline void LogDebug(const std::string& msg) {
+    std::ofstream f("live_debug.log", std::ios::app);
+    if (f.is_open()) {
+        f << msg << std::endl;
+        f.flush();
+    }
+    std::ofstream f2("release/live_debug.log", std::ios::app);
+    if (f2.is_open()) {
+        f2 << msg << std::endl;
+        f2.flush();
+    }
+}
 
 // Forward declarations
 class ControllerCompletedHandler;
@@ -126,6 +141,16 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
         return true;
     }
 
+    // 1b. Developer path: check if running from release/ inside the desktop workspace
+    std::wstring parentDist = exeDir + L"\\..\\dist";
+    std::wstring parentLoader = exeDir + L"\\..\\lib\\WebView2Loader.dll";
+    if (GetFileAttributesW((parentDist + L"\\index.html").c_str()) != INVALID_FILE_ATTRIBUTES &&
+        GetFileAttributesW(parentLoader.c_str()) != INVALID_FILE_ATTRIBUTES) {
+        outDistFolder = parentDist;
+        outLoaderPath = parentLoader;
+        return true;
+    }
+
     // 2. Persistent AppData location for extracted standalone payload
     wchar_t localAppData[MAX_PATH];
     std::wstring baseDir;
@@ -139,8 +164,9 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
     std::wstring targetDist = appPayloadDir + L"\\dist";
     std::wstring targetLoader = appPayloadDir + L"\\WebView2Loader.dll";
 
-    // If already extracted from previous run and intact, use it immediately
+    // If already extracted from previous run and fully intact (including step 3 ingestion-workflow.js), use it
     if (GetFileAttributesW((targetDist + L"\\index.html").c_str()) != INVALID_FILE_ATTRIBUTES &&
+        GetFileAttributesW((targetDist + L"\\ingestion-workflow.js").c_str()) != INVALID_FILE_ATTRIBUTES &&
         GetFileAttributesW(targetLoader.c_str()) != INVALID_FILE_ATTRIBUTES) {
         outDistFolder = targetDist;
         outLoaderPath = targetLoader;
@@ -227,6 +253,205 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
 }
 
 // -----------------------------------------------------------------------------
+// Custom WebView2 Environment Options (CDP Remote Debugging Support)
+// -----------------------------------------------------------------------------
+class CustomEnvironmentOptions : public ICoreWebView2EnvironmentOptions {
+    LONG m_refCount = 1;
+    std::wstring m_args;
+public:
+    CustomEnvironmentOptions(const std::wstring& args = L"") : m_args(args) {}
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_ICoreWebView2EnvironmentOptions) {
+            *ppv = static_cast<ICoreWebView2EnvironmentOptions*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_refCount); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_refCount);
+        if (c == 0) delete this;
+        return c;
+    }
+    HRESULT STDMETHODCALLTYPE get_AdditionalBrowserArguments(LPWSTR* value) override {
+        if (!value) return E_POINTER;
+        *value = (LPWSTR)CoTaskMemAlloc((m_args.size() + 1) * sizeof(wchar_t));
+        wcscpy(*value, m_args.c_str());
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE put_AdditionalBrowserArguments(LPCWSTR value) override {
+        m_args = value ? value : L"";
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_Language(LPWSTR* value) override { if (value) *value = nullptr; return S_OK; }
+    HRESULT STDMETHODCALLTYPE put_Language(LPCWSTR value) override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE get_TargetCompatibleBrowserVersion(LPWSTR* value) override { if (value) *value = nullptr; return S_OK; }
+    HRESULT STDMETHODCALLTYPE put_TargetCompatibleBrowserVersion(LPCWSTR value) override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE get_AllowSingleSignOnUsingOSPrimaryAccount(BOOL* allow) override { if (allow) *allow = FALSE; return S_OK; }
+    HRESULT STDMETHODCALLTYPE put_AllowSingleSignOnUsingOSPrimaryAccount(BOOL allow) override { return S_OK; }
+};
+
+// -----------------------------------------------------------------------------
+// Live WebView2 DOM Click-Through Test Runner
+// -----------------------------------------------------------------------------
+inline void RunLiveUiClickthroughTest(ICoreWebView2* sender) {
+    if (!sender) return;
+    LogDebug("[TEST_RUNNER] RunLiveUiClickthroughTest invoked! Injecting DOM test script...");
+    const wchar_t* testScript = 
+        L"(async function() {"
+        L"  const log = [];"
+        L"  function record(step, ok, details) {"
+        L"    log.push({ step, ok, details });"
+        L"    try { window.chrome.webview.postMessage({ id: 'step_' + log.length, action: 'ui_test_step', payload: { step, ok, details } }); } catch(e){}"
+        L"  }"
+        L"  try {"
+        L"    for (let i = 0; i < 50; i++) {"
+        L"      if (window.archaeophdIngestion && typeof window.archaeophdIngestion.openIngestion === 'function') break;"
+        L"      await new Promise(r => setTimeout(r, 100));"
+        L"    }"
+        L"    if (!window.archaeophdIngestion) throw new Error('window.archaeophdIngestion not initialized');"
+        L"    "
+        L"    /* 1. INGESTION SCREEN */"
+        L"    window.archaeophdIngestion.openIngestion({"
+        L"      file_path: 'test_live_sample.pdf',"
+        L"      title: 'Jericho Live Excavations Report',"
+        L"      author: 'Kathleen Kenyon',"
+        L"      year: '1957'"
+        L"    });"
+        L"    await new Promise(r => setTimeout(r, 300));"
+        L"    const pathInput = document.getElementById('apd-wf-file-path');"
+        L"    const titleInput = document.getElementById('apd-wf-title');"
+        L"    const submitIngest = document.getElementById('apd-wf-submit-ingest');"
+        L"    if (!pathInput || !titleInput || !submitIngest) throw new Error('Ingestion modal elements missing');"
+        L"    record('1. Ingestion DOM Elements Present', true, 'File path, title, and submit inputs found in live DOM');"
+        L"    submitIngest.click();"
+        L"    await new Promise(r => setTimeout(r, 1500));"
+        L"    const copyHashBtn = document.getElementById('apd-wf-copy-hash');"
+        L"    const statusArea = document.getElementById('apd-wf-ingest-status-area');"
+        L"    const badgeText = statusArea ? statusArea.innerText : '';"
+        L"    const hasHash = copyHashBtn !== null;"
+        L"    const hasClassB = badgeText.includes('CLASS_B');"
+        L"    const hasUnverified = badgeText.includes('UNVERIFIED_ROUGH_SCAN');"
+        L"    record('2. Ingestion Submission & Default-Safe Gating', hasHash && hasClassB && hasUnverified, "
+        L"           'Hash copy button: ' + hasHash + ', CLASS_B: ' + hasClassB + ', UNVERIFIED_ROUGH_SCAN: ' + hasUnverified);"
+        L"    "
+        L"    /* 2. CLASSIFICATION DIALOG */"
+        L"    window.archaeophdIngestion.openClassification('src-kenyon-1978');"
+        L"    await new Promise(r => setTimeout(r, 500));"
+        L"    const tierA = document.getElementById('apd-wf-tier-a');"
+        L"    const saveClassBtn = document.getElementById('apd-wf-save-class-btn');"
+        L"    const cleanCheck = document.getElementById('apd-wf-clean-offset-check');"
+        L"    tierA.click();"
+        L"    await new Promise(r => setTimeout(r, 100));"
+        L"    const btnDisabledInitially = saveClassBtn.disabled === true;"
+        L"    cleanCheck.checked = true;"
+        L"    cleanCheck.dispatchEvent(new Event('change'));"
+        L"    await new Promise(r => setTimeout(r, 100));"
+        L"    const btnEnabledAfterCheck = saveClassBtn.disabled === false;"
+        L"    cleanCheck.checked = false;"
+        L"    cleanCheck.dispatchEvent(new Event('change'));"
+        L"    await new Promise(r => setTimeout(r, 100));"
+        L"    const btnReLocked = saveClassBtn.disabled === true;"
+        L"    record('3. Classification Dialog Physical Checkbox Guardrail', "
+        L"           btnDisabledInitially && btnEnabledAfterCheck && btnReLocked,"
+        L"           'Disabled initially: ' + btnDisabledInitially + ', Enabled after check: ' + btnEnabledAfterCheck + ', Re-locked: ' + btnReLocked);"
+        L"    cleanCheck.checked = true;"
+        L"    cleanCheck.dispatchEvent(new Event('change'));"
+        L"    saveClassBtn.click();"
+        L"    await new Promise(r => setTimeout(r, 600));"
+        L"    "
+        L"    /* 3. VERIFICATION QUEUE & ANTI-ANCHORING LOCKOUT */"
+        L"    window.archaeophdIngestion.openVerificationQueue();"
+        L"    let cardChirki = null;"
+        L"    let cardHazor = null;"
+        L"    for (let j = 0; j < 30; j++) {"
+        L"      cardChirki = document.getElementById('vitem-card-vitem-chirki-rubble');"
+        L"      cardHazor = document.getElementById('vitem-card-vitem-hazor-unlinked');"
+        L"      if (cardChirki && cardHazor) break;"
+        L"      await new Promise(r => setTimeout(r, 100));"
+        L"    }"
+        L"    let chirkiUnlocked = false;"
+        L"    if (cardChirki) {"
+        L"      const cBtnA = cardChirki.querySelector('#btn-choose-a-vitem-chirki-rubble');"
+        L"      for (let j = 0; j < 25; j++) {"
+        L"        if (cBtnA && !cBtnA.disabled) { chirkiUnlocked = true; break; }"
+        L"        await new Promise(r => setTimeout(r, 100));"
+        L"      }"
+        L"    }"
+        L"    record('4. Verification Queue Valid Crop Unlocks Candidates', chirkiUnlocked,"
+        L"           'Candidate button A unlocked for vitem-chirki-rubble: ' + chirkiUnlocked);"
+        L"    "
+        L"    let hazorLocked = false;"
+        L"    let hazorRejectEnabled = false;"
+        L"    if (cardHazor) {"
+        L"      const hBtnA = cardHazor.querySelector('#btn-choose-a-vitem-hazor-unlinked');"
+        L"      const hBtnB = cardHazor.querySelector('#btn-choose-b-vitem-hazor-unlinked');"
+        L"      const hBtnO = cardHazor.querySelector('#btn-override-vitem-hazor-unlinked');"
+        L"      const hBtnR = cardHazor.querySelector('#btn-reject-vitem-hazor-unlinked');"
+        L"      hazorLocked = (hBtnA && hBtnA.disabled && hBtnB && hBtnB.disabled && hBtnO && hBtnO.disabled);"
+        L"      hazorRejectEnabled = (hBtnR && !hBtnR.disabled);"
+        L"      if (hBtnR) hBtnR.click();"
+        L"      await new Promise(r => setTimeout(r, 600));"
+        L"    }"
+        L"    record('5. Verification Queue Missing Crop Strictly Locks Candidates', "
+        L"           hazorLocked && hazorRejectEnabled,"
+        L"           'Card found: ' + (cardHazor !== null) + ', Candidates locked: ' + hazorLocked + ', Reject enabled: ' + hazorRejectEnabled);"
+        L"    "
+        L"    /* 4. MANUAL TRANSCRIPTION & ZERO PRE-FILL */"
+        L"    window.archaeophdIngestion.openManualTranscription('src-kenyon-1978', 1);"
+        L"    await new Promise(r => setTimeout(r, 1000));"
+        L"    const splitLeft = document.querySelector('.apd-wf-split-left');"
+        L"    const splitRight = document.querySelector('.apd-wf-split-right');"
+        L"    const factRows = document.querySelectorAll('.apd-wf-fact-row');"
+        L"    let allInputsBlank = true;"
+        L"    factRows.forEach(row => {"
+        L"      const nameVal = row.querySelector('.fact-name').value;"
+        L"      const valVal = row.querySelector('.fact-val').value;"
+        L"      if (nameVal !== '' || valVal !== '') allInputsBlank = false;"
+        L"    });"
+        L"    record('6. Manual Transcription Zero Pre-Fill Epistemic Invariant',"
+        L"           splitLeft !== null && splitRight !== null && allInputsBlank && factRows.length > 0,"
+        L"           'Split screen: ' + (splitLeft !== null) + ', Blank inputs: ' + allInputsBlank + ', Row count: ' + factRows.length);"
+        L"    if (factRows.length > 0) {"
+        L"      factRows[0].querySelector('.fact-name').value = 'Locus 402 Ash Horizon';"
+        L"      factRows[0].querySelector('.fact-val').value = '40 cm depth';"
+        L"    }"
+        L"    const commitBtn = document.getElementById('apd-wf-trans-commit');"
+        L"    commitBtn.click();"
+        L"    await new Promise(r => setTimeout(r, 1000));"
+        L"    const transStatus = document.getElementById('apd-wf-trans-status');"
+        L"    const commitSuccess = transStatus && transStatus.innerText.includes('Verified Claims Committed');"
+        L"    record('7. Manual Transcription Commit Grounded Claims', commitSuccess,"
+        L"           'Verified Claims Committed banner present: ' + commitSuccess);"
+        L"    "
+        L"    window.chrome.webview.postMessage({"
+        L"      id: 'req_live_ui_test',"
+        L"      action: 'ui_test_complete',"
+        L"      payload: {"
+        L"        success: log.every(x => x.ok),"
+        L"        results: log"
+        L"      }"
+        L"    });"
+        L"  } catch(err) {"
+        L"    window.chrome.webview.postMessage({"
+        L"      id: 'req_live_ui_test',"
+        L"      action: 'ui_test_complete',"
+        L"      payload: {"
+        L"        success: false,"
+        L"        error: err.toString(),"
+        L"        results: log"
+        L"      }"
+        L"    });"
+        L"  }"
+        L"})()";
+
+    sender->ExecuteScript(testScript, nullptr);
+}
+
+// -----------------------------------------------------------------------------
 // Navigation Completed Handler (Auto-recovery / Fallback)
 // -----------------------------------------------------------------------------
 class NavigationCompletedHandler : public ICoreWebView2NavigationCompletedEventHandler {
@@ -264,6 +489,9 @@ public:
         if (!args || !sender) return S_OK;
         BOOL isSuccess = FALSE;
         args->get_IsSuccess(&isSuccess);
+        LogDebug(std::string("[NAV] NavigationCompleted: isSuccess=") + (isSuccess ? "TRUE" : "FALSE") + 
+                 " attemptedFallback=" + (m_attemptedFallback ? "TRUE" : "FALSE") + 
+                 " g_runLiveUiTests=" + (g_runLiveUiTests ? "TRUE" : "FALSE"));
         if (!isSuccess && !m_attemptedFallback) {
             m_attemptedFallback = true;
             if (!m_fallbackUrl.empty()) {
@@ -279,6 +507,10 @@ public:
                     L"<p>Offline research engine initialized. Click below to load interface.</p>"
                     L"<button onclick='location.reload()'>Load Interface</button></div></body></html>";
                 sender->NavigateToString(fallbackHtml);
+            }
+        } else if (isSuccess) {
+            if (g_runLiveUiTests) {
+                RunLiveUiClickthroughTest(sender);
             }
         }
         return S_OK;
@@ -345,6 +577,45 @@ public:
 
         CoTaskMemFree(msgJson);
 
+        // Intercept UI test completion message from live click-through
+        try {
+            json req = json::parse(rawJson);
+            if (req.value("action", "") == "ui_test_step") {
+                json p = req.value("payload", json::object());
+                LogDebug("[TEST_STEP] " + p.value("step", "") + " -> " + (p.value("ok", false) ? "PASS" : "FAIL") + " (" + p.value("details", "") + ")");
+                return S_OK;
+            }
+            if (req.value("action", "") == "ui_test_complete") {
+                json payload = req.value("payload", json::object());
+                bool ok = payload.value("success", false);
+                LogDebug("[TEST_COMPLETE] Final result: " + std::string(ok ? "ALL PASSED" : "FAILED") + " err=" + payload.value("error", "none"));
+                std::ofstream out("live_ui_test_results.log");
+                out << payload.dump(2) << std::endl;
+                out.close();
+                std::ofstream outRel("release/live_ui_test_results.log");
+                if (outRel.is_open()) {
+                    outRel << payload.dump(2) << std::endl;
+                    outRel.close();
+                }
+                std::cout << "\n================================================================================\n";
+                std::cout << "  LIVE WEBVIEW2 DOM CLICK-THROUGH TEST RESULTS                                  \n";
+                std::cout << "================================================================================\n";
+                for (const auto& r : payload.value("results", json::array())) {
+                    std::cout << "  " << (r.value("ok", false) ? "[PASS] " : "[FAIL] ") 
+                              << r.value("step", "") << "\n        " 
+                              << r.value("details", "") << "\n";
+                }
+                std::cout << "================================================================================\n";
+                std::cout << "  OVERALL LIVE DOM VERDICT: " << (ok ? "ALL 7 DOM CHECKS PASSED (100%)" : "FAILED") << "\n";
+                std::cout << "================================================================================\n\n";
+                std::cout.flush();
+                PostQuitMessage(ok ? 0 : 1);
+                return S_OK;
+            }
+        } catch (const std::exception& ex) {
+            LogDebug("[IPC_JSON_PARSE_ERROR] " + std::string(ex.what()));
+        }
+
         std::string replyJson = DispatchNativeMessage(rawJson);
 
         int wideLen = MultiByteToWideChar(CP_UTF8, 0, replyJson.c_str(), -1, nullptr, 0);
@@ -391,6 +662,7 @@ public:
     }
 
     HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Controller* controller) override {
+        LogDebug(std::string("[CONTROLLER] Controller callback: hr=") + std::to_string(result) + " controller=" + (controller ? "NON-NULL" : "NULL"));
         if (FAILED(result) || !controller) {
             MessageBoxW(m_hWnd, L"Failed to create CoreWebView2 controller.", L"ArchaeoPhD Error", MB_ICONERROR);
             return result;
@@ -554,6 +826,7 @@ public:
     }
 
     HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Environment* env) override {
+        LogDebug(std::string("[ENV] Environment callback: hr=") + std::to_string(result) + " env=" + (env ? "NON-NULL" : "NULL"));
         if (FAILED(result) || !env) {
             MessageBoxW(m_hWnd, 
                 L"Failed to initialize Microsoft Edge WebView2 Environment.\n"
@@ -637,6 +910,38 @@ inline void EnsureStartMenuShortcutRegistered() {
 // WinMain Entry Point
 // -----------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int nCmdShow) {
+    // Check for automated live UI test command-line arguments
+    int nArgs = 0;
+    LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    std::wstring wsCmd = GetCommandLineW();
+    LogDebug("[WINMAIN] Command Line: " + std::string(wsCmd.begin(), wsCmd.end()) + " | nArgs=" + std::to_string(nArgs));
+    if (szArglist) {
+        for (int i = 1; i < nArgs; i++) {
+            std::wstring argW = szArglist[i];
+            LogDebug("[WINMAIN] Arg[" + std::to_string(i) + "]: " + std::string(argW.begin(), argW.end()));
+            if (wcscmp(szArglist[i], L"--test-ui-live") == 0 || wcscmp(szArglist[i], L"--run-ui-tests") == 0) {
+                g_runLiveUiTests = true;
+            } else if (wcsncmp(szArglist[i], L"--remote-debugging-port", 23) == 0) {
+                g_extraBrowserArgs += szArglist[i];
+                g_extraBrowserArgs += L" ";
+            }
+        }
+        LocalFree(szArglist);
+    }
+    LogDebug("[WINMAIN] g_runLiveUiTests=" + std::string(g_runLiveUiTests ? "TRUE" : "FALSE"));
+
+    if (g_runLiveUiTests) {
+        // Ensure test PDF fixture exists for live ingestion test
+        std::ofstream pdf("test_live_sample.pdf", std::ios::binary);
+        pdf << "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
+        pdf << "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+        pdf << "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
+        pdf << "xref\n0 4\n0000000000 65535 f\n0000000010 00000 n\n0000000060 00000 n\n0000000117 00000 n\n";
+        pdf << "trailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n188\n%%EOF\n";
+        pdf.close();
+        LogDebug("[WINMAIN] Created test_live_sample.pdf fixture.");
+    }
+
     // 1. Initialize COM
     HRESULT hrCo = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(hrCo)) {
@@ -702,6 +1007,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
         CoUninitialize();
         return 1;
     }
+    LogDebug("[WINMAIN] Window created successfully. g_hWnd=" + std::to_string((uintptr_t)g_hWnd));
 
     if (wc.hIcon) SendMessageW(g_hWnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
     if (wc.hIconSm) SendMessageW(g_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)wc.hIconSm);
@@ -721,7 +1027,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
 
     std::wstring runtimeDistFolder;
     std::wstring runtimeLoaderPath;
+    LogDebug("[WINMAIN] Calling EnsureRuntimeExtracted...");
     EnsureRuntimeExtracted(runtimeDistFolder, runtimeLoaderPath);
+    LogDebug("[WINMAIN] EnsureRuntimeExtracted completed. runtimeDistFolder=" + std::string(runtimeDistFolder.begin(), runtimeDistFolder.end()));
     g_appDistFolder = runtimeDistFolder;
     std::wstring finalHtmlPath;
     if (!runtimeDistFolder.empty() && GetFileAttributesW((runtimeDistFolder + L"\\index.html").c_str()) != INVALID_FILE_ATTRIBUTES) {
@@ -748,7 +1056,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     auto rootStatus = archaeophd::DataRootManager::GetStatus();
     if (rootStatus.configured && !rootStatus.is_missing) {
         InitNativeEngineWithDataRoot(rootStatus.data_root);
+    } else if (g_runLiveUiTests) {
+        InitNativeEngineWithDataRoot("test_ipc_bridge_data");
     }
+    if (g_runLiveUiTests && g_storage) {
+        archaeophd::seed_benchmark_corpus(*g_storage, "default");
+    }
+    LogDebug("[WINMAIN] Storage & benchmark setup complete.");
 
     // 8. Load WebView2Loader.dll dynamically
     HMODULE hLoader = nullptr;
@@ -775,6 +1089,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
         CoUninitialize();
         return 1;
     }
+    LogDebug("[WINMAIN] WebView2Loader.dll loaded successfully.");
 
     CreateCoreWebView2EnvironmentWithOptionsFn pfnCreateEnv =
         (CreateCoreWebView2EnvironmentWithOptionsFn)GetProcAddress(hLoader, "CreateCoreWebView2EnvironmentWithOptions");
@@ -789,12 +1104,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     }
 
     // 9. Initialize WebView2 Environment asynchronously
+    ICoreWebView2EnvironmentOptions* envOptions = nullptr;
+    if (!g_extraBrowserArgs.empty()) {
+        envOptions = new CustomEnvironmentOptions(g_extraBrowserArgs);
+    }
+
+    LogDebug("[WINMAIN] Calling pfnCreateEnv with userDataDir=" + std::string(userDataDir.begin(), userDataDir.end()));
     HRESULT hr = pfnCreateEnv(
         nullptr,
         userDataDir.c_str(),
-        nullptr,
+        envOptions,
         new EnvironmentCompletedHandler(g_hWnd, targetUrl)
     );
+    LogDebug("[WINMAIN] pfnCreateEnv returned: hr=" + std::to_string(hr));
 
     if (FAILED(hr)) {
         MessageBoxW(g_hWnd,

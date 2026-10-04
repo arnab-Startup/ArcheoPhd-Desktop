@@ -1092,17 +1092,20 @@
       var isResolved = item.status && item.status !== 'PENDING';
 
       var cropHtml = '';
+      var cleanCropSrc = item.crop_image_path || '';
+      if (cleanCropSrc.startsWith('/') || cleanCropSrc.startsWith('\\')) {
+        cleanCropSrc = cleanCropSrc.replace(/^[/\\]+/, '');
+      }
       if (hasCrop) {
         cropHtml = `
-          <div class="apd-wf-crop-box">
+          <div class="apd-wf-crop-box" id="crop-box-${item.id}">
             <div class="apd-wf-crop-label">🔍 Physical Scan Crop (Direct Evidence)</div>
-            <img src="${item.crop_image_path}" class="apd-wf-crop-img" alt="Optical Scan Crop" 
-                 onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'color:#f59e0b; font-size:12px;\\'>⚠️ Failed to load crop image file: ' + this.src + '</div>';" />
+            <img src="${cleanCropSrc}" class="apd-wf-crop-img" id="crop-img-${item.id}" alt="Optical Scan Crop" />
           </div>
         `;
       } else {
         cropHtml = `
-          <div class="apd-wf-box apd-wf-box-amber">
+          <div class="apd-wf-box apd-wf-box-amber" id="crop-box-${item.id}">
             <span class="apd-wf-box-icon">🔒</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">ANTI-ANCHORING LOCKOUT ACTIVE</div>
@@ -1158,22 +1161,74 @@
           </div>
         </div>
 
-        <!-- Action Row -->
+        <!-- Action Row (Candidate resolution initially locked until crop verified rendered) -->
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
           <button class="apd-wf-btn apd-wf-btn-danger" id="btn-reject-${item.id}" ${isResolved ? 'disabled' : ''}>
             ✕ Reject Item
           </button>
-          <button class="apd-wf-btn apd-wf-btn-secondary" id="btn-override-${item.id}" ${(!hasCrop || isResolved) ? 'disabled' : ''}>
+          <button class="apd-wf-btn apd-wf-btn-secondary" id="btn-override-${item.id}" disabled>
             ✍️ Manual Override...
           </button>
-          <button class="apd-wf-btn apd-wf-btn-outline" id="btn-choose-b-${item.id}" ${(!hasCrop || isResolved) ? 'disabled' : ''}>
+          <button class="apd-wf-btn apd-wf-btn-outline" id="btn-choose-b-${item.id}" disabled>
             Accept Candidate B
           </button>
-          <button class="apd-wf-btn apd-wf-btn-primary" id="btn-choose-a-${item.id}" ${(!hasCrop || isResolved) ? 'disabled' : ''}>
+          <button class="apd-wf-btn apd-wf-btn-primary" id="btn-choose-a-${item.id}" disabled>
             Accept Candidate A
           </button>
         </div>
       `;
+
+      var btnA = card.querySelector('#btn-choose-a-' + item.id);
+      var btnB = card.querySelector('#btn-choose-b-' + item.id);
+      var btnO = card.querySelector('#btn-override-' + item.id);
+
+      function unlockCandidateButtons() {
+        if (!isResolved) {
+          btnA.disabled = false;
+          btnB.disabled = false;
+          btnO.disabled = false;
+        }
+      }
+
+      function lockCandidateButtons(reason) {
+        btnA.disabled = true;
+        btnB.disabled = true;
+        btnO.disabled = true;
+        var box = card.querySelector('#crop-box-' + item.id);
+        if (box && reason) {
+          box.className = 'apd-wf-box apd-wf-box-amber';
+          box.innerHTML = `
+            <span class="apd-wf-box-icon">🔒</span>
+            <div class="apd-wf-box-content">
+              <div class="apd-wf-box-title">ANTI-ANCHORING LOCKOUT ACTIVE</div>
+              ${reason}
+            </div>
+          `;
+        }
+      }
+
+      // Physical crop renderability verification
+      var imgEl = card.querySelector('#crop-img-' + item.id);
+      if (hasCrop && imgEl) {
+        function onImageLoaded() {
+          if (imgEl.naturalWidth > 0) {
+            unlockCandidateButtons();
+          } else {
+            lockCandidateButtons('Optical crop rendered with 0 dimensions. Candidate resolution locked.');
+          }
+        }
+        function onImageError() {
+          lockCandidateButtons('Optical crop file at <code>' + item.crop_image_path + '</code> failed to load or is missing on disk. Candidate resolution strictly locked to prevent cognitive bias.');
+        }
+
+        imgEl.addEventListener('load', onImageLoaded);
+        imgEl.addEventListener('error', onImageError);
+        if (imgEl.complete && imgEl.naturalWidth > 0) {
+          onImageLoaded();
+        }
+      } else {
+        lockCandidateButtons();
+      }
 
       // Wire resolution actions
       function handleResolve(type, val) {
