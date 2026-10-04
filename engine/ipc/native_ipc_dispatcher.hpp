@@ -719,10 +719,15 @@ public:
                     invArr.push_back({
                         {"upper_stratum_id", inv.upper_stratum_id},
                         {"upper_stratum_name", inv.upper_stratum_name},
-                        {"upper_date_bce", inv.upper_date_bce},
+                        {"upper_date_astro", inv.upper_date_astro},
+                        {"upper_date_display", inv.upper_date_display},
                         {"lower_stratum_id", inv.lower_stratum_id},
                         {"lower_stratum_name", inv.lower_stratum_name},
-                        {"lower_date_bce", inv.lower_date_bce},
+                        {"lower_date_astro", inv.lower_date_astro},
+                        {"lower_date_display", inv.lower_date_display},
+                        {"is_advisory", inv.is_advisory},
+                        {"sample_upper_code", inv.sample_upper_code},
+                        {"sample_lower_code", inv.sample_lower_code},
                         {"reason", inv.reason}
                     });
                 }
@@ -752,8 +757,17 @@ public:
                 std::string stratumId = payload.value("stratum_id", "");
                 int topK = payload.value("top_k", 5);
 
-                // 1. Hybrid semantic/lexical search
-                auto queryEmb = VectorIndex::embed_text(query, /*is_query=*/true);
+                // 1. Safe embedding generation with clean IPC error surfacing
+                std::vector<float> queryEmb;
+                try {
+                    queryEmb = VectorIndex::embed_text(query, /*is_query=*/true);
+                } catch (const std::exception& e) {
+                    res["error"] = std::string("MODEL_NOT_INITIALIZED: ") + e.what();
+                    res["error_code"] = "MODEL_NOT_INITIALIZED";
+                    return res.dump();
+                }
+
+                // 2. Hybrid semantic/lexical search
                 HybridSearchFilter filter;
                 auto matches = HybridSearchEngine::search(
                     storage_->vectors(),
@@ -767,7 +781,7 @@ public:
                     queryEmb
                 );
 
-                // 2. Fetch related graph entities
+                // 3. Fetch related graph entities filtered by site and stratum
                 auto claims = storage_->get_claims(projectId);
                 json matchingClaims = json::array();
                 for (const auto& c : claims) {

@@ -43,12 +43,14 @@ struct Stratum {
     std::string chronological_bounds;
     int date_start_bce = 0;
     int date_end_bce = 0;
+    int date_start_ce = 0;
+    int date_end_ce = 0;
     std::vector<std::string> harris_above;   // Units directly above (younger)
     std::vector<std::string> harris_below;   // Units directly below (older)
     std::vector<std::string> harris_cut_by;  // Units cutting this feature
     std::string created_date;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Stratum, id, project_id, site_id, stratum_name, phase, locus_numbers, sediment_type, chronological_bounds, date_start_bce, date_end_bce, harris_above, harris_below, harris_cut_by, created_date)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Stratum, id, project_id, site_id, stratum_name, phase, locus_numbers, sediment_type, chronological_bounds, date_start_bce, date_end_bce, date_start_ce, date_end_ce, harris_above, harris_below, harris_cut_by, created_date)
 };
 
 struct Artifact {
@@ -79,9 +81,11 @@ struct Sample {
     std::string cal_range_2sigma;
     int date_cal_start_bce = 0;
     int date_cal_end_bce = 0;
+    int date_cal_start_ce = 0;
+    int date_cal_end_ce = 0;
     std::string created_date;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Sample, id, project_id, site_id, stratum_id, lab_code, material, method, cal_range_2sigma, date_cal_start_bce, date_cal_end_bce, created_date)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Sample, id, project_id, site_id, stratum_id, lab_code, material, method, cal_range_2sigma, date_cal_start_bce, date_cal_end_bce, date_cal_start_ce, date_cal_end_ce, created_date)
 };
 
 // -------------------------------------------------------------
