@@ -743,11 +743,15 @@ int main() {
     }
 
     // -------------------------------------------------------------------------
-    // TEST 17: Concurrent Requests with Duplicate Request IDs
+    // TEST 17: Duplicate Request IDs & Monotonic Sequence Uniqueness Guarantee
     // -------------------------------------------------------------------------
     {
-        std::cout << "[TEST 17] Concurrent Requests with Duplicate Request IDs...\n";
-        // Send multiple concurrent calls using the identical request ID 'req_duplicate_test'
+        std::cout << "[TEST 17] Duplicate Request IDs & Monotonic Sequence Uniqueness Guarantee...\n";
+
+        // Defined Behavior A (C++ Dispatcher Statelessness):
+        // If an external or buggy client sends two concurrent messages sharing the exact same ID,
+        // the C++ dispatcher treats each as an independent transaction and returns both responses
+        // tagged with that ID. It does NOT hang, crash, or drop either response.
         std::string sharedId = "req_duplicate_test";
         auto res1 = bridge.call("ping", json::object(), "default", sharedId);
         auto res2 = bridge.call("ping", json::object(), "default", sharedId);
@@ -758,7 +762,19 @@ int main() {
         assert(res2.req_id == sharedId);
         assert(res1.result["status"] == "online");
         assert(res2.result["status"] == "online");
-        std::cout << "  ✓ Dispatcher executes deterministically under shared/duplicate request IDs.\n\n";
+
+        // Defined Behavior B (Client-Side Collision Prevention Invariant):
+        // In the DOM, sharing an ID causes multiple event listeners to trigger on the first response.
+        // To guarantee zero client-side collision risk, window.nativeBridge uses a monotonic
+        // sequential counter (_seq) plus random nonce:
+        //   var id = 'req_' + (++window.nativeBridge._seq) + '_' + Math.random().toString(36).substr(2, 9);
+        // Verify that consecutive calls from the bridge yield strictly distinct, monotonically increasing IDs:
+        auto normalRes1 = bridge.call("ping");
+        auto normalRes2 = bridge.call("ping");
+        assert(normalRes1.req_id != normalRes2.req_id);
+        assert(normalRes1.req_id < normalRes2.req_id); // Monotonically increasing counter
+
+        std::cout << "  ✓ Dispatcher is stateless under duplicate IDs; bridge guarantees monotonic ID uniqueness.\n\n";
     }
 
     // -------------------------------------------------------------------------
