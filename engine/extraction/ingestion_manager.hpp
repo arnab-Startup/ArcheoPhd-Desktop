@@ -285,10 +285,11 @@ public:
                     // Store compressed chunk text
                     storage.store_compressed_chunk(chunkId, currentChunk);
 
-                    // Add vector embedding with UNVERIFIED_ROUGH_SCAN flag
+                    // Add vector embedding and lexical index with UNVERIFIED_ROUGH_SCAN flag
                     // Note: Structured facts are NEVER created here
                     auto emb = VectorIndex::embed_text(currentChunk);
                     storage.vectors().insert(chunkId, sourceId, pageNum, emb);
+                    storage.lexical().insert(chunkId, sourceId, pageNum, currentChunk);
                     chunksIndexed++;
                     currentChunk.clear();
                 } else {
@@ -301,6 +302,7 @@ public:
                 storage.store_compressed_chunk(chunkId, currentChunk);
                 auto emb = VectorIndex::embed_text(currentChunk);
                 storage.vectors().insert(chunkId, sourceId, pageNum, emb);
+                storage.lexical().insert(chunkId, sourceId, pageNum, currentChunk);
                 chunksIndexed++;
             }
         }

@@ -9,6 +9,8 @@
 #include <windows.h>
 #include "models.hpp"
 #include "vector_index.hpp"
+#include "lexical_index.hpp"
+#include "hybrid_search.hpp"
 
 #ifdef HAS_ZSTD
 #include <zstd.h>
@@ -84,6 +86,7 @@ private:
     std::map<std::string, VerificationItem> verification_items_;
 
     VectorIndex vector_index_;
+    LexicalIndex lexical_index_;
 
     std::string state_path() const {
         return data_dir_ + "/relational_state.json";
@@ -91,6 +94,10 @@ private:
 
     std::string vectors_path() const {
         return data_dir_ + "/vectors.bin";
+    }
+
+    std::string lexical_path() const {
+        return data_dir_ + "/lexical.bin";
     }
 
     std::string chunks_dir() const {
@@ -107,6 +114,8 @@ public:
 
     VectorIndex& vectors() { return vector_index_; }
     const VectorIndex& vectors() const { return vector_index_; }
+    LexicalIndex& lexical() { return lexical_index_; }
+    const LexicalIndex& lexical() const { return lexical_index_; }
     const std::string& get_data_dir() const { return data_dir_; }
 
     void save_state() {
@@ -139,12 +148,13 @@ public:
         state["verification_items"] = json::array();
         for (const auto& kv : verification_items_) state["verification_items"].push_back(kv.second);
 
-        // 1. Atomic write-through for contiguous binary vectors.bin first
-        // Ordering rationale: Vectors must be committed before promoting the authoritative
+        // 1. Atomic write-through for contiguous binary vectors.bin and lexical.bin first
+        // Ordering rationale: Vectors and lexical index must be committed before promoting the authoritative
         // relational state ledger. If a crash occurs between (1) and (2), relational state
-        // remains at transaction N-1, and any orphaned vectors in vectors.bin are safely dropped
-        // by the query joiner. Inverting this would risk claims pointing to missing vectors.
+        // remains at transaction N-1, and any orphaned vectors or lexical postings are safely dropped
+        // by the query joiner. Inverting this would risk claims pointing to missing index entries.
         vector_index_.save(vectors_path());
+        lexical_index_.save(lexical_path());
 
         // 2. Atomic write-through for authoritative relational state JSON
         std::string tmp_state = state_path() + ".tmp";
@@ -236,6 +246,9 @@ public:
 
         // Restore contiguous binary vectors from vectors.bin
         vector_index_.load(vectors_path());
+
+        // Restore Okapi BM25 inverted index from lexical.bin
+        lexical_index_.load(lexical_path());
     }
 
     // -------------------------------------------------------------

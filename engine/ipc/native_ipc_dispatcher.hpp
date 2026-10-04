@@ -8,6 +8,7 @@
 #include "models.hpp"
 #include "storage/storage.hpp"
 #include "analysis/vector_index.hpp"
+#include "analysis/hybrid_search.hpp"
 #include "analysis/contradictions.hpp"
 #include "analysis/thesis_audit.hpp"
 #include "core/system_inspector.hpp"
@@ -532,8 +533,31 @@ public:
                 if (payload.contains("top_k") && payload["top_k"].is_number_integer()) {
                     topK = payload["top_k"].get<int>();
                 }
+                float denseWeight = payload.value("dense_weight", 1.0f);
+                float lexicalWeight = payload.value("lexical_weight", 1.0f);
+                HybridSearchFilter filter;
+                if (payload.contains("doc_id") && payload["doc_id"].is_string()) {
+                    filter.doc_id = payload["doc_id"].get<std::string>();
+                }
+                if (payload.contains("min_page_ref") && payload["min_page_ref"].is_number_integer()) {
+                    filter.min_page_ref = payload["min_page_ref"].get<int>();
+                }
+                if (payload.contains("max_page_ref") && payload["max_page_ref"].is_number_integer()) {
+                    filter.max_page_ref = payload["max_page_ref"].get<int>();
+                }
+
                 auto queryEmb = VectorIndex::embed_text(query, /*is_query=*/true);
-                auto matches = storage_->vectors().search(queryEmb, topK);
+                auto matches = HybridSearchEngine::search(
+                    storage_->vectors(),
+                    storage_->lexical(),
+                    query,
+                    topK,
+                    denseWeight,
+                    lexicalWeight,
+                    filter,
+                    60.0f,
+                    queryEmb
+                );
 
                 // Cross-reference sources table to attach UI degradation and badging guardrails
                 auto sources = storage_->get_sources(projectId);
@@ -582,11 +606,21 @@ public:
                         isRough = true;
                     }
 
+                    float effectiveScore = m.dense_score;
+                    if (effectiveScore <= 0.0f) {
+                        effectiveScore = m.score * 30.0f;
+                    }
+
                     arr.push_back({
                         {"chunk_id", m.chunk_id},
                         {"doc_id", m.doc_id},
                         {"page_ref", m.page_ref},
-                        {"score", m.score},
+                        {"score", effectiveScore},
+                        {"dense_score", m.dense_score},
+                        {"dense_rank", m.dense_rank},
+                        {"lexical_score", m.lexical_score},
+                        {"lexical_rank", m.lexical_rank},
+                        {"rrf_score", m.score},
                         {"text", storage_->read_compressed_chunk(m.chunk_id)},
                         {"degradation_class", degClass},
                         {"ingestion_status", ingStatus},
