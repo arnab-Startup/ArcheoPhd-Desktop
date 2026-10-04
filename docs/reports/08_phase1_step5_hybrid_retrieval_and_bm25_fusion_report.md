@@ -22,10 +22,19 @@ In Step 4B ([Report 07](07_phase1_step4_vector_persistence_and_gguf_retrieval_re
 | **Recall @ 5** | 85.0% (17/20) | **95.0% (19/20)** | **+10.0 pp** | $\ge 85.0\%$ | **PASS** |
 | **Recall @ 10** | 85.0% (17/20) | **100.0% (20/20)** | **+15.0 pp** | $\ge 90.0\%$ | **PASS (Clean Sweep)** |
 | **Mean Reciprocal Rank (MRR)** | 0.7571 | **0.8521** | **+0.0950** | $\ge 0.70$ | **PASS** |
-| **Average Query Latency** | 23.4 ms | **22.48 ms** | **-0.92 ms** | $< 25.0$ ms | **PASS** |
+| **Query Latency (Median, n=100)** | 23.40 ms avg | **23.97 ms** median | — | $< 25.0$ ms | **PASS** |
+| **Query Latency (p95, n=100)** | — | **27.09 ms** | — | — | Within 10% margin |
 | **Wilson 95% CI (Recall@5)** | $[64.0\%,\; 94.8\%]$ | **$[76.4\%,\; 99.1\%]$** | **+12.4 pp lower bound** | — | **Substantially Narrowed** |
 
-All four pre-registered performance gates were satisfied with zero external daemons, zero network calls, and zero regression across the existing 43 automated unit, bridge, and live DOM assertions.
+All four pre-registered performance gates were satisfied with zero external daemons, zero network calls, and zero regression across the existing automated unit, bridge, and live DOM assertions.
+
+### Methodological & Statistical Caveats
+1. **Sample Size & Effect Granularity ($n=20$):** The 10.0 pp gain in Recall@5 (85.0% → 95.0%) corresponds to exactly **3 rescued, 1 improved, 2 worsened, 14 stable** (net +2 Top-5 crossings). Paired sign test on 4 discordant Top-5 crossings (3 rescued vs 1 dropped): p=0.625 two-sided. Not distinguishable from noise at n=20. Wilson CI [76.4%, 99.1%] remains wide. These results constitute strong internal engineering evidence of disambiguation mechanism, not external statistical validation.
+2. **Pre-Registration Scope:** Queries are identical to Step 4B originals, verified by `git diff a954684 3706bae -- tests/test_hybrid_retrieval_benchmark.cpp` (zero query string differences). However, they were authored with corpus knowledge and Q1/Q2/Q17 were named failures in the Step 4B miss analysis before BM25 was built, making this a development set.
+3. **Latency Distribution (n=100 queries, 5 repeated runs):** Median 23.97 ms, p90 26.43 ms, p95 27.09 ms, Min 21.13 ms, Max 30.59 ms. Gate test is against Median < 25 ms rather than single average.
+4. **Q4 Regression (out of Top 5):** `jericho_c11` (burnt mudbrick wall) regressed from Dense Rank 2 to Hybrid Rank 7. Lexical competition on high-frequency terms `"burnt"` and `"brick"` (present in multiple Jericho passages) inflated BM25 noise. BM25 rank was >10; fusion had no signal and displaced a correct dense hit.
+5. **Q14 Degradation (within Top 5):** `indus_c32` (corbelled street drains) regressed from Dense Rank 2 to Hybrid Rank 5. BM25 rank was also >10. Same mechanism as Q4, but target stayed in Top 5.
+6. **Corpus Scale Limitation:** Corpus is 50 passages. Top-5 represents 10% of the corpus. In real deployments with thousands of chunks, Top-5 is under 0.1% and none of these recall numbers will transfer. A scale test with several thousand distractor chunks is required before citing these figures outside the project.
 
 ---
 
@@ -63,55 +72,72 @@ Implemented in `desktop/engine/analysis/hybrid_search.hpp`:
 
 ---
 
-## 2. Quantitative Retrieval Benchmark (50 Passages, 20 Queries)
+## 2. Quantitative Retrieval Benchmark (50 Passages, 20 Verbatim Queries)
 
 Evaluated via `tests/test_hybrid_retrieval_benchmark.cpp` on the pre-registered 50-passage archaeological corpus spanning Sankalia (1974), Kenyon (1981)/Wood (1990), Yadin (1972), Marshall (1931)/Mackay (1938), and Method & Theory monographs.
 
-### Per-Query Diagnostic Trace
+### Per-Query Diagnostic Trace (Verbatim Step 4B Queries)
 
 ```text
 --------------------------------------------------------------------------------
 #   Query Description                     Target      Dense   BM25    Hybrid  Latency   Status
 --------------------------------------------------------------------------------
-1   Chirki Locality VII boulder bed b...  chirki_c01  >10     4       5       25.6 ms   HIT @5
-2   Chirki in-situ knapping floor pre...  chirki_c04  7       1       1       25.2 ms   HIT @1
-3   Chirki Elephas and Bos fossil ass...  chirki_c07  1       >10     1       25.6 ms   HIT @1
-4   Jericho City IV collapsed mudbric...  jericho_c11 2       >10     7       21.6 ms   HIT @10
+1   Chirki Locality VII boulder bed b...  chirki_c01  >10     4       5       25.3 ms   HIT @5
+2   Chirki in-situ knapping floor pre...  chirki_c04  7       1       1       26.5 ms   HIT @1
+3   Chirki Elephas and Bos fossil ass...  chirki_c07  1       >10     1       28.0 ms   HIT @1
+4   Jericho City IV collapsed mudbric...  jericho_c11 2       >10     7       22.3 ms   HIT @10
 5   Jericho carbonized grain storage ...  jericho_c12 1       1       1       24.5 ms   HIT @1
-6   Wood vs Kenyon bichrome ware chro...  jericho_c13 1       1       1       21.4 ms   HIT @1
-7   PPNA monumental tower architecture    jericho_c16 2       1       1       21.8 ms   HIT @1
-8   PPNB plastered skulls with shell ...  jericho_c17 1       1       1       22.4 ms   HIT @1
-9   Hazor Solomonic 6-chamber gate        hazor_c21   1       1       1       23.3 ms   HIT @1
-10  Hazor casemate wall construction      hazor_c22   1       1       1       20.9 ms   HIT @1
-11  Hazor subterranean water shaft        hazor_c24   1       1       1       24.8 ms   HIT @1
-12  Hazor lion orthostat temple entrance  hazor_c26   1       1       1       21.3 ms   HIT @1
-13  Mohenjo-daro Great Bath waterproo...  indus_c31   1       2       1       20.8 ms   HIT @1
-14  Harappan corbelled street drains      indus_c32   2       >10     5       25.4 ms   HIT @5
-15  Mohenjo-daro granary air ducts        indus_c37   2       >10     2       20.5 ms   HIT @3
-16  Indus cubic balance weights           indus_c38   1       1       1       20.1 ms   HIT @1
-17  Harris Matrix DAG topology            method_c41  1       1       1       21.6 ms   HIT @1
-18  Thermoluminescence quartz dating      method_c44  1       1       1       20.8 ms   HIT @1
-19  Schiffer bioturbation artifacts       method_c48  1       2       1       21.2 ms   HIT @1
-20  Courty micromorphology living sur...  method_c49  1       1       1       20.8 ms   HIT @1
+6   Wood vs Kenyon bichrome ware chro...  jericho_c13 1       1       1       23.8 ms   HIT @1
+7   PPNA monumental tower architecture    jericho_c16 2       1       1       24.3 ms   HIT @1
+8   PPNB plastered skulls with shell ...  jericho_c17 1       1       1       22.5 ms   HIT @1
+9   Hazor Solomonic 6-chamber gate        hazor_c21   1       1       1       23.0 ms   HIT @1
+10  Hazor casemate wall construction      hazor_c22   1       1       1       23.2 ms   HIT @1
+11  Hazor subterranean water shaft        hazor_c24   1       1       1       23.0 ms   HIT @1
+12  Hazor lion orthostat temple entrance  hazor_c26   1       1       1       24.4 ms   HIT @1
+13  Mohenjo-daro Great Bath waterproo...  indus_c31   1       2       1       21.4 ms   HIT @1
+14  Harappan corbelled street drains      indus_c32   2       >10     5       23.0 ms   HIT @5
+15  Mohenjo-daro granary air ducts        indus_c37   2       >10     2       22.3 ms   HIT @3
+16  Indus cubic balance weights           indus_c38   1       1       1       22.9 ms   HIT @1
+17  Topological DAG layers (Harris)       method_c41  >10     1       1       22.7 ms   HIT @1
+18  Thermoluminescence quartz dating      method_c44  1       3       1       24.9 ms   HIT @1
+19  Schiffer bioturbation artifacts       method_c48  1       1       1       21.6 ms   HIT @1
+20  Courty micromorphology living sur...  method_c49  1       1       1       24.0 ms   HIT @1
 --------------------------------------------------------------------------------
 ```
 
 ### Analysis of Intra-Document Disambiguation Fixes
 
-1. **Query 2 (`chirki_c04` — in-situ knapping floor):**
+1. **Query 17 (`method_c41` — Harris Matrix topological DAG):**
+   - Query: `"topological directed graph representation of archaeological layers"`
+   - Target Passage: *"The Harris Matrix establishes chronological sequence by representing stratigraphic units of stratification as non-redundant topological directed acyclic graphs."*
+   - Pure dense vector retrieval buried this target at **Rank >10** due to semantic overlap across multiple stratigraphy passages.
+   - BM25 scored this at **Rank 1** due to exact keyword matching on `"topological"`, `"directed"`, and `"graph"`.
+   - Reciprocal Rank Fusion cleanly promoted this passage to **Hybrid Rank 1**, directly rescuing the query.
+2. **Query 2 (`chirki_c04` — in-situ knapping floor):**
    - Dense vector retrieval ranked this passage at **Rank 7** due to high cosine similarity across other Chirki Acheulian passages mentioning basalt flaking.
    - Exact term match on `"knapping floor"` gave it **BM25 Rank 1**.
    - Fused RRF promoted the target cleanly to **Rank 1**.
-2. **Query 1 (`chirki_c01` — cemented boulder conglomerate horizon):**
+3. **Query 1 (`chirki_c01` — cemented boulder conglomerate horizon):**
    - Dense vector retrieval had pushed this target to **Rank >10**.
    - BM25 ranked it at **Rank 4** via diagnostic terms (`"Locality VII"`, `"conglomerate"`).
    - Fused RRF recovered the passage into **Rank 5** (converting a miss into a top-5 hit).
-3. **Query 6 (`jericho_c13` — Wood's Cypriot bichrome ware ceramics):**
-   - Previously susceptible to confusion with Kenyon's MBA grain destruction layers (`jericho_c12`).
-   - BM25 term weighting for `"bichrome ware"` and `"Wood"` resolved the ambiguity instantly: **Hybrid Rank 1**.
-4. **Query 8 (`jericho_c17` — PPNB plastered human skulls):**
-   - Previously overshadowed by the monumental stone tower passage (`jericho_c16`).
-   - Exact keyword weighting for `"plastered human skulls"` and `"cowrie shell eyes"` secured **Hybrid Rank 1**.
+4. **Query 4 (`jericho_c11` — burned mudbrick wall collapse) — REGRESSION (out of Top 5):**
+   - Dense vector retrieval correctly ranked the target at **Rank 2**.
+   - BM25 assigned **Rank >10** due to lexical competition from common terms `"burnt"` and `"brick"` appearing across multiple Jericho passages. Fusion had no BM25 signal and displaced the correct dense hit.
+   - RRF demoted the target to **Rank 7** — falling out of the Top 5. Net cost on Recall@5.
+5. **Query 14 (`indus_c32` — corbelled street drains) — DEGRADATION (within Top 5):**
+   - Dense vector retrieval ranked target at **Rank 2**. BM25 also **Rank >10** (no signal).
+   - RRF demoted to **Rank 5**. Target stays in Top 5 so Recall@5 is unaffected, but MRR contribution drops from 0.5 to 0.2. Same root cause as Q4.
+
+### Held-Out Generalization Test (`test_hybrid_retrieval_held_out.exe`, n=50)
+
+To address the circularity of validating on the same 20-query development set that motivated building BM25, a fully independent 50-query held-out set was authored (one per passage, semantically paraphrased without verbatim substring matching). Results:
+- **Dense Recall@5:** 100.0% (50/50) | Dense MRR: 1.0000
+- **Hybrid Recall@5:** 100.0% (50/50) | Hybrid MRR: 1.0000
+- **Rescued into Top 5:** 0 | **Degraded:** 0 (both systems tied at perfect @1 accuracy)
+- **Latency (Median):** 24.68 ms | p95: 26.86 ms
+
+Note: The 100.0% on held-out reflects that when queries are paraphrased with sufficient semantic specificity (rather than the extreme synonym mismatch adversarial style of the 20-query dev set), the dense model alone achieves perfect retrieval. This is expected and healthy — the hybrid engine adds insurance for adversarial lexical queries without regressing nominal ones.
 
 ---
 

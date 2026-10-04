@@ -72,14 +72,35 @@ Prior to Phase 1 gate signoff, all test suites were executed sequentially on Win
    Result: 24 / 24 PASSED (100%)
 
 4. Step 5 Hybrid Retrieval Benchmark (test_hybrid_retrieval_benchmark.exe)
-   - [PASS] Pure Dense Recall@5: 90.0% (18/20)
-   - [PASS] Hybrid RRF Recall@1: 80.0% (16/20) (+15 pp)
-   - [PASS] Hybrid RRF Recall@3: 85.0% (17/20) (+5 pp)
-   - [PASS] Hybrid RRF Recall@5: 95.0% (19/20) (+10 pp, vs gate >= 85.0%)
-   - [PASS] Hybrid RRF Recall@10: 100.0% (20/20) (+15 pp)
-   - [PASS] Hybrid MRR: 0.8521 (vs gate >= 0.70)
-   - [PASS] Average Query Latency: 22.02 ms (vs gate < 25.0 ms)
+   - [PASS] Pure Dense Recall@5: 85.0% (17/20) [Matches Step 4B baseline exactly]
+   - [PASS] Hybrid RRF Recall@1: 80.0% (16/20) (+15.0 pp over dense 65.0%)
+   - [PASS] Hybrid RRF Recall@3: 85.0% (17/20) (+5.0 pp over dense 80.0%)
+   - [PASS] Hybrid RRF Recall@5: 95.0% (19/20) (+10.0 pp over dense 85.0%, vs gate >= 85.0%)
+   - [PASS] Hybrid RRF Recall@10: 100.0% (20/20) (+15.0 pp over dense 85.0%)
+   - [PASS] Hybrid MRR: 0.8521 (vs dense 0.7571, +0.0950, vs gate >= 0.70)
+   - [PASS] Latency Median: 23.97 ms, p95: 27.09 ms (n=100 queries, 5 repeated runs, vs gate < 25.0 ms)
+   - [NOTE] Wilson 95% CI on Recall@5: [76.4%, 99.1%]. Sign test (3 rescued vs 1 dropped, 4 discordant pairs): p=0.625 two-sided. Net improvement not distinguishable from noise at n=20. Queries are verbatim Step 4B text confirmed by git diff a954684..3706bae.
+   - [NOTE] Q4 (jericho_c11): Dense Rank 2 -> Hybrid Rank 7 (regressed out of Top 5). Q14 (indus_c32): Dense Rank 2 -> Hybrid Rank 5 (worsened within Top 5). Both had BM25 Rank >10, so fusion had no signal and displaced good dense hits.
+   - [NOTE] Corpus is 50 passages. Top-5 is 10% of corpus. Numbers will not transfer to real-scale libraries (thousands of chunks).
    Result: 5 / 5 METRICS PASSED (100%)
+
+### 2.1 Erratum: Benchmark Query Rewording Incident in Commit 4d60358
+
+In commit `4d60358`, benchmark queries Q16 to Q20 in `tests/test_hybrid_retrieval_benchmark.cpp` were reworded. Specifically:
+- Q16: `"binary cubical stone measurement metrology"` → `"standardized cubical stone trade weights"`
+- Q17: `"topological directed graph representation of archaeological layers"` → `"Harris Matrix DAG topology"` (verbatim passage title — trivial lexical match)
+- Q18: `"thermal luminescence trapped electron dating of fired pottery"` → `"thermoluminescence quartz crystal radiation dating"`
+- Q19: `"animal burrowing disturbance mixing diagnostic artifacts"` → `"burrowing animal soil disturbance artifacts"`
+- Q20: `"soil micromorphology thin section microscopic floor analysis"` → `"soil micromorphology trampled occupational surfaces"`
+
+This rewording inflated the benchmark numbers (100.0% Recall@5, MRR 0.9500) by making Q17 a trivial title-match.
+
+**Corrective Action:**
+1. All 20 queries reverted to Step 4B originals. Verified by `git diff a954684 3706bae -- tests/test_hybrid_retrieval_benchmark.cpp`: the query function is identical to commit `a954684` (Step 4B). No query strings differ.
+2. Verbatim re-run: Hybrid Recall@5 95.0% (19/20), MRR 0.8521.
+3. Actual movement: 3 rescued (Q1 >10→5, Q2 7→1, Q17 >10→1), 1 improved inside Top 5 (Q7 2→1), 2 worsened (Q4 2→7, Q14 2→5), 14 stable. Sign test on 4 discordant Top-5 crossings (3 rescued, 1 dropped): p=0.625 two-sided.
+4. Held-out 50-query set confirms 0 degradations on well-formed paraphrased queries.
+
 
 5. Live In-Process WebView2 DOM Click-Through (ArchaeoPhD.exe --test-ui-live)
    - [PASS] Check 1: Ingestion DOM elements present
@@ -93,9 +114,42 @@ Prior to Phase 1 gate signoff, all test suites were executed sequentially on Win
    - [PASS] Check 9: Full Ingest->Archive->Extract->Embed->Search loop on real PDF
    Result: 9 / 9 LIVE DOM CHECKS PASSED (100%)
 ================================================================================
-GRAND TOTAL: 72 ASSERTIONS EVALUATED, 72 PASSED (100% PASS RATE)
+GRAND TOTAL: 72 PHASE-1 ASSERTIONS EVALUATED, 72 PASSED (100% PASS RATE)
+  + 83 PHASE-2 ASSERTIONS EVALUATED, 83 PASSED (100% PASS RATE)
+  [Raw Phase-2 runner output: tests/test_harris_matrix_and_graph.exe, commit 3706bae]
 ================================================================================
 ```
+
+### 2.2 Phase 2 Test Suite — Raw Runner Count
+
+The runner printed no grand count. Counting from individual [PASS] lines in the raw output:
+
+| Suite | Assertions |
+|---|---|
+| TEST 1 — DAG construction | 11 |
+| TEST 2A — 3-node cycle | 4 |
+| TEST 2B — self-loop A→A | 4 |
+| TEST 2C — 2-node mutual cycle | 3 |
+| TEST 2D — disconnected cycles | 3 |
+| TEST 3A — BCE date inversion (advisory) | 6 |
+| TEST 3B — 1 BCE/1 CE boundary | 5 |
+| TEST 3C — CE date inversion | 2 |
+| TEST 4A — C-14 overlap no false positive | 1 |
+| TEST 4B — C-14 strict non-overlap advisory | 6 |
+| TEST 5A — relational getters | 14 |
+| TEST 5B — legacy schema migration | 9 |
+| TEST 6A — IPC harris matrix & subgraph | 7 |
+| TEST 6B — MODEL_NOT_INITIALIZED path | 3 |
+| TEST 6C — compound join & site filter | 5 |
+| **Total** | **83** |
+
+**Previous counts:** Report 10 cited 25 (from prior 9-suite run). This session expanded to 15 sub-suites, correct count is 83.
+
+### 2.3 Open Questions Answered
+
+**Test 6B — mock mode:** 6B compiles with `-DARCHAEOPHD_ENABLE_TEST_STUB`, which makes `enable_test_mock_mode()` available. Test 6B explicitly calls `enable_test_mock_mode(false)` then `shutdown()`. With mock mode off and model unloaded, `embed()` throws `MODEL_NOT_INITIALIZED`. 6C then re-enables mock for its own execution. The `MODEL_NOT_INITIALIZED` path fires on a real uninitialized engine, not on mock. Test 6B is correct.
+
+**Test 3A — stratum date inversions:** Advisory, not hard failures. `harris_matrix.hpp` line 338: `inv.is_advisory = true` for stratum date discrepancies. Runner confirms: `[PASS] Inversion is marked as advisory review`. Only Tarjan SCC topological cycles set `is_valid_dag = false`. C-14 inversions (4B) are also advisory by the same principle.
 
 ---
 
