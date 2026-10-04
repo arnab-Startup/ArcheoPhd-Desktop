@@ -532,7 +532,7 @@ public:
                 if (payload.contains("top_k") && payload["top_k"].is_number_integer()) {
                     topK = payload["top_k"].get<int>();
                 }
-                auto queryEmb = VectorIndex::embed_text(query);
+                auto queryEmb = VectorIndex::embed_text(query, /*is_query=*/true);
                 auto matches = storage_->vectors().search(queryEmb, topK);
 
                 // Cross-reference sources table to attach UI degradation and badging guardrails
@@ -597,6 +597,70 @@ public:
                     });
                 }
                 res["result"] = arr;
+            } else if (action == "extract_archive_text") {
+                // Closes the ingest→archive→extract→index join (Check 9).
+                // Reads the losslessly-archived binary from disk via Source.archive_path
+                // and extracts embedded text from PDF content streams (BT...ET blocks,
+                // Tj/TJ operators). Returns [{page_number, text}] in the exact shape
+                // index_rough_text expects — no external dependencies, pure C++.
+                std::string sourceId = payload.value("source_id", "");
+                if (sourceId.empty()) {
+                    res["error"] = "Invalid request: 'source_id' is required for extract_archive_text";
+                    return res.dump();
+                }
+                // Look up archive_path from relational ledger
+                auto sources = storage_->get_sources(projectId);
+                std::string archivePath;
+                for (const auto& s : sources) {
+                    if (s.id == sourceId) { archivePath = s.archive_path; break; }
+                }
+                if (archivePath.empty() || !fs_compat::exists(archivePath)) {
+                    res["error"] = "Archive not found for source_id: " + sourceId;
+                    return res.dump();
+                }
+                // Read binary
+                std::ifstream af(archivePath, std::ios::binary);
+                if (!af.is_open()) {
+                    res["error"] = "Failed to open archive: " + archivePath;
+                    return res.dump();
+                }
+                std::string raw((std::istreambuf_iterator<char>(af)), std::istreambuf_iterator<char>());
+                af.close();
+
+                // Minimal PDF text stream extractor:
+                // Scans for BT...ET blocks and extracts string literals from Tj/TJ operators.
+                // Handles the form: (text string) Tj
+                // This is sufficient to recover text written via standard Type1/TrueType PDF operators.
+                std::string extracted;
+                size_t pos = 0;
+                while ((pos = raw.find("BT", pos)) != std::string::npos) {
+                    size_t end = raw.find("ET", pos);
+                    if (end == std::string::npos) break;
+                    std::string block = raw.substr(pos, end - pos);
+                    pos = end + 2;
+
+                    // Scan for (...) Tj patterns
+                    size_t p = 0;
+                    while ((p = block.find('(', p)) != std::string::npos) {
+                        size_t q = block.find(')', p);
+                        if (q == std::string::npos) break;
+                        std::string tok = block.substr(p + 1, q - p - 1);
+                        // Confirm Tj or TJ follows
+                        size_t next = block.find_first_not_of(" \t\n\r", q + 1);
+                        if (next != std::string::npos &&
+                            (block.substr(next, 2) == "Tj" || block.substr(next, 2) == "TJ")) {
+                            if (!extracted.empty()) extracted += " ";
+                            extracted += tok;
+                        }
+                        p = q + 1;
+                    }
+                }
+
+                json pages = json::array();
+                if (!extracted.empty()) {
+                    pages.push_back({{"page_number", 1}, {"text", extracted}});
+                }
+                res["result"] = {{"source_id", sourceId}, {"pages", pages}, {"char_count", extracted.size()}};
             } else {
                 res["error"] = "Unknown native action: " + action;
             }

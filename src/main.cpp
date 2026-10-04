@@ -54,6 +54,19 @@ inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
     g_contradictions = std::unique_ptr<archaeophd::NativeContradictionEngine>(new archaeophd::NativeContradictionEngine(*g_storage));
     g_thesisAuditor = std::unique_ptr<archaeophd::NativeThesisAuditor>(new archaeophd::NativeThesisAuditor(*g_storage, *g_contradictions));
 
+    // Initialize nomic embedding model if present in data root, current dir, or parent dir
+    std::string modelPath = dataRoot + "\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+    if (!archaeophd::fs_compat::exists(modelPath)) {
+        if (archaeophd::fs_compat::exists("models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+            modelPath = "models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+        } else if (archaeophd::fs_compat::exists("..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+            modelPath = "..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+        }
+    }
+    if (archaeophd::fs_compat::exists(modelPath)) {
+        archaeophd::EmbeddingEngine::instance().load_model(modelPath, 4);
+    }
+
     if (g_storage->count_sites() == 0) {
         archaeophd::seed_benchmark_corpus(*g_storage, "default");
     }
@@ -427,6 +440,57 @@ inline void RunLiveUiClickthroughTest(ICoreWebView2* sender) {
         L"    record('7. Manual Transcription Commit Grounded Claims', commitSuccess,"
         L"           'Verified Claims Committed banner present: ' + commitSuccess);"
         L"    "
+        L"    /* 5. LIVE END-TO-END VECTOR INGESTION & SEMANTIC RETRIEVAL */"
+        L"    await window.nativeBridge.call('index_rough_text', {"
+        L"      source_id: 'src-kenyon-1978',"
+        L"      pages: ["
+        L"        { page_number: 1, text: 'Trench VII overview: basalt bedrock reached across all grids with Acheulian handaxe assemblages.' },"
+        L"        { page_number: 2, text: 'Locus 402 ash horizon showing charred cereal grains in domestic storage jars.' }"
+        L"      ]"
+        L"    });"
+        L"    const searchRes = await window.nativeBridge.call('search_semantic_passages', {"
+        L"      query: 'Acheulian handaxes on basalt bedrock',"
+        L"      top_k: 2"
+        L"    });"
+        L"    const hasHits = Array.isArray(searchRes) && searchRes.length > 0;"
+        L"    const topHit = hasHits ? searchRes[0] : null;"
+        L"    const hitPage1 = topHit && topHit.doc_id === 'src-kenyon-1978' && topHit.page_ref === 1;"
+        L"    const hitScore = topHit && typeof topHit.score === 'number' ? topHit.score : 0;"
+        L"    const hitGrounded = topHit && topHit.has_page_grounding === true;"
+        L"    record('8. Live Semantic Retrieval Pipeline (In-Process GGUF Embedding)',"
+        L"           hasHits && hitPage1 && hitScore > 0.5 && hitGrounded,"
+        L"           'Hits: ' + (hasHits ? searchRes.length : 0) + ', Top score: ' + hitScore.toFixed(4) + ', Grounded: ' + hitGrounded + ', Page: ' + (topHit ? topHit.page_ref : 'none'));"
+        L"    "
+        L"    /* 6. CHECK 9: FULL INGEST→ARCHIVE→EXTRACT→EMBED→SEARCH CONTINUOUS LOOP */"
+        L"    /* This is the first live continuous exercise of the join that was named as */"
+        L"    /* the open scope boundary: real PDF file → ingest_document → extract_archive_text */"
+        L"    /* (reads actual archived binary, scans BT/ET/Tj operators) → index_rough_text */"
+        L"    /* (embedding from that extracted output, NOT hand-seeded text) → search. */"
+        L"    const ingestRes9 = await window.nativeBridge.call('ingest_document', {"
+        L"      file_path: 'test_live_sample.pdf',"
+        L"      title: 'Check9 Integration Test PDF',"
+        L"      author: 'Live Check',"
+        L"      year: '2026'"
+        L"    });"
+        L"    const sid9 = ingestRes9 && ingestRes9.source_id ? ingestRes9.source_id : null;"
+        L"    const extractRes = sid9 ? await window.nativeBridge.call('extract_archive_text', { source_id: sid9 }) : null;"
+        L"    const extractedPages = extractRes && extractRes.pages ? extractRes.pages : [];"
+        L"    const charCount = extractRes && extractRes.char_count ? extractRes.char_count : 0;"
+        L"    const gotRealText = charCount > 30;"  // Must have extracted non-trivial text from the binary
+        L"    let check9Pass = false;"
+        L"    if (sid9 && gotRealText && extractedPages.length > 0) {"
+        L"      await window.nativeBridge.call('index_rough_text', { source_id: sid9, pages: extractedPages });"
+        L"      const res9 = await window.nativeBridge.call('search_semantic_passages', {"
+        L"        query: 'Acheulian handaxes basalt bedrock lower palaeolithic',"
+        L"        top_k: 3"
+        L"      });"
+        L"      const hit9 = Array.isArray(res9) && res9.some(r => r.doc_id === sid9 && r.score > 0.4);"
+        L"      check9Pass = hit9;"
+        L"    }"
+        L"    record('9. Full Ingest→Archive→Extract→Embed→Search Loop (Real PDF, Not Hand-Seeded)',"
+        L"           check9Pass,"
+        L"           'sourceId: ' + sid9 + ', charExtracted: ' + charCount + ', gotRealText: ' + gotRealText + ', searchHit: ' + check9Pass);"
+        L"    "
         L"    window.chrome.webview.postMessage({"
         L"      id: 'req_live_ui_test',"
         L"      action: 'ui_test_complete',"
@@ -606,7 +670,7 @@ public:
                               << r.value("details", "") << "\n";
                 }
                 std::cout << "================================================================================\n";
-                std::cout << "  OVERALL LIVE DOM VERDICT: " << (ok ? "ALL 7 DOM CHECKS PASSED (100%)" : "FAILED") << "\n";
+                std::cout << "  OVERALL LIVE DOM VERDICT: " << (ok ? "ALL " + std::to_string(payload.value("results", json::array()).size()) + " DOM CHECKS PASSED (100%)" : "FAILED") << "\n";
                 std::cout << "================================================================================\n\n";
                 std::cout.flush();
                 PostQuitMessage(ok ? 0 : 1);
@@ -931,15 +995,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     LogDebug("[WINMAIN] g_runLiveUiTests=" + std::string(g_runLiveUiTests ? "TRUE" : "FALSE"));
 
     if (g_runLiveUiTests) {
-        // Ensure test PDF fixture exists for live ingestion test
+        // Ensure test PDF fixture exists for live ingestion + extraction test (Check 9).
+        // This is a structurally valid PDF-1.4 with a content stream containing an
+        // embedded archaeological text passage for end-to-end ingestion→extract→embed testing.
+        // The text "Excavation Trench VII basalt bedrock Acheulian handaxe assemblages"
+        // must be recoverable by extract_archive_text and retrievable by semantic search.
         std::ofstream pdf("test_live_sample.pdf", std::ios::binary);
-        pdf << "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
+        // Content stream: BT...Tj is the standard PDF text operator
+        std::string contentStream =
+            "BT\n"
+            "/F1 12 Tf\n"
+            "50 700 Td\n"
+            "(Excavation Trench VII basalt bedrock Acheulian handaxe assemblages lower palaeolithic) Tj\n"
+            "0 -20 Td\n"
+            "(Locality VII boulder conglomerate resting on trap basalt with handaxes in primary context) Tj\n"
+            "ET\n";
+        std::string csLen = std::to_string(contentStream.size());
+
+        // Object offsets (approximate; standard PDF readers tolerate minor xref discrepancies)
+        pdf << "%PDF-1.4\n";
+        pdf << "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
         pdf << "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-        pdf << "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-        pdf << "xref\n0 4\n0000000000 65535 f\n0000000010 00000 n\n0000000060 00000 n\n0000000117 00000 n\n";
-        pdf << "trailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n188\n%%EOF\n";
+        pdf << "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]\n"
+               "   /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n";
+        pdf << "4 0 obj\n<< /Length " << csLen << " >>\nstream\n";
+        pdf << contentStream;
+        pdf << "endstream\nendobj\n";
+        pdf << "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n";
+        pdf << "xref\n0 6\n"
+               "0000000000 65535 f\n"
+               "0000000009 00000 n\n"
+               "0000000062 00000 n\n"
+               "0000000119 00000 n\n"
+               "0000000270 00000 n\n"
+               "0000000410 00000 n\n";
+        pdf << "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n480\n%%EOF\n";
         pdf.close();
-        LogDebug("[WINMAIN] Created test_live_sample.pdf fixture.");
+        LogDebug("[WINMAIN] Created test_live_sample.pdf fixture with embedded text content stream.");
     }
 
     // 1. Initialize COM

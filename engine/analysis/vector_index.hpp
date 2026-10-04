@@ -7,6 +7,7 @@
 #include <cmath>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include "embedding_engine.hpp"
 
 namespace archaeophd {
 
@@ -56,10 +57,10 @@ public:
     };
 
     static void l2_normalize(std::vector<float>& vec) {
-        float norm = 0.0f;
-        for (float v : vec) norm += v * v;
-        norm = std::sqrt(norm);
-        if (norm > 1e-9f) {
+        float norm_sq = 0.0f;
+        for (float v : vec) norm_sq += v * v;
+        if (norm_sq > 1e-12f && std::abs(norm_sq - 1.0f) > 1e-6f) {
+            float norm = std::sqrt(norm_sq);
             for (float& v : vec) v /= norm;
         }
     }
@@ -103,14 +104,8 @@ public:
         return results;
     }
 
-    static std::vector<float> embed_text(const std::string& text) {
-        std::vector<float> vec(VECTOR_DIM, 0.0f);
-        for (size_t i = 0; i < text.size(); ++i) {
-            uint8_t c = static_cast<uint8_t>(text[i]);
-            vec[c % VECTOR_DIM] += 1.0f;
-        }
-        l2_normalize(vec);
-        return vec;
+    static std::vector<float> embed_text(const std::string& text, bool is_query = false) {
+        return EmbeddingEngine::instance().embed(text, is_query, static_cast<int>(VECTOR_DIM));
     }
 
     void clear() {

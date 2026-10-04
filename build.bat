@@ -36,6 +36,7 @@ copy /y "lib\WebView2Loader.dll" "release\WebView2Loader.dll" >nul
 REM 4. Compile standalone ArchaeoPhD.exe with MinGW G++ (Statically linked: zero MinGW DLL dependencies)
 echo Compiling self-contained ArchaeoPhD.exe with MinGW G++ C++20 (statically linked)...
 g++ -std=c++20 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
+    -DHAS_LLAMA_CPP ^
     -I include ^
     -I engine ^
     -I engine\core ^
@@ -43,8 +44,15 @@ g++ -std=c++20 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
     -I engine\analysis ^
     -I engine\extraction ^
     -I engine\validation ^
+    -I third_party\llama.cpp\include ^
+    -I third_party\llama.cpp\ggml\include ^
     src\main.cpp ^
     src\resource.res ^
+    third_party\llama.cpp\build\src\libllama.a ^
+    third_party\llama.cpp\build\ggml\src\ggml.a ^
+    third_party\llama.cpp\build\ggml\src\ggml-cpu.a ^
+    third_party\llama.cpp\build\ggml\src\ggml-base.a ^
+    -fopenmp ^
     -o release\ArchaeoPhD.exe ^
     -lole32 -loleaut32 -luuid -luser32 -lshell32 -lshlwapi -lcomdlg32
 

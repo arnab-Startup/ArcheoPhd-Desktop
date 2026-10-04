@@ -49,6 +49,22 @@ namespace fs_compat {
         return MoveFileExA(from.c_str(), to.c_str(),
             MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
     }
+
+    inline void cleanup_tmp_files(const std::string& dir) {
+        if (!exists(dir)) return;
+        std::string pattern = dir + "/*.tmp";
+        WIN32_FIND_DATAA fd;
+        HANDLE hFind = FindFirstFileA(pattern.c_str(), &fd);
+        if (hFind != INVALID_HANDLE_VALUE) {
+            do {
+                if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                    std::string full_path = dir + "/" + fd.cFileName;
+                    DeleteFileA(full_path.c_str());
+                }
+            } while (FindNextFileA(hFind, &fd));
+            FindClose(hFind);
+        }
+    }
 }
 
 class NativeStorage {
@@ -123,7 +139,14 @@ public:
         state["verification_items"] = json::array();
         for (const auto& kv : verification_items_) state["verification_items"].push_back(kv.second);
 
-        // 1. Atomic write-through for relational state JSON
+        // 1. Atomic write-through for contiguous binary vectors.bin first
+        // Ordering rationale: Vectors must be committed before promoting the authoritative
+        // relational state ledger. If a crash occurs between (1) and (2), relational state
+        // remains at transaction N-1, and any orphaned vectors in vectors.bin are safely dropped
+        // by the query joiner. Inverting this would risk claims pointing to missing vectors.
+        vector_index_.save(vectors_path());
+
+        // 2. Atomic write-through for authoritative relational state JSON
         std::string tmp_state = state_path() + ".tmp";
         std::string payload = state.dump(2);
         HANDLE hFile = CreateFileA(tmp_state.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -134,13 +157,16 @@ public:
             CloseHandle(hFile);
             fs_compat::rename_file(tmp_state, state_path());
         }
-
-        // 2. Atomic write-through for contiguous binary vectors.bin
-        vector_index_.save(vectors_path());
     }
 
     void load_state() {
         NativeGuard lock(mutex_);
+
+        // Clean up any orphaned .tmp files left by an interrupted write or power failure
+        fs_compat::cleanup_tmp_files(data_dir_);
+        fs_compat::cleanup_tmp_files(data_dir_ + "/archives");
+        fs_compat::cleanup_tmp_files(chunks_dir());
+
         if (fs_compat::exists(state_path())) {
             std::ifstream in(state_path().c_str());
             if (in.is_open()) {

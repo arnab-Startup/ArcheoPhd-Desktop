@@ -26,3 +26,12 @@ engine/data/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Models & Weights
+models/
+*.gguf
+
+# Third-party source dependencies
+third_party/
+
+
