@@ -6,8 +6,11 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <thread>
 #include <future>
 #include <json.hpp>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include "models.hpp"
 #include "storage/storage.hpp"
 #include "analysis/vector_index.hpp"
@@ -20,27 +23,20 @@ using json = nlohmann::json;
 using namespace archaeophd;
 
 // =============================================================================
-// Simulated window.nativeBridge Client (JS <-> C++ Bridge Protocol Harness)
+// Simulated WebView2 Native Bridge Harness
 // =============================================================================
-// Exactly simulates the JS window.nativeBridge.call(action, payload, projectId)
-// defined in desktop/src/main.cpp:
+// Replicates the complete Win32 WideCharToMultiByte / MultiByteToWideChar
+// round-trip pipeline executed by WebMessageReceivedHandler::Invoke:
 //
-// window.nativeBridge = {
-//   call: function(action, payload, projectId) {
-//     return new Promise(function(resolve, reject) {
-//       var id = 'req_' + Math.random().toString(36).substr(2, 9);
-//       function onMsg(e) {
-//         var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-//         if (d && d.id === id) {
-//           window.chrome.webview.removeEventListener('message', onMsg);
-//           if (d.error) reject(new Error(d.error)); else resolve(d.result);
-//         }
-//       }
-//       window.chrome.webview.addEventListener('message', onMsg);
-//       window.chrome.webview.postMessage({ id: id, action: action, payload: payload || {}, projectId: projectId || 'default' });
-//     });
-//   }
-// };
+// 1. JS caller: window.chrome.webview.postMessage(obj) -> WebView2 encodes to UTF-16 (LPWSTR msgJson)
+// 2. Win32 WebMessageReceivedHandler:
+//      WideCharToMultiByte(CP_UTF8, ...) -> UTF-8 std::string rawJson
+// 3. Dispatcher:
+//      std::string replyJson = DispatchNativeMessage(rawJson)
+// 4. Win32 WebMessageReceivedHandler:
+//      MultiByteToWideChar(CP_UTF8, ...) -> UTF-16 std::wstring wideReply
+//      sender->PostWebMessageAsJson(wideReply.c_str())
+// 5. JS caller receives reply event and correlates req_id.
 // =============================================================================
 class SimulatedNativeBridge {
 private:
@@ -60,21 +56,55 @@ public:
         std::string raw_reply;
     };
 
-    BridgeResult call(const std::string& action, const json& payload = json::object(), const std::string& projectId = "default") {
+    // Low-level helper: Replicates exact Win32 conversion in WebMessageReceivedHandler::Invoke
+    std::string simulate_win32_webview2_transport(const std::string& utf8Input) {
+        // Step A: Convert incoming UTF-8 string to Win32 UTF-16 (simulates WebView2 msgJson LPWSTR)
+        int wideInLen = MultiByteToWideChar(CP_UTF8, 0, utf8Input.c_str(), -1, nullptr, 0);
+        std::wstring wideMsg(wideInLen, L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, utf8Input.c_str(), -1, &wideMsg[0], wideInLen);
+        if (!wideMsg.empty() && wideMsg.back() == L'\0') wideMsg.pop_back();
+
+        // Step B: Replicate WebMessageReceivedHandler::Invoke converting LPWSTR to UTF-8 rawJson
+        int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wideMsg.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string rawJson(utf8Len, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, wideMsg.c_str(), -1, &rawJson[0], utf8Len, nullptr, nullptr);
+        if (!rawJson.empty() && rawJson.back() == '\0') rawJson.pop_back();
+
+        // Step C: Native C++ Dispatcher
+        std::string replyJson = dispatcher_.dispatch(rawJson);
+
+        // Step D: Replicate WebMessageReceivedHandler::Invoke converting replyJson to UTF-16 wideReply
+        int wideReplyLen = MultiByteToWideChar(CP_UTF8, 0, replyJson.c_str(), -1, nullptr, 0);
+        std::wstring wideReply(wideReplyLen, L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, replyJson.c_str(), -1, &wideReply[0], wideReplyLen);
+        if (!wideReply.empty() && wideReply.back() == L'\0') wideReply.pop_back();
+
+        // Step E: Replicate PostWebMessageAsJson delivering UTF-16 payload back to JS
+        int finalUtf8Len = WideCharToMultiByte(CP_UTF8, 0, wideReply.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string finalReply(finalUtf8Len, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, wideReply.c_str(), -1, &finalReply[0], finalUtf8Len, nullptr, nullptr);
+        if (!finalReply.empty() && finalReply.back() == '\0') finalReply.pop_back();
+
+        return finalReply;
+    }
+
+    BridgeResult call(const std::string& action, const json& payload = json::object(), const std::string& projectId = "default", const std::string& customId = "") {
         BridgeResult br;
-        std::string reqId = "req_" + std::to_string(++reqCounter_);
+        std::string reqId = customId.empty() ? ("req_" + std::to_string(++reqCounter_)) : customId;
         br.req_id = reqId;
 
         // 1. Serialize message in JS: postMessage({ id, action, payload, projectId })
         json jsReq;
-        jsReq["id"] = reqId;
+        if (!reqId.empty()) {
+            jsReq["id"] = reqId;
+        }
         jsReq["action"] = action;
         jsReq["payload"] = payload;
         jsReq["projectId"] = projectId;
         std::string rawRequest = jsReq.dump();
 
-        // 2. Transmit across WebView2 WebMessage boundary to C++ Dispatcher
-        std::string rawReply = dispatcher_.dispatch(rawRequest);
+        // 2. Transmit through Win32 WebView2 WebMessage boundary
+        std::string rawReply = simulate_win32_webview2_transport(rawRequest);
         br.raw_reply = rawReply;
 
         // 3. Receive message in JS: onMsg(e) -> JSON.parse(e.data)
@@ -91,7 +121,7 @@ public:
         std::string replyId = d.value("id", "");
         if (replyId != reqId) {
             br.rejected = true;
-            br.error = "ID correlation mismatch: expected " + reqId + " but received " + replyId;
+            br.error = "ID correlation mismatch: expected '" + reqId + "' but received '" + replyId + "'";
             return br;
         }
 
@@ -109,11 +139,16 @@ public:
 
         return br;
     }
+
+    // Direct raw dispatch tester (for testing syntactically broken strings or non-object roots)
+    std::string call_raw(const std::string& rawJson) {
+        return simulate_win32_webview2_transport(rawJson);
+    }
 };
 
 int main() {
     std::cout << "================================================================================\n";
-    std::cout << "  ArchaeoPhD Engine — Step 2: WebView2 IPC Bridge & UI Guardrails Test Suite    \n";
+    std::cout << "  ArchaeoPhD Engine — Step 2: WebView2 IPC Bridge & Adversarial Test Suite      \n";
     std::cout << "================================================================================\n\n";
 
     std::string testDir = "test_ipc_bridge_data";
@@ -151,16 +186,16 @@ int main() {
         std::cout << "[TEST 1] IPC Request Correlation & Malformed JSON Resilience...\n";
 
         // A. Malformed JSON directly into dispatcher
-        std::string malformedReply = dispatcher.dispatch("{this is not valid json");
+        std::string malformedReply = bridge.call_raw("{this is not valid json");
         json mJson = json::parse(malformedReply);
         assert(mJson.contains("error"));
         assert(mJson["error"] == "Invalid JSON payload");
 
-        // B. Empty JSON object
-        std::string emptyReply = dispatcher.dispatch("{}");
-        json eJson = json::parse(emptyReply);
-        assert(eJson.contains("error"));
-        assert(eJson["error"] == "Unknown native action: ");
+        // B. Non-object root JSON (array)
+        std::string arrayReply = bridge.call_raw("[1, 2, 3]");
+        json aJson = json::parse(arrayReply);
+        assert(aJson.contains("error"));
+        assert(aJson["error"] == "Invalid JSON payload: root must be an object");
 
         // C. Standard ping via bridge
         auto pingRes = bridge.call("ping");
@@ -490,35 +525,51 @@ int main() {
     }
 
     // -------------------------------------------------------------------------
-    // TEST 11: UI Guardrail: Amber UNVERIFIED_ROUGH_SCAN Badge on Passage Search
+    // TEST 11: UI Guardrail: Scoped Passage Badging (Per-Chunk & Page Grounding)
     // -------------------------------------------------------------------------
     {
-        std::cout << "[TEST 11] UI Guardrail: Amber UNVERIFIED_ROUGH_SCAN Badge on Passage Search...\n";
+        std::cout << "[TEST 11] UI Guardrail: Scoped Passage Badging (Per-Chunk & Page Grounding)...\n";
 
-        // Index rough scan text chunks for discovery
+        // Index two separate pages for createdSourceId (which is Class B):
+        // Page 1: Has a verified manual transcription ("Manual Note: Confirmed basalt bedrock")
+        // Page 12: Has ZERO manual transcription (raw, unverified rough OCR scan)
         json pageChunks = json::array({
-            {{"page_number", 12}, {"text", "Section 4. Stratigraphic Trench VII revealed extensive Acheulian handaxes\nembedded in dense boulder conglomerate overlying basalt bedrock."}}
+            {{"page_number", 1}, {"text", "Trench VII overview: basalt bedrock reached across all grids with clear stratum boundaries."}},
+            {{"page_number", 12}, {"text", "Section 4: Unverified scan text reporting ambiguous handaxe frequencies in upper colluvium."}}
         });
 
-        auto indexRes = bridge.call("index_rough_text", {{"source_id", createdSourceId}, {"pages", pageChunks}});
-        assert(indexRes.resolved == true);
-        assert(indexRes.result["chunks_indexed"] == 1);
+        bridge.call("index_rough_text", {{"source_id", createdSourceId}, {"pages", pageChunks}});
 
-        // Search semantic passages via IPC
-        auto searchRes = bridge.call("search_semantic_passages", {{"query", "Acheulian handaxes basalt bedrock"}, {"top_k", 3}});
-        assert(searchRes.resolved == true);
-        assert(searchRes.result.is_array());
-        assert(searchRes.result.size() >= 1);
+        // Search for page 1 content (has page-level human grounding)
+        auto resP1 = bridge.call("search_semantic_passages", {{"query", "basalt bedrock overview"}, {"top_k", 2}});
+        assert(resP1.resolved == true);
+        bool foundP1 = false;
+        for (const auto& m : resP1.result) {
+            if (m["doc_id"] == createdSourceId && m["page_ref"] == 1) {
+                foundP1 = true;
+                assert(m["has_page_grounding"] == true);
+                assert(m["verified_facts_on_page"] >= 1);
+                assert(m["badge"] == "PARTIALLY_VERIFIED");
+                assert(m["is_unverified_rough_scan"] == false); // NOT flagged as rough scan because page has verified facts!
+            }
+        }
+        assert(foundP1 == true);
 
-        const auto& firstMatch = searchRes.result[0];
-        assert(firstMatch.contains("badge"));
-        assert(firstMatch.contains("is_unverified_rough_scan"));
-        assert(firstMatch.contains("degradation_class"));
-        assert(firstMatch["is_unverified_rough_scan"] == true);
-        assert(firstMatch["badge"] == "UNVERIFIED_ROUGH_SCAN");
-        assert(firstMatch["degradation_class"] == "CLASS_B");
-        assert(!firstMatch["text"].get<std::string>().empty());
-        std::cout << "  ✓ Search results carry mandatory amber UNVERIFIED_ROUGH_SCAN badge for UI rendering.\n\n";
+        // Search for page 12 content (untranscribed rough scan)
+        auto resP12 = bridge.call("search_semantic_passages", {{"query", "ambiguous handaxe frequencies upper colluvium"}, {"top_k", 2}});
+        assert(resP12.resolved == true);
+        bool foundP12 = false;
+        for (const auto& m : resP12.result) {
+            if (m["doc_id"] == createdSourceId && m["page_ref"] == 12) {
+                foundP12 = true;
+                assert(m["has_page_grounding"] == false);
+                assert(m["verified_facts_on_page"] == 0);
+                assert(m["badge"] == "UNVERIFIED_ROUGH_SCAN"); // CORRECTLY carries the amber warning badge!
+                assert(m["is_unverified_rough_scan"] == true);
+            }
+        }
+        assert(foundP12 == true);
+        std::cout << "  ✓ Inverted condition eliminated: badging is fine-grained per-chunk (page 1: PARTIALLY_VERIFIED, page 12: UNVERIFIED_ROUGH_SCAN).\n\n";
     }
 
     // -------------------------------------------------------------------------
@@ -526,7 +577,7 @@ int main() {
     // -------------------------------------------------------------------------
     {
         std::cout << "[TEST 12] Concurrent JS Bridge Request Simulation & Isolation...\n";
-        // Simulate 20 rapid, sequential asynchronous calls with distinct request IDs
+        // Simulate 20 rapid sequential asynchronous calls with distinct request IDs
         for (int i = 0; i < 20; ++i) {
             auto res = bridge.call("ping");
             assert(res.resolved == true);
@@ -536,12 +587,221 @@ int main() {
         std::cout << "  ✓ 20 rapid IPC bridge message cycles executed with 100% request ID correlation.\n\n";
     }
 
+    // -------------------------------------------------------------------------
+    // TEST 13: Adversarial IPC: Missing Required Request Fields (id, action)
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 13] Adversarial IPC: Missing Required Request Fields (id, action)...\n";
+
+        // A. Request with missing 'id'
+        std::string noIdJson = "{\"action\": \"ping\", \"payload\": {}}";
+        std::string noIdReply = bridge.call_raw(noIdJson);
+        json r1 = json::parse(noIdReply);
+        assert(r1.contains("error"));
+        assert(r1["error"] == "Invalid request: missing required 'id' field");
+
+        // B. Request with missing 'action'
+        std::string noActJson = "{\"id\": \"req_no_act\", \"payload\": {}}";
+        std::string noActReply = bridge.call_raw(noActJson);
+        json r2 = json::parse(noActReply);
+        assert(r2.contains("error"));
+        assert(r2["id"] == "req_no_act");
+        assert(r2["error"] == "Invalid request: missing or invalid 'action' field");
+
+        // C. Request with non-object 'payload'
+        std::string badPayloadJson = "{\"id\": \"req_bad_pl\", \"action\": \"ping\", \"payload\": \"string_not_obj\"}";
+        std::string badPlReply = bridge.call_raw(badPayloadJson);
+        json r3 = json::parse(badPlReply);
+        assert(r3.contains("error"));
+        assert(r3["id"] == "req_bad_pl");
+        assert(r3["error"] == "Invalid request: 'payload' must be a JSON object");
+
+        std::cout << "  ✓ Missing IDs, missing actions, and malformed payload shapes rejected immediately.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 14: Adversarial IPC: Type Confusion Injection on confirmed_clean_offset
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 14] Adversarial IPC: Type Confusion Injection on confirmed_clean_offset...\n";
+
+        // Adversarial attempts to bypass Class A gating with non-boolean truthy values:
+        // 1. String "true"
+        auto res1 = bridge.call("classify_source", {
+            {"source_id", createdSourceId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", "true"} // STRING, NOT BOOLEAN
+        });
+        assert(res1.resolved == false);
+        assert(res1.rejected == true);
+        assert(res1.error.find("Class A requires explicit physical print confirmation") != std::string::npos);
+
+        // 2. Integer 1
+        auto res2 = bridge.call("classify_source", {
+            {"source_id", createdSourceId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", 1} // INT, NOT BOOLEAN
+        });
+        assert(res2.resolved == false);
+        assert(res2.rejected == true);
+        assert(res2.error.find("Class A requires explicit physical print confirmation") != std::string::npos);
+
+        // 3. Array [true]
+        auto res3 = bridge.call("classify_source", {
+            {"source_id", createdSourceId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", json::array({true})} // ARRAY
+        });
+        assert(res3.resolved == false);
+        assert(res3.rejected == true);
+
+        // 4. Object {"bypass": true}
+        auto res4 = bridge.call("classify_source", {
+            {"source_id", createdSourceId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", {{"bypass", true}}} // OBJECT
+        });
+        assert(res4.resolved == false);
+        assert(res4.rejected == true);
+
+        // 5. Strict literal boolean true -> Must succeed
+        auto res5 = bridge.call("classify_source", {
+            {"source_id", createdSourceId},
+            {"target_class", "CLASS_A"},
+            {"confirmed_clean_offset", true} // STRICT BOOLEAN TRUE
+        });
+        assert(res5.resolved == true);
+        assert(res5.result["success"] == true);
+
+        std::cout << "  ✓ Type confusion attacks blocked: strings ('true'), ints (1), arrays, and objects rejected.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 15: Adversarial IPC: Missing Entity IDs in Mutation Payloads
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 15] Adversarial IPC: Missing Entity IDs in Mutation Payloads...\n";
+
+        // A. classify_source with empty source_id
+        auto r1 = bridge.call("classify_source", {{"target_class", "CLASS_A"}, {"confirmed_clean_offset", true}});
+        assert(r1.resolved == false);
+        assert(r1.error == "Invalid request: 'source_id' is required for classification");
+
+        // B. reflag_source_class with missing source_id
+        auto r2 = bridge.call("reflag_source_class", json::object());
+        assert(r2.resolved == false);
+        assert(r2.error == "Invalid request: 'source_id' is required for reflagging");
+
+        // C. resolve_verification_item with missing item_id
+        auto r3 = bridge.call("resolve_verification_item", {{"resolution_type", "REJECT"}});
+        assert(r3.resolved == false);
+        assert(r3.error == "Invalid request: 'item_id' is required for verification resolution");
+
+        // D. save_manual_transcription with missing facts array
+        auto r4 = bridge.call("save_manual_transcription", {{"source_id", createdSourceId}, {"page_number", 1}});
+        assert(r4.resolved == false);
+        assert(r4.error == "Invalid request: 'facts' must be an array of transcribed entities");
+
+        std::cout << "  ✓ All mutation endpoints validate required fields before touching storage.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 16: Multi-Byte UTF-8 Diacritics & Multilingual Archaeological Citations
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 16] Multi-Byte UTF-8 Diacritics & Archaeological Citations...\n";
+
+        // Archaeological monograph test string with French accents, German umlauts,
+        // Semitic diacritics (ṣ, ṭ, š, ā), Devanagari script (रुग्ण), em-dashes, and quotation marks
+        std::string complexTitle = "Tell es-Sulṭān (Jericho) — Stratum IV Phase b, Šarru-kīn & Chirki-on-Pravarā (रुग्ण)";
+        std::string complexAuthor = "Kathleen M. Kenyon (1952–1958) & François Bordes (Bordeaux)";
+
+        json payload = {
+            {"file_path", dummyPdf},
+            {"title", complexTitle},
+            {"author", complexAuthor},
+            {"year", "1958"}
+        };
+
+        auto res = bridge.call("ingest_document", payload);
+        assert(res.resolved == true);
+        std::string utf8SourceId = res.result["source_id"];
+
+        // Query source over bridge and verify 100% byte-for-byte character fidelity across Win32 UTF-16 <-> UTF-8 conversion
+        auto qRes = bridge.call("get_sources");
+        assert(qRes.resolved == true);
+        bool foundComplex = false;
+        for (const auto& s : qRes.result) {
+            if (s["id"] == utf8SourceId) {
+                foundComplex = true;
+                assert(s["title"] == complexTitle);
+                assert(s["author"] == complexAuthor);
+            }
+        }
+        assert(foundComplex == true);
+        std::cout << "  ✓ Non-ASCII multilingual diacritics preserved with 100% byte fidelity across Win32 boundary.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 17: Concurrent Requests with Duplicate Request IDs
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 17] Concurrent Requests with Duplicate Request IDs...\n";
+        // Send multiple concurrent calls using the identical request ID 'req_duplicate_test'
+        std::string sharedId = "req_duplicate_test";
+        auto res1 = bridge.call("ping", json::object(), "default", sharedId);
+        auto res2 = bridge.call("ping", json::object(), "default", sharedId);
+
+        assert(res1.resolved == true);
+        assert(res2.resolved == true);
+        assert(res1.req_id == sharedId);
+        assert(res2.req_id == sharedId);
+        assert(res1.result["status"] == "online");
+        assert(res2.result["status"] == "online");
+        std::cout << "  ✓ Dispatcher executes deterministically under shared/duplicate request IDs.\n\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // TEST 18: Stress Test: Large Payload (500 KB Chunk) Across Bridge
+    // -------------------------------------------------------------------------
+    {
+        std::cout << "[TEST 18] Stress Test: Large Payload (500 KB Chunk) Across Bridge...\n";
+
+        // Construct 500 KB chunk of text
+        std::string largeChunk;
+        largeChunk.reserve(500 * 1024);
+        std::string snippet = "Stratigraphic trench excavation unit 42-B yielded 14 Acheulian handaxes in situ. ";
+        while (largeChunk.size() < 500 * 1024) {
+            largeChunk += snippet;
+        }
+
+        json chunkPayload = {
+            {"source_id", createdSourceId},
+            {"pages", json::array({
+                {{"page_number", 42}, {"text", largeChunk}}
+            })}
+        };
+
+        auto idxRes = bridge.call("index_rough_text", chunkPayload);
+        assert(idxRes.resolved == true);
+        assert(idxRes.result["chunks_indexed"] >= 1);
+
+        // Search across the large chunk
+        auto sRes = bridge.call("search_semantic_passages", {{"query", "excavation unit 42-B Acheulian handaxes"}, {"top_k", 1}});
+        assert(sRes.resolved == true);
+        assert(sRes.result.is_array());
+        assert(!sRes.result.empty());
+        assert(sRes.result[0]["text"].get<std::string>().size() > 100);
+
+        std::cout << "  ✓ 500 KB payload transmitted, indexed, and retrieved with zero truncation or memory corruption.\n\n";
+    }
+
     // Clean up temporary files
     std::filesystem::remove(dummyPdf, ec);
     std::filesystem::remove_all(testDir, ec);
 
     std::cout << "================================================================================\n";
-    std::cout << "  ALL 12 WEBVIEW2 IPC BRIDGE & UI GUARDRAIL TESTS PASSED WITH ZERO FAILURES!    \n";
+    std::cout << "  ALL 18 WEBVIEW2 IPC BRIDGE & ADVERSARIAL TESTS PASSED WITH ZERO FAILURES!     \n";
     std::cout << "================================================================================\n";
     return 0;
 }

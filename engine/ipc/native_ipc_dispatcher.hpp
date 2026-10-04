@@ -57,9 +57,35 @@ public:
             return "{\"error\": \"Invalid JSON payload\"}";
         }
 
+        // Structural validation of request
+        if (!req.is_object()) {
+            return "{\"error\": \"Invalid JSON payload: root must be an object\"}";
+        }
+
         std::string reqId = req.value("id", "");
-        std::string action = req.value("action", "");
+        if (reqId.empty()) {
+            json errRes;
+            errRes["id"] = "";
+            errRes["error"] = "Invalid request: missing required 'id' field";
+            return errRes.dump();
+        }
+
+        if (!req.contains("action") || !req["action"].is_string() || req["action"].get<std::string>().empty()) {
+            json errRes;
+            errRes["id"] = reqId;
+            errRes["error"] = "Invalid request: missing or invalid 'action' field";
+            return errRes.dump();
+        }
+
+        std::string action = req["action"].get<std::string>();
         std::string projectId = req.value("projectId", "default");
+
+        if (req.contains("payload") && !req["payload"].is_object()) {
+            json errRes;
+            errRes["id"] = reqId;
+            errRes["error"] = "Invalid request: 'payload' must be a JSON object";
+            return errRes.dump();
+        }
         json payload = req.value("payload", json::object());
 
         json res;
@@ -212,7 +238,11 @@ public:
                 res["result"] = arr;
             } else if (action == "put_claim") {
                 // Safeguarded Claim Write: Enforces hard-gate rejection against automated writes into Class B
-                Claim c = payload.value("claim", json::object());
+                if (!payload.contains("claim") || !payload["claim"].is_object()) {
+                    res["error"] = "Invalid request: 'claim' object is required for put_claim";
+                    return res.dump();
+                }
+                Claim c = payload["claim"].get<Claim>();
                 c.project_id = projectId;
                 bool ok = storage_->put_claim_safeguarded(c, false);
                 if (!ok) {
@@ -309,7 +339,11 @@ public:
             // Group 3: Phase 1 Gated Ingestion & Two-Plane Search Endpoints
             // -------------------------------------------------------------
             else if (action == "ingest_document") {
-                std::string filePath = payload.value("file_path", "");
+                if (!payload.contains("file_path") || !payload["file_path"].is_string() || payload["file_path"].get<std::string>().empty()) {
+                    res["error"] = "Invalid request: 'file_path' is required for document ingestion";
+                    return res.dump();
+                }
+                std::string filePath = payload["file_path"].get<std::string>();
                 std::string title = payload.value("title", "");
                 std::string author = payload.value("author", "");
                 std::string year = payload.value("year", "");
@@ -329,9 +363,23 @@ public:
                     };
                 }
             } else if (action == "classify_source") {
-                std::string sourceId = payload.value("source_id", "");
-                std::string targetClass = payload.value("target_class", "CLASS_B");
-                bool confirmedCleanOffset = payload.value("confirmed_clean_offset", false);
+                if (!payload.contains("source_id") || !payload["source_id"].is_string() || payload["source_id"].get<std::string>().empty()) {
+                    res["error"] = "Invalid request: 'source_id' is required for classification";
+                    return res.dump();
+                }
+                std::string sourceId = payload["source_id"].get<std::string>();
+                std::string targetClass = "CLASS_B";
+                if (payload.contains("target_class") && payload["target_class"].is_string()) {
+                    targetClass = payload["target_class"].get<std::string>();
+                }
+
+                // TYPE SAFETY: confirmed_clean_offset MUST be a strict boolean true.
+                // Strings ("true"), numbers (1), arrays ([true]), objects ({}) MUST NOT be coerced to true.
+                bool confirmedCleanOffset = false;
+                if (payload.contains("confirmed_clean_offset") && payload["confirmed_clean_offset"].is_boolean()) {
+                    confirmedCleanOffset = payload["confirmed_clean_offset"].get<bool>();
+                }
+
                 std::string err;
                 bool ok = IngestionManager::ClassifySource(*storage_, sourceId, targetClass, confirmedCleanOffset, err, projectId);
                 if (!ok) {
@@ -340,7 +388,11 @@ public:
                     res["result"] = {{"success", true}, {"source_id", sourceId}, {"degradation_class", targetClass}};
                 }
             } else if (action == "reflag_source_class") {
-                std::string sourceId = payload.value("source_id", "");
+                if (!payload.contains("source_id") || !payload["source_id"].is_string() || payload["source_id"].get<std::string>().empty()) {
+                    res["error"] = "Invalid request: 'source_id' is required for reflagging";
+                    return res.dump();
+                }
+                std::string sourceId = payload["source_id"].get<std::string>();
                 bool ok = IngestionManager::ReflagSourceToClassB(*storage_, sourceId, projectId);
                 res["result"] = {{"success", ok}, {"source_id", sourceId}, {"degradation_class", "CLASS_B"}};
             } else if (action == "get_verification_queue") {
@@ -350,7 +402,11 @@ public:
                 for (const auto& v : items) arr.push_back(v);
                 res["result"] = arr;
             } else if (action == "resolve_verification_item") {
-                std::string itemId = payload.value("item_id", "");
+                if (!payload.contains("item_id") || !payload["item_id"].is_string() || payload["item_id"].get<std::string>().empty()) {
+                    res["error"] = "Invalid request: 'item_id' is required for verification resolution";
+                    return res.dump();
+                }
+                std::string itemId = payload["item_id"].get<std::string>();
                 std::string resolutionType = payload.value("resolution_type", "");
                 std::string overrideValue = payload.value("override_value", "");
 
@@ -378,7 +434,10 @@ public:
                 // For Class B documents, return purely blank schema fields.
                 // Never supply machine OCR guesses or pre-fills.
                 std::string sourceId = payload.value("source_id", "");
-                int pageNumber = payload.value("page_number", 1);
+                int pageNumber = 1;
+                if (payload.contains("page_number") && payload["page_number"].is_number_integer()) {
+                    pageNumber = payload["page_number"].get<int>();
+                }
                 res["result"] = {
                     {"source_id", sourceId},
                     {"page_number", pageNumber},
@@ -390,12 +449,23 @@ public:
                     })}
                 };
             } else if (action == "save_manual_transcription") {
-                std::string sourceId = payload.value("source_id", "");
-                int pageNumber = payload.value("page_number", 1);
-                json facts = payload.value("facts", json::array());
+                if (!payload.contains("source_id") || !payload["source_id"].is_string() || payload["source_id"].get<std::string>().empty()) {
+                    res["error"] = "Invalid request: 'source_id' is required for manual transcription";
+                    return res.dump();
+                }
+                std::string sourceId = payload["source_id"].get<std::string>();
+                int pageNumber = 1;
+                if (payload.contains("page_number") && payload["page_number"].is_number_integer()) {
+                    pageNumber = payload["page_number"].get<int>();
+                }
+                if (!payload.contains("facts") || !payload["facts"].is_array()) {
+                    res["error"] = "Invalid request: 'facts' must be an array of transcribed entities";
+                    return res.dump();
+                }
+                json facts = payload["facts"];
                 bool ok = IngestionManager::SaveManualTranscription(*storage_, sourceId, pageNumber, facts, projectId);
                 if (!ok) {
-                    res["error"] = "Failed to save manual transcription: invalid facts payload.";
+                    res["error"] = "Failed to save manual transcription: internal storage failure.";
                 } else {
                     res["result"] = {{"success", true}, {"source_id", sourceId}, {"page_number", pageNumber}};
                 }
@@ -412,7 +482,10 @@ public:
                 res["result"] = {{"success", true}, {"source_id", sourceId}, {"chunks_indexed", count}};
             } else if (action == "search_semantic_passages") {
                 std::string query = payload.value("query", "");
-                int topK = payload.value("top_k", 5);
+                int topK = 5;
+                if (payload.contains("top_k") && payload["top_k"].is_number_integer()) {
+                    topK = payload["top_k"].get<int>();
+                }
                 auto queryEmb = VectorIndex::embed_text(query);
                 auto matches = storage_->vectors().search(queryEmb, topK);
 
@@ -420,6 +493,9 @@ public:
                 auto sources = storage_->get_sources(projectId);
                 std::map<std::string, Source> sourceMap;
                 for (const auto& s : sources) sourceMap[s.id] = s;
+
+                // Cross-reference claims for chunk-level grounding precision
+                auto claims = storage_->get_claims(projectId);
 
                 json arr = json::array();
                 for (const auto& m : matches) {
@@ -430,7 +506,35 @@ public:
                         degClass = sit->second.degradation_class;
                         ingStatus = sit->second.ingestion_status;
                     }
-                    bool isRough = (ingStatus == "UNVERIFIED_ROUGH_SCAN" || degClass == "CLASS_B");
+
+                    // Check chunk/page level grounding: has this specific page been manually verified?
+                    int verifiedFactsOnPage = 0;
+                    std::string targetPageRef = "p." + std::to_string(m.page_ref);
+                    for (const auto& c : claims) {
+                        if (c.source_id == m.doc_id && c.page_ref == targetPageRef && c.verification_status == "VERIFIED") {
+                            verifiedFactsOnPage++;
+                        }
+                    }
+
+                    bool isChunkVerified = (verifiedFactsOnPage > 0);
+                    bool isDocFullyVerified = (ingStatus == "VERIFIED_MANUAL" || ingStatus == "COMPLETED");
+
+                    // Precise Badge Logic:
+                    // 1. Fully verified document -> "VERIFIED_MANUAL" or "VERIFIED_CONSENSUS" (green/blue)
+                    // 2. Partially verified page with human grounding -> "PARTIALLY_VERIFIED" (clean status)
+                    // 3. Otherwise unverified machine OCR -> "UNVERIFIED_ROUGH_SCAN" (amber warning)
+                    std::string badge;
+                    bool isRough = false;
+                    if (isDocFullyVerified) {
+                        badge = (ingStatus == "VERIFIED_MANUAL") ? "VERIFIED_MANUAL" : "VERIFIED_CONSENSUS";
+                        isRough = false;
+                    } else if (isChunkVerified) {
+                        badge = "PARTIALLY_VERIFIED";
+                        isRough = false;
+                    } else {
+                        badge = "UNVERIFIED_ROUGH_SCAN";
+                        isRough = true;
+                    }
 
                     arr.push_back({
                         {"chunk_id", m.chunk_id},
@@ -441,7 +545,9 @@ public:
                         {"degradation_class", degClass},
                         {"ingestion_status", ingStatus},
                         {"is_unverified_rough_scan", isRough},
-                        {"badge", isRough ? "UNVERIFIED_ROUGH_SCAN" : "VERIFIED"}
+                        {"badge", badge},
+                        {"verified_facts_on_page", verifiedFactsOnPage},
+                        {"has_page_grounding", isChunkVerified}
                     });
                 }
                 res["result"] = arr;
