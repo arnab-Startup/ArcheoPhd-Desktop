@@ -1,17 +1,16 @@
-// test_entity_extraction_held_out_run.cpp
-// Baseline evaluation harness for the 60-case held-out (second dev) set.
-// Run after any extractor change to measure coverage gaps against this set.
-//
-// PROVENANCE NOTE: The held-out set (ccbc5f3) was authored AFTER the extractor
-// (a6cf766). It is a `second dev set, same author` and shares the same author bias.
-// Results here are NOT blind and must not be reported as independent validation.
+// test_entity_extraction_third_set_run.cpp
+// Evaluation harness for the 30-case third evaluation set.
+// Gate criteria (pre-registered 2026-10-05):
+//   Precision   >= 92.0%
+//   Recall      >= 80.0%
+//   Specificity >= 95.0%
 
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
 #include <cmath>
-#include "eval_entity_extraction_held_out.hpp"
+#include "eval_entity_extraction_third_set.hpp"
 #include "extraction/entity_extractor.hpp"
 
 using namespace archaeophd;
@@ -56,13 +55,13 @@ std::string category_str(EntityCategory cat) {
 
 int main() {
     std::cout << "================================================================================\n";
-    std::cout << "  ArchaeoPhD Engine -- Phase 2 Step 3: Held-Out (Second Dev) Set Baseline Run\n";
-    std::cout << "  Extractor commit: a6cf766  |  Dataset commit: ccbc5f3\n";
-    std::cout << "  PROVENANCE: Second Dev Set, same author -- NOT blind evaluation\n";
+    std::cout << "  ArchaeoPhD Engine -- Phase 2 Step 3: Third Evaluation Set Run\n";
+    std::cout << "  Extractor: entity_extractor.hpp (commit 116995d+)\n";
+    std::cout << "  PROVENANCE: 30-case evaluation set authored 2026-10-05\n";
     std::cout << "================================================================================\n\n";
 
-    auto cases = get_held_out_evaluation_dataset();
-    std::cout << "Loaded " << cases.size() << " held-out test cases.\n\n";
+    auto cases = get_third_evaluation_dataset();
+    std::cout << "Loaded " << cases.size() << " third-set test cases.\n\n";
 
     std::cout << "--------------------------------------------------------------------------------\n";
     std::cout << std::left
@@ -156,10 +155,10 @@ int main() {
     auto sp_ci = wilson95(total_tn, total_tn_cases);
 
     std::cout << "================================================================================\n";
-    std::cout << "  HELD-OUT SET RESULTS  (extractor v2 / commit 116995d  |  dataset ccbc5f3)\n";
+    std::cout << "  THIRD EVALUATION SET RESULTS\n";
     std::cout << "================================================================================\n";
-    std::cout << "  Positive cases:       35 test cases  (43 total expected entities)\n";
-    std::cout << "  Negative controls:    20 (must suppress all)\n";
+    std::cout << "  Positive cases:       15 test cases (" << total_expected << " expected entities)\n";
+    std::cout << "  Negative controls:    10 (must suppress all)\n";
     std::cout << "  Out-of-scope units:    5 (must suppress all)\n";
     std::cout << "  TP: " << total_tp << "  FP: " << total_fp
               << "  FN: " << total_fn
@@ -186,7 +185,7 @@ int main() {
     // -------------------------------------------------------------------------
     // Hard gate evaluation
     // Gate criteria (pre-registered 2026-10-05):
-    //   Precision   >= 92.0%  (recall weighted lower; every FP costs analyst time)
+    //   Precision   >= 92.0%
     //   Recall      >= 80.0%
     //   Specificity >= 95.0%
     // -------------------------------------------------------------------------
@@ -214,10 +213,6 @@ int main() {
     std::cout << "================================================================================\n";
     std::cout << "  OVERALL GATE: " << (all_pass ? "[PASS]" : "[FAIL]") << "\n";
     std::cout << "================================================================================\n";
-    std::cout << "  PROVENANCE: Second dev set, same author -- NOT blind evaluation.\n";
-    std::cout << "  Blind validation requires the independent third evaluation set.\n";
-    std::cout << "================================================================================\n";
 
     return all_pass ? 0 : 1;
 }
-

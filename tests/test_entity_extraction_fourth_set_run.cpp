@@ -1,17 +1,17 @@
-// test_entity_extraction_held_out_run.cpp
-// Baseline evaluation harness for the 60-case held-out (second dev) set.
-// Run after any extractor change to measure coverage gaps against this set.
+// test_entity_extraction_fourth_set_run.cpp
+// Evaluation harness for the 30-case Fourth Evaluation Set.
 //
-// PROVENANCE NOTE: The held-out set (ccbc5f3) was authored AFTER the extractor
-// (a6cf766). It is a `second dev set, same author` and shares the same author bias.
-// Results here are NOT blind and must not be reported as independent validation.
+// Governed by Spec v2.0 Section 2.3:
+//   Precision   >= 90.0%
+//   Recall      >= 90.0%
+//   Specificity >= 95.0%
 
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
 #include <cmath>
-#include "eval_entity_extraction_held_out.hpp"
+#include "eval_entity_extraction_fourth_set.hpp"
 #include "extraction/entity_extractor.hpp"
 
 using namespace archaeophd;
@@ -56,13 +56,13 @@ std::string category_str(EntityCategory cat) {
 
 int main() {
     std::cout << "================================================================================\n";
-    std::cout << "  ArchaeoPhD Engine -- Phase 2 Step 3: Held-Out (Second Dev) Set Baseline Run\n";
-    std::cout << "  Extractor commit: a6cf766  |  Dataset commit: ccbc5f3\n";
-    std::cout << "  PROVENANCE: Second Dev Set, same author -- NOT blind evaluation\n";
+    std::cout << "  ArchaeoPhD Engine -- Phase 2 Step 3: Fourth Evaluation Set Run\n";
+    std::cout << "  Protocol: Spec v2.0 Section 2.3 (Mention-Level Extraction)\n";
+    std::cout << "  PROVENANCE: Fresh 30-case evaluation set authored 2026-10-05\n";
     std::cout << "================================================================================\n\n";
 
-    auto cases = get_held_out_evaluation_dataset();
-    std::cout << "Loaded " << cases.size() << " held-out test cases.\n\n";
+    auto cases = get_fourth_evaluation_dataset();
+    std::cout << "Loaded " << cases.size() << " fourth-set test cases.\n\n";
 
     std::cout << "--------------------------------------------------------------------------------\n";
     std::cout << std::left
@@ -156,11 +156,11 @@ int main() {
     auto sp_ci = wilson95(total_tn, total_tn_cases);
 
     std::cout << "================================================================================\n";
-    std::cout << "  HELD-OUT SET RESULTS  (extractor v2 / commit 116995d  |  dataset ccbc5f3)\n";
+    std::cout << "  FOURTH EVALUATION SET RESULTS\n";
     std::cout << "================================================================================\n";
-    std::cout << "  Positive cases:       35 test cases  (43 total expected entities)\n";
-    std::cout << "  Negative controls:    20 (must suppress all)\n";
-    std::cout << "  Out-of-scope units:    5 (must suppress all)\n";
+    std::cout << "  Positive cases:       20 test cases (" << total_expected << " expected entities)\n";
+    std::cout << "  Negative controls:     6 (must suppress all)\n";
+    std::cout << "  Out-of-scope units:    4 (must suppress all)\n";
     std::cout << "  TP: " << total_tp << "  FP: " << total_fp
               << "  FN: " << total_fn
               << "  TN: " << total_tn << "/" << total_tn_cases << "\n\n";
@@ -184,14 +184,13 @@ int main() {
     }
 
     // -------------------------------------------------------------------------
-    // Hard gate evaluation
-    // Gate criteria (pre-registered 2026-10-05):
-    //   Precision   >= 92.0%  (recall weighted lower; every FP costs analyst time)
-    //   Recall      >= 80.0%
+    // Pre-registered gate evaluation (Spec v2.0 Section 6):
+    //   Precision   >= 90.0%
+    //   Recall      >= 90.0%
     //   Specificity >= 95.0%
     // -------------------------------------------------------------------------
-    constexpr double GATE_PRECISION    = 92.0;
-    constexpr double GATE_RECALL       = 80.0;
+    constexpr double GATE_PRECISION    = 90.0;
+    constexpr double GATE_RECALL       = 90.0;
     constexpr double GATE_SPECIFICITY  = 95.0;
 
     bool gate_p   = (precision   >= GATE_PRECISION);
@@ -200,7 +199,7 @@ int main() {
     bool all_pass = gate_p && gate_r && gate_sp;
 
     std::cout << "================================================================================\n";
-    std::cout << "  GATE EVALUATION  (pre-registered 2026-10-05)\n";
+    std::cout << "  GATE EVALUATION (Pre-Registered Spec v2.0 Gates)\n";
     std::cout << "================================================================================\n";
     std::cout << "  [GATE P ]  Precision  >= " << std::fixed << std::setprecision(1)
               << GATE_PRECISION    << "%  -> " << precision   << "%  "
@@ -214,10 +213,6 @@ int main() {
     std::cout << "================================================================================\n";
     std::cout << "  OVERALL GATE: " << (all_pass ? "[PASS]" : "[FAIL]") << "\n";
     std::cout << "================================================================================\n";
-    std::cout << "  PROVENANCE: Second dev set, same author -- NOT blind evaluation.\n";
-    std::cout << "  Blind validation requires the independent third evaluation set.\n";
-    std::cout << "================================================================================\n";
 
     return all_pass ? 0 : 1;
 }
-

@@ -114,7 +114,7 @@ The evaluation was executed by `desktop/tests/test_semantic_retrieval_benchmark.
 | 19 | `animal burrowing disturbance mixing diagnostic artifacts` | `method_c48` | 1 | HIT @1 |
 | 20 | `soil micromorphology thin section microscopic floor analysis` | `method_c49` | 1 | HIT @1 |
 
-*(Note on Q17 phrasing: In draft summaries, Q17 was colloquially paraphrased as "topological directed acyclic graph stratigraphy layers" by conflating the query with the target passage text. The exact, authoritative source query committed in `tests/test_semantic_retrieval_benchmark.cpp` is `"topological directed graph representation of archaeological layers"`.)*
+*(Note on Query Fields & Subsequent Diagnostic Reports: The benchmark tuple `BenchmarkQuery` consists of `query_text` [Field 1: search string sent to embedding engine], `target_chunk_id` [Field 2], and `description` [Field 3: short diagnostic label]. The table above lists the verbatim `query_text` strings. Diagnostic runner traces in subsequent reports, such as Report 08, print the `description` field [e.g. `"Chirki Elephas and Bos fossil associations"` for Q3] in their logging columns rather than the full query string.)*
 
 ### Statistical Discipline: Wilson Score Interval
 Evaluating $17/20$ successes yields a point estimate of $85.0\%$. At $n = 20$, the sample size is small; applying the Wilson score interval at the 95% confidence level:

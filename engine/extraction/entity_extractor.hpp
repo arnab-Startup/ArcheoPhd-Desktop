@@ -600,61 +600,58 @@ public:
         }
 
         // --------------------------------------------------------------------
-        // 13. Exact Historical Dates: in 732 BC, until 135 CE
+        // 13a. Exact Historical BCE: 3100 B.C., 732 BC, 1200 B.C.E.
+        // Handles BC, BCE, B.C., B.C.E. era markers with any leading preposition or none.
         // --------------------------------------------------------------------
-        // Handles BC, BCE, B.C., B.C.E. era markers.
-        // Never-Repair fix: span is aligned to the date portion (not the full "in X BC" match).
-        std::regex re_exact_bce(R"((?:in|by|around)\s+(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
+        std::regex re_exact_bce(R"(\b(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.)(?!\w))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_exact_bce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
             ExtractedEntity e;
-            std::regex re_date_only(R"((\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
-            std::smatch sm;
-            std::string full_match = it->str();
-            if (std::regex_search(full_match, sm, re_date_only)) {
-                e.raw_match = sm.str();
-                int y = parse_int(sm.str(1));
-                e.unit = sm.str(2);
-                e.astro_year_start = bce_to_astro(y);
-                e.normalized_value = std::to_string(e.astro_year_start);
-                e.span_start = it->position() + sm.position();
-                e.span_end = e.span_start + sm.length();
-            } else { continue; }
+            e.raw_match = it->str();
             e.entity_type = "EXACT_DATE_BCE";
+            int y = parse_int(it->str(1));
+            e.unit = it->str(2);
+            e.astro_year_start = bce_to_astro(y);
+            e.normalized_value = std::to_string(e.astro_year_start);
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
             results.push_back(e);
         }
 
-        // Handles CE, AD, A.D., C.E. era markers; optional month-name word between prefix and year.
-        // Never-Repair fix: span is aligned to the date portion only.
-        std::regex re_exact_ce(R"((?:until|in|by)\s+(?:\w+\s+)?(\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
+        // --------------------------------------------------------------------
+        // 13b. Exact Historical CE: 530 A.D., 70 AD, 135 CE, A.D. 70
+        // Handles CE, AD, A.D., C.E. era markers preceding or following the year.
+        // --------------------------------------------------------------------
+        std::regex re_exact_ce(R"(\b(?:(\d+)\s*(CE|AD|A\.D\.|C\.E\.)|(AD|A\.D\.)\s*(\d+))(?!\w))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_exact_ce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
             ExtractedEntity e;
-            std::regex re_date_only(R"((\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
-            std::smatch sm;
-            std::string full_match = it->str();
-            if (std::regex_search(full_match, sm, re_date_only)) {
-                e.raw_match = sm.str();
-                int y = parse_int(sm.str(1));
-                e.unit = sm.str(2);
-                e.astro_year_start = ce_to_astro(y);
-                e.normalized_value = "+" + std::to_string(e.astro_year_start);
-                e.span_start = it->position() + sm.position();
-                e.span_end = e.span_start + sm.length();
-            } else { continue; }
+            e.raw_match = it->str();
             e.entity_type = "EXACT_DATE_CE";
+            int y = 0;
+            if (!it->str(1).empty()) {
+                y = parse_int(it->str(1));
+                e.unit = it->str(2);
+            } else {
+                e.unit = it->str(3);
+                y = parse_int(it->str(4));
+            }
+            e.astro_year_start = ce_to_astro(y);
+            e.normalized_value = "+" + std::to_string(e.astro_year_start);
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
             results.push_back(e);
         }
 
         // --------------------------------------------------------------------
-        // 14. Artifact & Specimen Counts: 694 tools, 330 handaxes, 6 pieces
+        // 14. Artifact & Specimen Counts: 694 tools, 330 handaxes, 6 pieces, 47 arrowheads
         // Matches N [optional-qualifier] artifact-noun. Headcounts (workers, people)
         // are excluded by the exclusion_spans pre-scan above.
         // --------------------------------------------------------------------
         std::regex re_artifact_count(
-            R"(\b(\d+)\s+(?:\S+\s+)?(artifacts?|tools?|implements?|pieces?|cores?|flakes?|handaxes?|hand\s+axes?|choppers?|scrapers?|blades?|burins?|bifaces?|knives?|specimens?|assemblages?|pebble\s+tools?|stone\s+tools?))",
+            R"(\b(\d+)\s+(?:\S+\s+)?(artifacts?|tools?|implements?|pieces?|cores?|flakes?|handaxes?|hand\s+axes?|choppers?|scrapers?|blades?|burins?|bifaces?|knives?|specimens?|assemblages?|pebble\s+tools?|stone\s+tools?|arrowheads?|points?|microliths?|sherds?|potsherds?|vessels?|beads?|figurines?|querns?|weights?|pithoi|pithos))",
             std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_artifact_count), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
@@ -701,7 +698,7 @@ public:
             results.push_back(e);
         }
 
-        std::regex re_stratum(R"(\bStratum\s+([IVXLCDM]+|\d+[A-Za-z]*))");
+        std::regex re_stratum(R"(\bStratum\s+([IVXLCDM]+[A-Za-z]*|\d+[A-Za-z]*))");
         for (std::sregex_iterator it(text.begin(), text.end(), re_stratum), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -715,7 +712,7 @@ public:
             results.push_back(e);
         }
 
-        std::regex re_trench(R"(\bTrench\s+([IVXLCDM]+|\d+[A-Za-z]*))");
+        std::regex re_trench(R"(\bTrench\s+([IVXLCDM]+[A-Za-z]*|\d+[A-Za-z]*))");
         for (std::sregex_iterator it(text.begin(), text.end(), re_trench), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;

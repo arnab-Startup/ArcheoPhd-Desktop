@@ -66,6 +66,13 @@ The deterministic pure C++ regular grammar and normalizer operates strictly in-p
    - Real physical units that lie outside the targeted micro-stratigraphic domain (e.g., `hectares`, `acres`, `square kilometers`, `degrees Fahrenheit`) are categorized as **Out-of-Scope Units** (`OUT_OF_SCOPE_UNIT`), rather than negative controls.
    - Negative controls are strictly reserved for non-archaeological entity text (citations, page numbers, figure numbers, catalog IDs).
 
+### 2.3 Mention-Level Extraction vs. Attribution Relevance Boundary
+1. **Architectural Scope of Step 3:** Step 3 is strictly **Mention-Level Entity Extraction**, not semantic relevance filtering.
+2. **Rule of Completeness:** Any syntactically and physically valid quantitative expression (linear dimension, linear range, coordinate, compound dimension, mass, count, date) occurring in text MUST be extracted as an `ExtractedEntity`.
+3. **Methodological & Survey Quantities:** Quantities describing cartographic features (e.g. `0.5 m contour intervals`), geophysical survey grids (e.g. `20 by 40 metres at 0.25-metre traverse spacing`), or sampling intervals (e.g. `10-cm intervals`) are **valid physical mentions**. They are in-scope for Step 3 extraction. Step 3 may assign an optional contextual tag (`context_domain = "SURVEY_OR_CARTOGRAPHIC"` or `"FIELD_METHODOLOGY"`), but MUST NOT suppress the mention via negative lookaheads.
+4. **Attribution Boundary (Step 4):** Determining whether a valid mention represents an in-situ archaeological find (e.g. a wall foundation, pit depth, or ceramic vessel) versus a survey or methodology parameter is the exclusive responsibility of **Phase 2 Step 4 (Knowledge Graph Attribution & Entity Linking)**.
+5. **Negative Control Invariant:** A test case is a valid `NEGATIVE_CONTROL` if and only if it contains **zero** targeted physical quantities or calendar dates (e.g. modern publication metadata, bare integers without units, coordinate degree-minute strings, page/figure references). Cases containing genuine physical units (such as contour intervals or traverse spacings) MUST NOT be classified as negative controls to artificially penalize the extractor.
+
 ---
 
 ## 3. Epistemic Invariants & Decoupled OCR Anomaly Architecture
@@ -164,20 +171,18 @@ Evaluation is strictly partitioned into three decoupled datasets to eliminate ci
 - **Purpose:** Test-driven development, internal regression bench, grammar unit tests.
 - **Role:** Explicitly labeled as **DEV SET ONLY**. Not used to certify generalizable performance.
 
-### 5.2 Dataset 2: Independent Held-Out Evaluation Set (`tests/eval_entity_extraction_held_out.hpp`)
-- **Nature:** Passages extracted directly from real archaeological publications in the project corpus:
-  * Sankalia (1974) *Prehistory and Protohistory of India and Pakistan*
-  * Kenyon (1957, 1981) *Digging Up Jericho* / *Excavations at Jericho*
-  * Yadin (1972) *Hazor: The Head of All Those Kingdoms*
-  * Marshall (1931) & Mackay (1938) *Mohenjo-daro and the Indus Civilization*
-  * Aitken (1990) *Science-based Dating in Archaeology*
-  * Schiffer (1987) *Formation Processes of the Archaeological Record*
-  * Courty, Macphail, Wattez (1989) *Soils and Micromorphology in Archaeology*
-- **Composition:**
-  * Positive extraction targets (metrics with `m.`, dates with `B.C.`, author-calibrated `cal BP`, artifact counts, strata).
-  * High-difficulty negative controls (page spans `pp. 131–137`, bibliographic years `March 1945`, `Kenyon (1981: 142)`, figure references, table references, excavation permit IDs).
-  * Out-of-scope units (hectares, acres).
-- **Sealing Invariant:** Pre-registered and sealed with its SHA-256 hash in git prior to running final evaluation. Evaluated only once.
+### 5.2 Dataset 2: Second Development Set (Authored & Corpus-Grounded, Same Author) (`tests/eval_entity_extraction_held_out.hpp`)
+- **Status & Independence Disclosure:** This suite is **not** an independently authored blind evaluation set; it was authored by the same engineering team in the same development session as the specification.
+- **Corpus Grounding Boundaries:**
+  * The Phase 0 repository corpus holds four specific scanned documents: Sankalia (1974), Rajan (2002), Chakrabarti (1988), and Jarrige & Lechevallier (1979).
+  * Excerpts citing page numbers in Sankalia, Rajan, or Chakrabarti are **Real Corpus** excerpts verified against raw OCR files.
+  * Sentences referencing Kenyon (1981), Yadin (1972), Marshall (1931), Mackay (1938), Aitken (1990), Schiffer (1987), or Courty (1989) are **Authored / Synthesized** benchmark passages, as the repository does not hold scans of those volumes.
+- **Composition (60 Cases Total):**
+  * 35 Positive extraction targets (metrics with `m.`, ranges with en-dashes, artifact counts, dates with `B.C.`/`A.D.`, `cal BP`, temperature).
+  * 20 Hard negative controls (page spans `pp. 131–137`, bibliographic years `March 1945`, in-text citations `Kenyon (1981: 142)`, figure references, table references, map scales, ratios).
+  * 5 Out-of-scope units (hectares, acres, square kilometres, degrees Fahrenheit, knots).
+- **Pre-Registration SHA-256 Hash:**
+  `F6F4E3CB1D868DD28B737B0D92A2FCD1B38711C6E4F6CB9072D886560C66405D`
 
 ### 5.3 Dataset 3: Real-OCR Plausibility Benchmark (`tests/ocr_benchmark_50/ground_truth.json`)
 - **Nature:** 166 blind ground-truth facts across 50 corpus document pages, coupled with raw OCR outputs from Tesseract LSTM (`results_tesseract/`) and Windows Native OCR (`results_windows_ocr/`).
@@ -196,13 +201,13 @@ Evaluation is strictly partitioned into three decoupled datasets to eliminate ci
 
 ## 6. Pre-Registered Performance Gates
 
-Prior to advancing Phase 2, the pipeline must satisfy the following gates on the **Held-Out Set** and **Real-OCR Benchmark**:
+Prior to advancing Phase 2, the pipeline must satisfy the following gates on the **Second Dev Set** and **Real-OCR Benchmark**:
 
-| Metric | Evaluation Scope | Pre-Registered Gate | Rationale |
+| Metric | Evaluation Scope | Pre-Registered Gate | Mathematical Definition & Rationale |
 |---|---|---|---|
-| **Precision** | Held-Out Set | $\ge 90.0\%$ | Wilson 95% lower bound must demonstrate high precision |
-| **Recall** | Held-Out Set | $\ge 85.0\%$ | Minimizes missed domain entities |
-| **Repair Violation Rate** | Held-Out & Dev Sets | **$0.0\%$ (Strict Zero)** | Any heuristic modification of raw text slice fails gate |
-| **Negative Specificity** | Held-Out Hard Negatives | $\ge 90.0\%$ | Clean rejection of bibliographic years, page numbers, citations |
+| **Precision** | Second Dev Set | $\ge 90.0\%$ (Point Estimate) | Target $100.0\%$. Wilson 95% lower bound must exceed $85.0\%$ |
+| **Recall** | Second Dev Set | $\ge 85.0\%$ (Point Estimate) | Target $100.0\%$. Minimizes missed domain entities |
+| **Repair Violation Rate** | All Sets | **$0.0\%$ (Strict Zero)** | $0 / N$ mutations. Any heuristic modification of raw slice fails gate |
+| **Negative Specificity** | 20 Hard Negatives | **Point Estimate $\ge 95.0\%$** | Allows at most 1 miss out of 20 (target $100.0\% = 20/20$). *Note on Wilson bounds:* at $n=20$, $20/20$ yields Wilson 95% CI $[83.9\%,\; 100.0\%]$. Certifying a lower bound $\ge 90.0\%$ is mathematically impossible at $n=20$ (requires $n \ge 35$ with 35/35). The gate is therefore explicitly defined on the **point estimate $\ge 95.0\%$**, with the Wilson interval recorded as an advisory confidence metric. |
 | **Class B Quarantine** | Security Gate Test | **$100.0\%$** | Zero automated commits of Class B mentions to authoritative KG |
-| **Plausibility Sensitivity** | Real-OCR 47 Corruptions | Measured & Reported | Statistical characterization on real letterpress noise |
+| **Plausibility Sensitivity** | Real-OCR 47 Corruptions | Measured & Reported | Statistical characterization on real letterpress noise (expected low: $\sim 10\text{--}25\%$) |

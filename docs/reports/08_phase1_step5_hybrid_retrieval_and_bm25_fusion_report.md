@@ -78,6 +78,10 @@ Evaluated via `tests/test_hybrid_retrieval_benchmark.cpp` on the pre-registered 
 
 ### Per-Query Diagnostic Trace (Verbatim Step 4B Queries)
 
+> [!NOTE]
+> **Diagnostic Trace Column Definition:**  
+> The `BenchmarkQuery` struct consists of `std::string query_text` (Field 1: search string sent to `embed()` and `search()`), `std::string target_chunk_id` (Field 2), and `std::string description` (Field 3: short human-readable diagnostic label). The trace table below prints the truncated `description` (e.g. `"Chirki Elephas and Bos fossil ass..."`) in the "Query Description" column for terminal readability, while the underlying search query evaluated is the verbatim `query_text` (e.g. `"fossil elephant molars and bovine fauna with lithics"`), matching Report 07 Table 94 character-for-character.
+
 ```text
 --------------------------------------------------------------------------------
 #   Query Description                     Target      Dense   BM25    Hybrid  Latency   Status
