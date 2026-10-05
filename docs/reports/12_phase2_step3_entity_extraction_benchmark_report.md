@@ -180,14 +180,29 @@ An earlier intermediate run reported 139 clean facts (Tesseract) and 128 (Window
 
 Re-running the dual-engine router across all 166 facts under both regimes:
 
+**Important note on terminology.** The scorer (§8.1) classifies facts by whether each engine found the ground-truth value. The router (`DualEngineEnsembleRouter`) classifies facts by whether both engines' *extracted strings*, after normalization, agree with each other. A fact can be scorer-both-correct (both engines found the GT value) while simultaneously being router-queued (the extracted strings differ). §8.2 uses scorer buckets throughout; §8.3 uses router status. Keep these separate.
+
+**Full six-fact transition table (scorer buckets, old regex → strict `icontains`):**
+
+| Fact | Class | GT Value | Old scorer bucket | New scorer bucket | Old Win extracted | Old Tess extracted |
+|---|---|---|---|---|---|---|
+| **#38** | B (Sankalia) | `10,000` | **both-correct** | Tess-only | `"10.000"` via `[,.]?` | `"10,000"` verbatim |
+| **#54** | B (Sankalia) | `400 A.D.` | **both-correct** | Tess-only | `"400 AD."` via `\.?` | `"400 A.D."` verbatim |
+| **#57** | B (Sankalia) | `431 A.D.` | **Tess-only** | both-fail | miss | `"431 AD"` via `\.?` |
+| **#145** | A (Rajan) | `1881 and 1896` | **Tess-only** | both-fail | miss | `"1881 and\n1896"` via `\s+` |
+| **#157** | A (Rajan) | `70,000` | **Win-only** | both-fail | `"70.000"` via `[,.]?` | miss |
+| **#161** | A (Rajan) | `300-10,000` | **both-correct** | Tess-only | `"300-10.000"` via `[,.]?` | `"300-10,000"` verbatim |
+
+**Column delta verification** (old → new): both-correct −3 (#38, #54, #161) → 116 ✓; Tess-only +1 (−2 from #57,#145 leaving; +3 from #38,#54,#161 entering) → 21 ✓; Win-only −1 (#157 leaves) → 8 ✓; both-fail +3 (#57, #145, #157) → 21 ✓.
+
 | Metric | Older Rule (Regex) | Strict Rule (`icontains`) | Delta | Explanation |
 |---|:---:|:---:|:---:|---|
-| **Tesseract Hits** | 139 / 166 (83.7%) | 137 / 166 (82.5%) | -2 | Facts #57, #145 lost |
-| **Windows OCR Hits** | 128 / 166 (77.1%) | 124 / 166 (74.7%) | -4 | Facts #38, #54, #157, #161 lost |
-| **Both Agreed Correct** | 119 (71.7%) | 116 (69.9%) | -3 | 3 both-correct lost: **#38, #54, #57 — all Class B** (Sankalia) |
-| **Windows OCR Only Correct** | 9 | 8 | -1 | #54 and #38 move from both-correct to Tess-only; #157 moves from Win-only to both-fail; net -1 |
-| **Tesseract Only Correct** | 20 | 21 | +1 | #57 moves from both-correct to Tess-only (+1) |
-| **Both Failed** | 18 | 21 | +3 | #145 and #157 become both-fail (+2); #38 becomes Tess-only (net from both-correct, accounts for remaining shift) |
+| **Tesseract Hits** | 139 / 166 (83.7%) | 137 / 166 (82.5%) | -2 | #57 and #145 lost (Tess-only → both-fail) |
+| **Windows OCR Hits** | 128 / 166 (77.1%) | 124 / 166 (74.7%) | -4 | #38, #54, #157, #161 lost |
+| **Both Agreed Correct (scorer)** | 119 (71.7%) | 116 (69.9%) | **-3** | **#38, #54, #161** leave (→ Tess-only). #57 was Tess-only, not both-correct. |
+| **Windows OCR Only Correct** | 9 | 8 | -1 | #157 leaves (Win-only → both-fail) |
+| **Tesseract Only Correct** | 20 | 21 | +1 | +3 arrive (#38, #54, #161); −2 leave (#57, #145 → both-fail); net +1 |
+| **Both Failed** | 18 | 21 | +3 | #57, #145, #157 all → both-fail |
 | **Total Errors** | 47 (28.3%) | 50 (30.1%) | +3 | Error set expanded from 47 to 50 |
 | **Class A Auto-Accepted (Router)** | **92 / 104 (88.5%)** | **92 / 104 (88.5%)** | **0** | **Same 92 physical facts — see §8.3** |
 | **Class A Routed to Verification Queue** | **12 / 104 (11.5%)** | **12 / 104 (11.5%)** | **0** | **Same 12 physical facts — see §8.3** |
@@ -197,24 +212,16 @@ Re-running the dual-engine router across all 166 facts under both regimes:
 ### 8.3 Class A Router Set Identity — Per-Fact Proof
 
 **Preliminary: is the router independent of the scorer?**  
-No — not trivially. The router (`DualEngineEnsembleRouter::ProcessDocument`) receives `value_engine_a` and `value_engine_b` from `MatchCandidateInText`. The scorer choice (flexible regex vs strict `icontains`) determines what string is placed in those fields. Changing the scorer therefore changes the router's inputs. The two matchers produce different strings for facts #38, #54, #57, #145, #157, and #161. The claim that 92/104 is identical under both regimes requires per-fact tracing, not a trivial independence argument.
+No — not trivially. The router (`DualEngineEnsembleRouter::ProcessDocument`) receives `value_engine_a` and `value_engine_b` from `MatchCandidateInText`. The scorer choice determines what string is placed in those fields. The claim that 92/104 is identical under both regimes requires per-fact tracing, not a trivial independence argument.
 
-**The three facts that moved from "both-correct" to something else (all Class B, Sankalia):**
+**Fact #161 — scorer both-correct, router queued (two different statuses, not a contradiction):**  
+Fact #161 (`300-10,000`, `rajan_p110`, Class A): Under the old matcher, Win extracted `"300-10.000"` (comma→dot via `[,.]?` regex) and Tess extracted `"300-10,000"` (verbatim). The scorer counted both engines as hitting the ground-truth value → **scorer: both-correct**. But `NormalizeNumericFact("300-10.000")` = `"300-10.000"` while `NormalizeNumericFact("300-10,000")` = `"300-10000"` (comma stripped). These are unequal → **router: Queue** under old regime. Under strict matcher, Win missed entirely → also **router: Queue**. Router status is identical in both regimes despite the scorer bucket changing (both-correct → Tess-only).
 
-| Fact # | GT Value | Old (Regex) | Strict (`icontains`) | Both-correct change |
-|---|---|---|---|---|
-| **#38** | `10,000` (sankalia_p025, Class B) | Win: `"10.000"` via `[,.]?`; Tess: `"10,000"` verbatim → **both-correct** | Win: miss (`.` ≠ `,`); Tess: hit → **Tess-only** | −1 |
-| **#54** | `400 A.D.` (sankalia_p210, Class B) | Win: `"400 AD."` via `\.?`; Tess: `"400 A.D."` verbatim → **both-correct** | Win: miss; Tess: hit → **Tess-only** | −1 |
-| **#57** | `431 A.D.` (sankalia_p210, Class B) | Win: `"431 AD"` via `\.?`; Tess: `"431 AD"` → **both-correct** | Win: miss; Tess: miss (`431 AD` ≠ `431 A.D.`) → **both-fail** | −1 |
+**Class B gating:** All Sankalia facts (#38, #54, #57) are hard-gated to `GATED_MANUAL_REVIEW_REQUIRED` before any consensus logic runs — they never reach the `normA == normB` path and are irrelevant to the Class A count in both regimes.
 
-All three are **Class B (Sankalia)**. The router hard-gates all Sankalia facts to `GATED_MANUAL_REVIEW_REQUIRED` before any consensus logic runs. None of these facts ever enter the `normA == normB` comparison path. They are irrelevant to the Class A count in both regimes.
+**All 12 Class A queued facts — router status under each regime:**
 
-**Class A fact #161 was never "both-correct" in either regime:**  
-Fact #161 (`300-10,000`, `rajan_p110`): Old matcher — Win extracted `"300-10.000"`, Tess extracted `"300-10,000"`. `NormalizeNumericFact("300-10.000")` = `"300-10.000"`, `NormalizeNumericFact("300-10,000")` = `"300-10000"`. These are unequal → **disagreement → Queue** under old regime. Strict matcher — Win missed entirely (`value_engine_a = ""`), Tess hit → also **Queue**. #161 was in Queue in both regimes; it is not one of the 3 both-correct facts that moved.
-
-**All 12 Class A queued facts — status under each regime:**
-
-| Fact | Page | GT Value | Old regime routing | Strict regime routing |
+| Fact | Page | GT Value | Old regime router | Strict regime router |
 |---|---|---|---|---|
 | fact-101 | rajan_p020 | `1764` | Win miss, Tess hit → Queue | Win miss, Tess hit → Queue |
 | fact-104 | rajan_p020 | `1799` | Win miss, Tess hit → Queue | Win miss, Tess hit → Queue |
@@ -222,10 +229,10 @@ Fact #161 (`300-10,000`, `rajan_p110`): Old matcher — Win extracted `"300-10.0
 | fact-125 | rajan_p023 | `1871` | Win miss, Tess hit → Queue | Win miss, Tess hit → Queue |
 | fact-129 | rajan_p024 | `1774` | Win miss, Tess hit → Queue | Win miss, Tess hit → Queue |
 | fact-134 | rajan_p024 | `1834-1913` | Win miss, Tess hit → Queue | Win miss, Tess hit → Queue |
-| fact-145 | rajan_p050 | `1881 and 1896` | Win: `"1881 and 1 896"` ≠ Tess: `"1881 and\n1896"` (after normalize, unequal) → Queue | Win miss, Tess miss (both `""`) → Queue |
-| fact-157 | rajan_p110 | `70,000` | Win: `"70.000"`, Tess miss → disagreement → Queue | Win miss, Tess miss → Queue |
+| fact-145 | rajan_p050 | `1881 and 1896` | Win `"1881 and 1 896"` ≠ Tess `"1881 and\n1896"` → normalize unequal → Queue | Both miss (both `""`) → Queue |
+| fact-157 | rajan_p110 | `70,000` | Win `"70.000"`, Tess miss → Queue | Both miss → Queue |
 | fact-159 | rajan_p110 | `10,000-20,000,000` | Both miss → Queue | Both miss → Queue |
-| fact-161 | rajan_p110 | `300-10,000` | Win: `"300-10.000"`, Tess: `"300-10,000"` → normalize unequal → Queue | Win miss, Tess hit → Queue |
+| fact-161 | rajan_p110 | `300-10,000` | Win `"300-10.000"` ≠ Tess `"300-10,000"` → normalize unequal → Queue | Win miss, Tess hit → Queue |
 | fact-165 | rajan_p110 | `7,400` | Win hit, Tess miss → Queue | Win hit, Tess miss → Queue |
 | fact-166 | rajan_p110 | `5,000-40,000` | Both miss → Queue | Both miss → Queue |
 
@@ -269,7 +276,7 @@ With n = 15 negatives, Spec ≥ 95% requires 15/15 (zero FP tolerance).
    The 9 missed clean facts in Class A split into two categories that must be decided **before** tuning, not after:
    - **Spec-defined Out-of-Scope (5 facts):** `40 miles` (imperial distance), `30%`, `10%`, `3%` (conservation-solution percentages), `2 hours` (immersion duration). These lie outside §2.2 OOS examples; they should be formally added to the spec as `OUT_OF_SCOPE_UNIT` and removed from the in-scope recall denominator before any grammar work targets them.
    - **Legitimate grammar gaps (4 facts):** `50,000 BP` (comma-thousands before `BP` not handled), `300-10,000` (bare measurement range without a unit suffix), `400` houses / `300` galleries (count-noun lexicon gap). These are in-scope by the spec and represent real extractor shortfalls.
-   - If the 5 OOS facts are formally re-classified, the in-scope clean Class A recall becomes $6/10 = 60.0\%$ [26.2%, 87.8%] — a principled but still modest figure. Neither the 40.0% nor the 60.0% figure should be used to justify grammar changes until this re-classification is committed to the spec and re-sealed.
+   - If the 5 OOS facts are formally re-classified, the in-scope clean Class A recall becomes $6/10 = 60.0\%$ [31.3%, 83.2%] (Wilson 95%) — a principled but still modest figure. Neither the 40.0% nor the 60.0% figure should be used to justify grammar changes until this re-classification is committed to the spec and re-sealed.
 
 5. **`SURVEY_OR_CARTOGRAPHIC` Tag — Test Coverage Gap:**  
    The tag is specified in §2.3.3 (spec prose) but is not yet a field on `ExtractedEntity` and has no test assertion. No test can detect a regression if the extractor silently drops the tag. Step 4 must: (a) add `context_domain` to `ExtractedEntity`, (b) write assertions that TE-19, TE-29, FE-19, FE-20 type passages produce the tag, and (c) seal the result with the commit hash. Until then, the tag is unenforceable.
