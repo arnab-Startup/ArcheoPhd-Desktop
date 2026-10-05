@@ -258,10 +258,25 @@ public:
             results.push_back(e);
         }
 
+        // Brick/aggregate proportion ratio: 1:2:4 (colon separator, no physical unit)
+        std::regex re_compound_ratio(R"(\b(\d+)\s*:\s*(\d+)\s*:\s*(\d+)\b)");
+        for (std::sregex_iterator it(text.begin(), text.end(), re_compound_ratio), end; it != end; ++it) {
+            if (is_excluded(it->position(), it->position() + it->length()) ||
+                is_already_extracted(it->position(), it->position() + it->length())) continue;
+            ExtractedEntity e;
+            e.raw_match = it->str();
+            e.entity_type = "COMPOUND_DIMENSION";
+            e.unit = "compound_ratio";
+            e.normalized_value = it->str(1) + ":" + it->str(2) + ":" + it->str(3);
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
+            results.push_back(e);
+        }
+
         // --------------------------------------------------------------------
         // 4. Linear Ranges: 20-40 cm, between 4.5 and 5.0 metres
         // --------------------------------------------------------------------
-        std::regex re_range_hyphen(R"((\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(mm|cm|m|metres|meters))", std::regex::icase);
+        std::regex re_range_hyphen(R"((\d+(?:\.\d+)?)\s*(?:-|–)\s*(\d+(?:\.\d+)?)\s*(mm|cm|m|metres|meters))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_range_hyphen), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -313,6 +328,32 @@ public:
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2) << "[" << e.range_min << ", " << e.range_max << "] m";
             e.normalized_value = oss.str();
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
+            results.push_back(e);
+        }
+
+        // from X to Y metres: "from 10 to 15 metres" (lexical range form)
+        std::regex re_range_from_to(R"(from\s+(\d+(?:\.\d+)?)\s+to\s+(\d+(?:\.\d+)?)\s+(mm|cm|m|metres|meters))", std::regex::icase);
+        for (std::sregex_iterator it(text.begin(), text.end(), re_range_from_to), end; it != end; ++it) {
+            if (is_excluded(it->position(), it->position() + it->length()) ||
+                is_already_extracted(it->position(), it->position() + it->length())) continue;
+            ExtractedEntity e;
+            e.raw_match = it->str();
+            e.entity_type = "LINEAR_RANGE";
+            e.is_range = true;
+            double v1 = parse_double(it->str(1));
+            double v2 = parse_double(it->str(2));
+            std::string u = it->str(3);
+            e.unit = u;
+            double factor = 1.0;
+            if (u == "cm") factor = 0.01;
+            else if (u == "mm") factor = 0.001;
+            e.range_min = v1 * factor;
+            e.range_max = v2 * factor;
+            std::ostringstream oss2;
+            oss2 << std::fixed << std::setprecision(2) << "[" << e.range_min << ", " << e.range_max << "] m";
+            e.normalized_value = oss2.str();
             e.span_start = it->position();
             e.span_end = it->position() + it->length();
             results.push_back(e);
@@ -438,7 +479,9 @@ public:
         // --------------------------------------------------------------------
         // 10. Author Calibrated Dates: 1620-1530 cal BC, 1430 to 1390 cal BCE
         // --------------------------------------------------------------------
-        std::regex re_cal_bce(R"((\d+)\s*(?:-|to)\s*(\d+)\s*cal\s*(BCE|BC))", std::regex::icase);
+        // Handles ASCII hyphen (-), Unicode en-dash (–), or 'to' as separator.
+        // Handles BC, BCE, B.C., B.C.E. era markers.
+        std::regex re_cal_bce(R"((\d+)\s*(?:-|–|to)\s*(\d+)\s*cal\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_cal_bce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -458,10 +501,28 @@ public:
             results.push_back(e);
         }
 
+        // Author calibrated cal BP: 3200 cal BP
+        std::regex re_cal_bp(R"((\d+)\s*cal\s+BP)", std::regex::icase);
+        for (std::sregex_iterator it(text.begin(), text.end(), re_cal_bp), end; it != end; ++it) {
+            if (is_excluded(it->position(), it->position() + it->length()) ||
+                is_already_extracted(it->position(), it->position() + it->length())) continue;
+            ExtractedEntity e;
+            e.raw_match = it->str();
+            e.entity_type = "AUTHOR_CALIBRATED_DATE";
+            e.is_author_calibrated = true;
+            e.unit = "cal BP";
+            e.normalized_value = it->str(1) + " cal BP";
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
+            results.push_back(e);
+        }
+
         // --------------------------------------------------------------------
         // 11. Approximate Historical Dates: c. 1550 BC, circa 1400 BCE
         // --------------------------------------------------------------------
-        std::regex re_approx_bce(R"((c\.|ca\.|circa|approx\.?)\s*(\d+)\s*(BCE|BC))", std::regex::icase);
+        // Approximation prefixes: c., ca., circa, approx., about, approximately
+        // Era markers: BCE, BC, B.C.E., B.C.
+        std::regex re_approx_bce(R"((c\.|ca\.|circa|approx\.?|about|approximately)\s*(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_approx_bce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -478,10 +539,29 @@ public:
             results.push_back(e);
         }
 
+        // Approximate CE dates: c. 79 CE, about 400 AD, circa 300 A.D.
+        std::regex re_approx_ce(R"((c\.|ca\.|circa|approx\.?|about|approximately)\s*(\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
+        for (std::sregex_iterator it(text.begin(), text.end(), re_approx_ce), end; it != end; ++it) {
+            if (is_excluded(it->position(), it->position() + it->length()) ||
+                is_already_extracted(it->position(), it->position() + it->length())) continue;
+            ExtractedEntity e;
+            e.raw_match = it->str();
+            e.entity_type = "APPROX_DATE_CE";
+            e.is_approximate = true;
+            int y = parse_int(it->str(2));
+            e.unit = it->str(3);
+            e.astro_year_start = ce_to_astro(y);
+            e.normalized_value = "+" + std::to_string(e.astro_year_start);
+            e.span_start = it->position();
+            e.span_end = it->position() + it->length();
+            results.push_back(e);
+        }
+
         // --------------------------------------------------------------------
         // 12. Chronological Date Ranges: 1000-925 BCE, from 320 to 390 CE
         // --------------------------------------------------------------------
-        std::regex re_date_range_bce(R"((\d+)\s*-\s*(\d+)\s*(BCE|BC))", std::regex::icase);
+        // ASCII hyphen or Unicode en-dash; BC, BCE, B.C., B.C.E.
+        std::regex re_date_range_bce(R"((\d+)\s*(?:-|–)\s*(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_date_range_bce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -500,7 +580,7 @@ public:
             results.push_back(e);
         }
 
-        std::regex re_date_range_ce(R"(from\s+(\d+)\s+to\s+(\d+)\s*(CE|AD))", std::regex::icase);
+        std::regex re_date_range_ce(R"(from\s+(\d+)\s+to\s+(\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_date_range_ce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
@@ -522,53 +602,78 @@ public:
         // --------------------------------------------------------------------
         // 13. Exact Historical Dates: in 732 BC, until 135 CE
         // --------------------------------------------------------------------
-        std::regex re_exact_bce(R"((?:in|by|around)\s+(\d+)\s*(BCE|BC))", std::regex::icase);
+        // Handles BC, BCE, B.C., B.C.E. era markers.
+        // Never-Repair fix: span is aligned to the date portion (not the full "in X BC" match).
+        std::regex re_exact_bce(R"((?:in|by|around)\s+(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_exact_bce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
             ExtractedEntity e;
-            e.raw_match = it->str();
-            // Clean up prefix "in ", "by " from raw_match if needed, but keeping exact match
-            std::regex re_date_only(R"((\d+)\s*(BCE|BC))", std::regex::icase);
+            std::regex re_date_only(R"((\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))", std::regex::icase);
             std::smatch sm;
-            if (std::regex_search(e.raw_match, sm, re_date_only)) {
+            std::string full_match = it->str();
+            if (std::regex_search(full_match, sm, re_date_only)) {
                 e.raw_match = sm.str();
                 int y = parse_int(sm.str(1));
                 e.unit = sm.str(2);
                 e.astro_year_start = bce_to_astro(y);
                 e.normalized_value = std::to_string(e.astro_year_start);
-            }
+                e.span_start = it->position() + sm.position();
+                e.span_end = e.span_start + sm.length();
+            } else { continue; }
             e.entity_type = "EXACT_DATE_BCE";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
             results.push_back(e);
         }
 
-        std::regex re_exact_ce(R"((?:until|in|by)\s+(\d+)\s*(CE|AD))", std::regex::icase);
+        // Handles CE, AD, A.D., C.E. era markers; optional month-name word between prefix and year.
+        // Never-Repair fix: span is aligned to the date portion only.
+        std::regex re_exact_ce(R"((?:until|in|by)\s+(?:\w+\s+)?(\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
         for (std::sregex_iterator it(text.begin(), text.end(), re_exact_ce), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
             ExtractedEntity e;
-            e.raw_match = it->str();
-            std::regex re_date_only(R"((\d+)\s*(CE|AD))", std::regex::icase);
+            std::regex re_date_only(R"((\d+)\s*(CE|AD|A\.D\.|C\.E\.))", std::regex::icase);
             std::smatch sm;
-            if (std::regex_search(e.raw_match, sm, re_date_only)) {
+            std::string full_match = it->str();
+            if (std::regex_search(full_match, sm, re_date_only)) {
                 e.raw_match = sm.str();
                 int y = parse_int(sm.str(1));
                 e.unit = sm.str(2);
                 e.astro_year_start = ce_to_astro(y);
                 e.normalized_value = "+" + std::to_string(e.astro_year_start);
-            }
+                e.span_start = it->position() + sm.position();
+                e.span_end = e.span_start + sm.length();
+            } else { continue; }
             e.entity_type = "EXACT_DATE_CE";
+            results.push_back(e);
+        }
+
+        // --------------------------------------------------------------------
+        // 14. Artifact & Specimen Counts: 694 tools, 330 handaxes, 6 pieces
+        // Matches N [optional-qualifier] artifact-noun. Headcounts (workers, people)
+        // are excluded by the exclusion_spans pre-scan above.
+        // --------------------------------------------------------------------
+        std::regex re_artifact_count(
+            R"(\b(\d+)\s+(?:\S+\s+)?(artifacts?|tools?|implements?|pieces?|cores?|flakes?|handaxes?|hand\s+axes?|choppers?|scrapers?|blades?|burins?|bifaces?|knives?|specimens?|assemblages?|pebble\s+tools?|stone\s+tools?))",
+            std::regex::icase);
+        for (std::sregex_iterator it(text.begin(), text.end(), re_artifact_count), end; it != end; ++it) {
+            if (is_excluded(it->position(), it->position() + it->length()) ||
+                is_already_extracted(it->position(), it->position() + it->length())) continue;
+            ExtractedEntity e;
+            e.raw_match = it->str();
+            e.entity_type = "ARTIFACT_SPECIMEN_COUNT";
+            e.unit = "count";
+            e.numeric_val = parse_double(it->str(1));
+            e.normalized_value = it->str(1);
             e.span_start = it->position();
             e.span_end = it->position() + it->length();
             results.push_back(e);
         }
 
         // --------------------------------------------------------------------
-        // 14. Spatial & Locus Provenance: Locus, Loc., Area, Stratum, Trench, Basket
+        // 15. Spatial & Locus Provenance: Locus, Loc., Locality, Area, Stratum, Trench, Basket
         // --------------------------------------------------------------------
-        std::regex re_locus(R"(\b(Locus|Loc\.)\s+([A-Za-z0-9\-]+))");
+        std::regex re_locus(R"(\b(Locus|Loc\.|Locality)\s+([A-Za-z0-9\-]+))");
         for (std::sregex_iterator it(text.begin(), text.end(), re_locus), end; it != end; ++it) {
             if (is_excluded(it->position(), it->position() + it->length()) ||
                 is_already_extracted(it->position(), it->position() + it->length())) continue;
