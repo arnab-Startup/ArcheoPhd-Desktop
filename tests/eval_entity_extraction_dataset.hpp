@@ -7,14 +7,20 @@
 namespace archaeophd {
 
 // ============================================================================
-// Phase 2 Step 3 — Pre-Registered Entity Extraction Benchmark Dataset
+// Phase 2 Step 3 — Entity Extraction Development Dataset (DEV SET ONLY)
 // 
-// Committed PRIOR to building the extraction engine.
-// Rules:
-// 1. Deterministic regular grammar & normalizer only (zero LLM).
-// 2. Corrupted OCR strings MUST be extracted as-is and flagged, NEVER repaired.
-// 3. Negative controls MUST produce zero extracted archaeological entities.
-// 4. No in-house C-14 calibration: BP determinations flagged as uncalibrated.
+// NOT the held-out evaluation set. This 40-case synthetic suite serves as an
+// internal unit development and regression test bench during component construction.
+// Formal evaluation is conducted strictly against:
+// 1. The independent held-out evaluation set (tests/eval_entity_extraction_held_out.hpp)
+// 2. The 166-fact real OCR benchmark (tests/ocr_benchmark_50/ground_truth.json)
+// 
+// Principles:
+// 1. Deterministic regular grammar & canonical normalizer only (zero LLM).
+// 2. "Never Repair" Invariant: extracted raw substring must equal exact input slice.
+// 3. Provenance: Class B / unverified origin tracked on all mentions.
+// 4. Distinction between negative controls (non-entities) and out-of-scope units.
+// 5. Spelled-out words (e.g. "forty") are excluded from numeric digit extraction.
 // ============================================================================
 
 enum class EntityCategory {
@@ -31,13 +37,15 @@ enum class EntityCategory {
     UNCALIBRATED_C14_BP,
     AUTHOR_CALIBRATED_DATE,
     TEMPERATURE,
+    ARTIFACT_SPECIMEN_COUNT,
     LOCUS_PROVENANCE,
     SPATIAL_AREA,
     STRATUM_NAME,
     TRENCH_ID,
     BASKET_UNIT,
     OCR_CORRUPTION_ANOMALY,
-    NEGATIVE_CONTROL
+    NEGATIVE_CONTROL,
+    OUT_OF_SCOPE_UNIT
 };
 
 struct ExpectedEntity {
@@ -56,7 +64,7 @@ struct ExtractionTestCase {
     std::string note;
 };
 
-inline std::vector<ExtractionTestCase> get_preregistered_evaluation_dataset() {
+inline std::vector<ExtractionTestCase> get_entity_extraction_dev_dataset() {
     return {
         // --- Positive Extraction Cases: Dimensions & Metrics ---
         {"TC-01", EntityCategory::LINEAR_DIMENSION,
@@ -92,7 +100,7 @@ inline std::vector<ExtractionTestCase> get_preregistered_evaluation_dataset() {
         {"TC-07", EntityCategory::DEPTH_ELEVATION,
          "Water shaft descends forty metres through bedrock to depth 40 m.",
          {{"depth 40 m", "40.0 m", "depth", false, false}},
-         "Vertical depth coordinate"},
+         "Vertical depth coordinate (numeric form). Note: Spelled-out words ('forty metres') are intentionally excluded from regex digit extraction"},
 
         {"TC-08", EntityCategory::MASS_WEIGHT,
          "Chert weights included cubic specimens of 13.65 g and 27.3 g.",
@@ -234,10 +242,10 @@ inline std::vector<ExtractionTestCase> get_preregistered_evaluation_dataset() {
          {},
          "Plate number must not extract"},
 
-        {"TC-35", EntityCategory::NEGATIVE_CONTROL,
+        {"TC-35", EntityCategory::OUT_OF_SCOPE_UNIT,
          "The site spans approximately 15 hectares across the tell.",
          {},
-         "Area metric (hectares) outside targeted spatial grammar must not extract as linear dimension"},
+         "Out-of-scope non-targeted spatial unit (hectares): not a negative control; grammar excludes non-targeted units"},
 
         {"TC-36", EntityCategory::NEGATIVE_CONTROL,
          "On page 320, Schiffer outlines n-transform models.",
@@ -264,6 +272,11 @@ inline std::vector<ExtractionTestCase> get_preregistered_evaluation_dataset() {
          {},
          "Volume number must not extract"}
     };
+}
+
+// Backward-compatible alias for existing test runners
+inline std::vector<ExtractionTestCase> get_preregistered_evaluation_dataset() {
+    return get_entity_extraction_dev_dataset();
 }
 
 } // namespace archaeophd

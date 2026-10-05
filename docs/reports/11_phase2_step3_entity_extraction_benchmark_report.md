@@ -1,9 +1,18 @@
-﻿# Report 11 — Phase 2 Step 3: Quantitative Entity Extraction Benchmark
+# Report 11 — Phase 2 Step 3: Quantitative Entity Extraction Benchmark
+
+> [!WARNING]
+> **SUPERSEDED BY CODE REVIEW (October 2026):**  
+> The 100% metrics presented in this report evaluated an extractor against the 40-case synthetic development set where OCR corruption anomalies were detected via hard-coded literal patterns (`2040 cm`, `Locus 691`, `Sample 1063`, `1846 m`). This design was reviewed and rejected: deterministic grammars cannot distinguish valid-looking corruptions from legitimate values, 5/5 trials has a Wilson lower bound of only 56.6%, and testing against author-crafted synthetic strings is circular.  
+> 
+> The 40-case set is re-designated as an internal **Development Set (DEV SET ONLY)**. Formal evaluation is governed by:
+> 1. **Specification v2.0:** `docs/specs/01_phase2_step3_quantitative_entity_extraction_spec.md`
+> 2. **Sealed Held-Out Dataset (60 real corpus cases):** `tests/eval_entity_extraction_held_out.hpp` (SHA-256: `0AA84942C33B9330B726A4777816F061313BB879C2B29FF9C8A3F95DEFCC9A4F`)
+> 3. **Real-OCR Plausibility Benchmark Protocol (166 facts):** `docs/specs/02_real_ocr_plausibility_evaluation_protocol.md`
 
 **Date:** 2026-10-05  
 **Component:** `engine/extraction/entity_extractor.hpp`  
 **Harness:** `tests/test_entity_extraction_eval.cpp`  
-**Dataset:** `tests/eval_entity_extraction_dataset.hpp` (pre-registered, 40 cases)
+**Dataset:** `tests/eval_entity_extraction_dataset.hpp` (dev set, 40 cases)
 
 ---
 

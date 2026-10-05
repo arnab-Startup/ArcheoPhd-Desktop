@@ -99,7 +99,31 @@ This rewording inflated the benchmark numbers (100.0% Recall@5, MRR 0.9500) by m
 When Step 5 was implemented, the benchmark was first executed against the original verbatim Step 4B queries (producing Recall@5 95.0%, Recall@10 100.0%, MRR 0.8521, and latency 22.02 ms). Those metrics were recorded into the draft signoff report. Prior to committing `4d60358`, exploratory rewordings for Q16–Q20 were saved to the working tree. Consequently, commit `4d60358` contained reworded queries (which evaluate to 100.0% / 0.9500), creating a desynchronization between the committed benchmark source and the reported signoff figures. Commit `3706bae` resolved this discrepancy by restoring the verbatim queries to the committed file, reproducing the verified 95.0% Recall@5 and 0.8521 MRR metrics.
 
 **Corrective Action:**
-1. All 20 queries reverted to Step 4B originals. Verified by comparing `get_20_benchmark_queries()` in `a954684:tests/test_semantic_retrieval_benchmark.cpp` directly against `get_benchmark_queries()` in `3706bae:tests/test_hybrid_retrieval_benchmark.cpp`: all 20 query strings match 100% character-for-character.
+1. All 20 queries reverted to Step 4B originals. Verified by comparing `get_20_benchmark_queries()` in `a954684:tests/test_semantic_retrieval_benchmark.cpp` directly against `get_benchmark_queries()` in `3706bae:tests/test_hybrid_retrieval_benchmark.cpp`: all 20 query strings match 100% character-for-character. Rather than relying on an empty diff output alone, the 20 extracted query strings from both sources are printed side-by-side below:
+
+| # | `a954684` Query String (Step 4B Original) | `3706bae` Query String (Restored Step 5) | Match |
+|---|---|---|---|
+| Q1 | `"early pleistocene stone biface tools from river rubble"` | `"early pleistocene stone biface tools from river rubble"` | EXACT |
+| Q2 | `"unabraded hominin manufacturing site near paleochannel"` | `"unabraded hominin manufacturing site near paleochannel"` | EXACT |
+| Q3 | `"fossil elephant molars and bovine fauna with lithics"` | `"fossil elephant molars and bovine fauna with lithics"` | EXACT |
+| Q4 | `"burnt collapsed mud brick defensive fortification"` | `"burnt collapsed mud brick defensive fortification"` | EXACT |
+| Q5 | `"charred food grain vessels preserved in fiery destruction"` | `"charred food grain vessels preserved in fiery destruction"` | EXACT |
+| Q6 | `"cypriot painted bichrome pottery dating controversy"` | `"cypriot painted bichrome pottery dating controversy"` | EXACT |
+| Q7 | `"neolithic circular stone watchtower and moat"` | `"neolithic circular stone watchtower and moat"` | EXACT |
+| Q8 | `"modeled facial features on ancestral human skulls"` | `"modeled facial features on ancestral human skulls"` | EXACT |
+| Q9 | `"iron age six-chambered monumental gateway fortifications"` | `"iron age six-chambered monumental gateway fortifications"` | EXACT |
+| Q10 | `"hollow casemate curtain wall defense"` | `"hollow casemate curtain wall defense"` | EXACT |
+| Q11 | `"underground rock-cut tunnel accessing water table during siege"` | `"underground rock-cut tunnel accessing water table during siege"` | EXACT |
+| Q12 | `"carved basalt feline temple guardian sculptures"` | `"carved basalt feline temple guardian sculptures"` | EXACT |
+| Q13 | `"ancient bitumen waterproof lining in ritual water structure"` | `"ancient bitumen waterproof lining in ritual water structure"` | EXACT |
+| Q14 | `"covered municipal sewage drainage system with silt traps"` | `"covered municipal sewage drainage system with silt traps"` | EXACT |
+| Q15 | `"ventilated agricultural storehouse with timber ducting"` | `"ventilated agricultural storehouse with timber ducting"` | EXACT |
+| Q16 | `"binary cubical stone measurement metrology"` | `"binary cubical stone measurement metrology"` | EXACT |
+| Q17 | `"topological directed graph representation of archaeological layers"` | `"topological directed graph representation of archaeological layers"` | EXACT |
+| Q18 | `"thermal luminescence trapped electron dating of fired pottery"` | `"thermal luminescence trapped electron dating of fired pottery"` | EXACT |
+| Q19 | `"animal burrowing disturbance mixing diagnostic artifacts"` | `"animal burrowing disturbance mixing diagnostic artifacts"` | EXACT |
+| Q20 | `"soil micromorphology thin section microscopic floor analysis"` | `"soil micromorphology thin section microscopic floor analysis"` | EXACT |
+
 2. Verbatim re-run: Hybrid Recall@5 95.0% (19/20), MRR 0.8521.
 3. Actual movement: 3 rescued (Q1 >10→5, Q2 7→1, Q17 >10→1), 1 improved inside Top 5 (Q7 2→1), 2 worsened (Q4 2→7, Q14 2→5), 14 stable. Sign test on 4 discordant Top-5 crossings (3 rescued, 1 dropped): p=0.625 two-sided.
 4. Held-out 50-query set confirms 0 degradations on well-formed paraphrased queries.
@@ -146,7 +170,7 @@ The runner printed no grand count. Counting from individual [PASS] lines in the 
 | TEST 6C — compound join & site filter | 5 |
 | **Total** | **83** |
 
-**Historical context on interim figures:** Report 10 originally cited 25 (from the initial 6-suite baseline). During subsequent development, 36 was reported after adding initial DAG validation sub-checks before IPC expansion, and 78 was an interim manual count before accounting for all 15 sub-suites. The definitive, verified count from raw runner output (`[PASS]` line count) is exactly 83.
+**Historical context on interim figures:** Report 10 originally cited 25 (from the initial 6-suite baseline). During subsequent development, 36 was reported after adding initial DAG validation sub-checks before IPC expansion, and 78 was first reported as runner output, but was a miscount before accounting for all 15 sub-suites. The definitive, verified count from raw runner output (`[PASS]` line count) is exactly 83.
 
 ### 2.3 Open Questions Answered
 
