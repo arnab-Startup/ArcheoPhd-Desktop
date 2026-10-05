@@ -1,93 +1,191 @@
-# Report 12 — Phase 2 Step 3: Entity Extraction Evaluation Ledger & Multi-Suite Benchmark
+# Report 12 — Phase 2 Step 3: Entity Extraction Evaluation Ledger
 
 **Date:** 2026-10-05  
 **Component:** `desktop/engine/extraction/entity_extractor.hpp`  
 **Toolchain:** MinGW-w64 G++ C++20 (`-std=c++20`)  
-**Status:** Comprehensive Baseline Documented; Extractor Tuning & Mention-vs-Relevance Architectural Rule Under Revision  
+**Status:** Baseline documented. Hardcoded literals excised (`bf46805`). Ledger reconciled.
 
 ---
 
-## 1. Executive Summary
+## 1. Primary Finding
 
-This report establishes the complete evaluation ledger across all testing suites, extractor revisions, and empirical datasets for Phase 2 Step 3 (Deterministic Entity Extraction & OCR Plausibility Filtering).
+**The extractor reaches 100% on text its authors wrote and 10–15% on real scanned pages. Authored test suites measure grammar coverage, not field capability.**
 
-Following code review of the initial synthetic benchmark ([Report 11](11_phase2_step3_entity_extraction_benchmark_report.md)), the project rejected circular 100% metrics derived from author-crafted synthetic strings with hardcoded literal patterns (`2040 cm`, `Locus 691`, `Sample 1063`, `1846 m`, `1M7`). This report consolidates evaluation across:
-1. **Development Set 1 (Synthetic Dev Set, 40 cases)**: Initial regression suite.
-2. **Development Set 2 ("Held-Out" 60-case Suite)**: Pre-registered in `ccbc5f3`; corpus-grounded and authored sentences (same author). Evaluated on baseline `a6cf766` and tuned `116995d`.
-3. **Real-OCR Benchmark (166 facts across 50 Tesseract & 50 Windows OCR scans)**: Evaluated on baseline `a6cf766` and tuned `116995d`.
-4. **Development Set 3 (30-case Suite)**: Edge-case boundaries, denser multi-entity forms, and harder negatives; authored 2026-10-05 after the 10-point taxonomy.
+On 100 real scanned pages from three published Indian site monographs (Rajan, Chakrabarti, Sankalia):
 
----
+| Engine | Overall Clean Recall | In-Scope Clean Recall | Class A In-Scope | Class B In-Scope |
+|:---:|:---:|:---:|:---:|:---:|
+| Tesseract | 14.6% (20/137) | **61.1% (22/36)** | 40.0% (6/15) | 76.2% (16/21) |
+| Windows OCR | 10.5% (13/124) | **50.0% (15/30)** | 40.0% (6/15) | 60.0% (9/15) |
 
-## 2. Evaluation Ledger
+**Plausibility sensitivity: 0% on both engines.** Of 29 corrupted facts (Tesseract) and 42 (Windows OCR), only 1 (Tess) and 2 (Win) produced any entity mention at all. Neither mention was anomaly-flagged. The bulk of corrupted facts were mangled so severely by OCR that no grammar pattern matched — they are simply not extracted.
 
-The ledger below records every formal run, documenting exact commit hashes, author provenance, dataset nature, and statistical confidence intervals (Wilson 95% score interval).
+**Plausibility specificity (20/20 and 13/13) is vacuous.** The anomaly detector never fired on either engine. A detector that never fires achieves perfect specificity by definition. It is not a result.
 
-| Run # | Extractor Commit | Dataset / Suite | Provenance / Authorship | Cases / Denominator | Metrics (P / R / Specificity) | Wilson 95% Confidence Intervals | Status & Gate Outcome |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **1** | `a6cf766` | Dev Set 1 (`eval_entity_extraction_dataset.hpp`) | Same author; synthetic test strings | 40 cases (25 pos, 15 neg) | **P:** 100.0% (25/25)<br>**R:** 100.0% (25/25)<br>**Spec:** 100.0% (15/15) | P: [86.7%, 100.0%]<br>R: [86.7%, 100.0%]<br>Spec: [79.6%, 100.0%] | **SUPERSEDED** (Report 11). Circular with hardcoded regex literals (`2040 cm`, `691`, `1063`, `1846`, `1M7`). |
-| **2** | `a6cf766` (unmodified) | Dev Set 2 (`eval_entity_extraction_held_out.hpp`) | Same author; authored after extractor v1 | 60 cases (35 pos, 20 neg, 5 out-of-scope) | **P:** 81.5% (22/27)<br>**R:** 57.9% (22/38)<br>**Spec:** 100.0% (24/24) | P: [63.3%, 91.8%]<br>R: [42.2%, 72.1%]<br>Spec: [86.2%, 100.0%] | **BASELINE RUN** (Pre-fix). Identified 16 false negatives (missing count grammar, B.C./A.D. variants, en-dash, multi-entity labels). |
-| **3** | `116995d` (post-fixes) | Dev Set 2 (`eval_entity_extraction_held_out.hpp`) | Same author; tuned against Dev Set 2 failures | 60 cases (35 pos / 43 entities, 24 neg/out-of-scope) | **P:** 100.0% (43/43)<br>**R:** 100.0% (43/43)<br>**Spec:** 100.0% (24/24) | P: [91.8%, 100.0%]<br>R: [91.8%, 100.0%]<br>Spec: [86.2%, 100.0%] | **TUNED RUN**. Demonstrates regression closure on Set 2, but shares author bias and cannot serve as independent validation. |
-| **4a** | `a6cf766` (unmodified) | Real-OCR: Tesseract 50 pages (`tests/ocr_benchmark_50`) | Scanned real monograph pages (Sankalia, Rajan, Chakrabarti) | 166 GT facts (137 clean, 29 corrupted) | **Never-Repair:** 2 violations / 12 mentions<br>**Clean Recall:** 3.6% (5/137)<br>**Plaus. Spec:** 100.0% (5/5)<br>**Plaus. Sens:** 0.0% (0/29) | Clean Recall: [1.6%, 8.3%]<br>Plaus Spec: [56.6%, 100.0%]<br>Plaus Sens: [0.0%, 11.7%] | **FAIL (Invariant 1)**. Span offset mismatch on exact date prefixes (`in X BC`). 0/29 corrupted facts detected by plausibility rules. |
-| **4b** | `a6cf766` (unmodified) | Real-OCR: Windows OCR 50 pages (`tests/ocr_benchmark_50`) | Scanned real monograph pages (Sankalia, Rajan, Chakrabarti) | 166 GT facts (124 clean, 42 corrupted) | **Never-Repair:** 2 violations / 10 mentions<br>**Clean Recall:** 4.8% (6/124)<br>**Plaus. Spec:** 100.0% (6/6)<br>**Plaus. Sens:** 0.0% (0/42) | Clean Recall: [2.2%, 10.2%]<br>Plaus Spec: [61.0%, 100.0%]<br>Plaus Sens: [0.0%, 8.4%] | **FAIL (Invariant 1)**. Same span offset bug. 0/42 corrupted facts detected by plausibility rules. Combined clean recall: 4.2% (11/261). |
-| **5a** | `116995d` | Real-OCR: Tesseract 50 pages (`tests/ocr_benchmark_50`) | Scanned real monograph pages | 166 GT facts (137 clean, 29 corrupted) | **Never-Repair:** 0 violations / 33 mentions<br>**Clean Recall:** 14.6% (20/137)<br>**Plaus. Spec:** 100.0% (20/20)<br>**Plaus. Sens:** 0.0% (0/29) | Clean Recall: [9.7%, 21.5%]<br>Plaus Spec: [83.9%, 100.0%]<br>Plaus Sens: [0.0%, 11.7%] | **PASS (Invariant 1)**. Zero Never-Repair violations. Extraction recall up 4x on clean facts (date 7/110, meas 4/12, count 9/15). |
-| **5b** | `116995d` | Real-OCR: Windows OCR 50 pages (`tests/ocr_benchmark_50`) | Scanned real monograph pages | 166 GT facts (124 clean, 42 corrupted) | **Never-Repair:** 0 violations / 22 mentions<br>**Clean Recall:** 10.5% (13/124)<br>**Plaus. Spec:** 100.0% (13/13)<br>**Plaus. Sens:** 0.0% (0/42) | Clean Recall: [6.2%, 17.1%]<br>Plaus Spec: [77.2%, 100.0%]<br>Plaus Sens: [0.0%, 8.4%] | **PASS (Invariant 1)**. Zero Never-Repair violations. Clean recall: 10.5% (date 5/101, meas 5/13, count 3/10). Plausibility sensitivity remains 0.0%. |
-| **6** | `116995d` | Dev Set 3 (`eval_entity_extraction_third_set.hpp`) | Same author; written post-taxonomy to probe boundaries | 30 cases (15 pos / 26 entities, 10 neg, 5 out-of-scope) | **P:** 92.0% (23/25)<br>**R:** 88.5% (23/26)<br>**Spec:** 86.7% (13/15) | P: [75.0%, 97.8%]<br>R: [71.0%, 96.0%]<br>Spec: [62.1%, 96.3%] | **FAIL**. Fails pre-registered Recall ($\ge 90\%$) and Specificity ($\ge 95\%$). Mathematically, with $n=15$ negatives, $\ge 95\%$ requires 15/15 (0 FP). |
-| **7** | Current (post-Set 3 fixes) | Dev Set 3 (Regression Run) | Same author; regression test after preposition/stratum fixes | 30 cases (15 pos / 26 entities, 10 neg, 5 out-of-scope) | **P:** 92.9% (26/28)<br>**R:** 100.0% (26/26)<br>**Spec:** 86.7% (13/15) | P: [77.4%, 98.0%]<br>R: [87.1%, 100.0%]<br>Spec: [62.1%, 96.3%] | **REGRESSION RUN**. All positive entities pass (26/26). The only remaining failures are TE-19 and TE-29 (cartographic contour / geophysics grid), confirming the need for Spec Section 2.3. |
-| **8** | Current | **Fourth Set (Fresh Blind Suite)** (`eval_entity_extraction_fourth_set.hpp`) | Authored under Spec v2.0 Section 2.3; run ONCE | 30 cases (20 pos / 24 entities, 6 neg, 4 out-of-scope) | **P:** 100.0% (24/24)<br>**R:** 100.0% (24/24)<br>**Spec:** 100.0% (10/10) | P: [86.2%, 100.0%]<br>R: [86.2%, 100.0%]<br>Spec: [72.2%, 100.0%] | **PASS (All Gates Satisfied)**. Pre-registered gates (P $\ge 90\%$, R $\ge 90\%$, Spec $\ge 95\%$) all achieved at 100.0% on clean, decoupled evaluation. |
+Class A pages (Rajan, Chakrabarti) are the primary use case for Step 3 output; Class B pages (Sankalia) are letterpress scans whose OCR is too noisy for automated pre-fill.
 
 ---
 
-## 3. Detailed Diagnostic Analysis of Development Set 3 Failures
+## 2. In-Scope / Out-of-Scope Scope Analysis
 
-Running Dev Set 3 against `116995d` exposed five distinct failure cases:
+The ground truth contains 166 facts across 50 pages per engine.
 
-### 3.1 Punctuation & Preposition Brittleness (TE-01, TE-02)
-* **TE-01:** `"The destruction horizon was radiocarbon-dated to 3100 B.C. within the lower tell."`  
-  *Expected:* `3100 B.C.` | *Actual:* `0` extracted (FN).
-  *Cause:* In commit `116995d`, the suffix `B.C.` was added to `re_exact_bce`, but the regex hardcoded the preceding preposition: `R"((?:in|by|around)\s+(\d+)\s*(BCE|BC|B\.C\.E\.|B\.C\.))"`. Because TE-01 used `"dated to 3100 B.C."` (preposition `to`), it was rejected.
-* **TE-02:** `"The Byzantine mosaic floor was laid down no earlier than 530 A.D. in the eastern nave."`  
-  *Expected:* `530 A.D.` | *Actual:* `0` extracted (FN).
-  *Cause:* Similarly, `re_exact_ce` hardcoded `R"((?:until|in|by)\s+(?:\w+\s+)?(\d+)\s*(CE|AD|A\.D\.|C\.E\.))"`. TE-02 uses `"no earlier than 530 A.D."`.
+| Type | Total | In-Scope | Out-of-Scope |
+|:---:|:---:|:---:|:---:|
+| Dates (era-marked: BC/BCE/AD/CE/BP) | 14 | 14 | 0 |
+| Dates (bare 4-digit years, e.g. `1784`, `1944`) | 111 | 0 | **111** |
+| Measurements | 20 | 20 | 0 |
+| Counts | 21 | 21 | 0 |
+| **Total** | **166** | **55** | **111** |
 
-### 3.2 Overlap & Lexicon Gaps (TE-21)
-* **TE-21:** `"Stratum IVB yielded 47 bronze arrowheads in 732 BC; the largest specimen was 9.2 cm long."`  
-  *Expected (4 entities):* `Stratum IVB`, `47 bronze arrowheads`, `732 BC`, `9.2 cm`.  
-  *Actual (3 extracted):*
-  1. `Stratum IV` (truncated `B`; `re_stratum` regex `([IVXLCDM]+|\d+[A-Za-z]*)` terminated at Roman numeral `IV`).
-  2. `732 BC` (successfully extracted).
-  3. `9.2 cm` (successfully extracted).
-  *Missed Entity:* `47 bronze arrowheads` was completely missed because `arrowhead` was omitted from the closed noun list in `re_artifact_count`.
+Bare 4-digit years are **out-of-scope by architectural decision**, not by omission. The grammar deliberately excludes them to avoid false positives on page numbers, publication years, and modern survey metadata. This is a precision-preserving constraint; raising in-scope recall by adding year extraction would require a negative-context filter that belongs to Step 4 (Attribution). The spec decision should be revisited when the product's pre-fill use case is defined — not to raise this number.
 
-### 3.3 The Mention-Level vs. Domain-Relevance Conflict (TE-19, TE-29)
-* **TE-19:** `"The site map was produced at 1:2000 scale with 0.5 m contour intervals."`  
-  *Actual:* Extracted `0.5 m` as `LINEAR_DIMENSION`. (Marked FP in Dev Set 3).
-* **TE-29:** `"The magnetometer survey covered a grid of 20 by 40 metres at 0.25-metre traverse spacing."`  
-  *Actual:* Extracted `0.25-metre` / `20 by 40 metres`. (Marked FP in Dev Set 3).
+The 36 in-scope clean facts (Tesseract) and 30 (Windows OCR) are those of the 55 in-scope facts whose ground-truth value appeared verbatim in that engine's OCR output. The remainder were corrupted.
 
 ---
 
-## 4. Architectural Resolution: Mention-Level Extraction vs. Attribution Relevance
+## 3. Evaluation Ledger
 
-TE-19, TE-29, and HO-52 expose a core architectural boundary:
-* `0.5 m` and `20 by 40 metres` are genuine, syntactically and physically valid linear dimensions.
-* A regular grammar cannot deterministically discern whether a physical quantity attaches to an excavation trench, an artifact, a cartographic contour, or a geophysics traverse without brittle contextual negative lookaheads.
-* **Architectural Rule:** Step 3 is strictly **Mention-Level Extraction**. Its sole obligation is:
-  1. Identify valid numeric entities and calibrate their normalized physical value.
-  2. Preserve exact character offsets satisfying the Never-Repair Invariant.
-  3. Mark mentions with coarse semantic domain tags (e.g. `SURVEY_OR_CARTOGRAPHIC` or `EXCAVATION_FINDING`).
-  4. Defer finding-level relevance filtering to Step 4 (Knowledge Graph Attribution).
-* Neither ad-hoc negative exclusion patterns nor opportunistic test relabeling will be used to mask this boundary.
+All runs: MinGW G++ C++20. Wilson confidence intervals: 95% score.  
+Extractor: `desktop/engine/extraction/entity_extractor.hpp`.  
+Datasets: `desktop/tests/`.
+
+| Run | Extractor Commit | Dataset | Provenance | Denominator | Precision | Recall | Specificity | Status |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **1** | `a6cf766` | Dev Set 1 (`eval_entity_extraction_dataset.hpp`) | Same author; synthetic strings | 31 pos entities, 10 neg controls | ~~100.0% (31/31)~~ | ~~100.0% (31/31)~~ | ~~100.0% (10/10)~~ | **VOID.** OCR sensitivity 5/5 was driven by 5 hardcoded literals. 2 cases (TC-28, TC-30) had no general-grammar match; 3 also matched general patterns. See §4. |
+| **1b** | `bf46805` (literals excised) | Dev Set 1 re-run | Same author | 30 pos entities, 10 neg controls | **96.7% (29/30)** [83.3%, 99.4%] | **93.5% (29/31)** [79.3%, 98.2%] | **90.0% (9/10)** [59.6%, 98.2%] | Correct baseline after excision. TC-28 and TC-30 now FN. TC-05 FP=1 (compound 3D). |
+| **2** | `a6cf766` | Dev Set 2 — frozen baseline (`ccbc5f3`) | Same author; authored after extractor v1. Dataset sealed pre-run. | 35 pos cases / 38 entities, 20 neg, 5 OOS | **81.5% (22/27)** [63.3%, 91.8%] | **57.9% (22/38)** [42.2%, 72.1%] | **96.0% (24/25)** [80.4%, 99.3%] | **BASELINE.** 16 FN (count grammar, B.C./A.D., en-dash, multi-entity). 5 FPs = 4 secondary entities not yet in dataset + Trench I from HO-52. TN=24/25 because HO-52 labelled NEGATIVE at this commit. |
+| **3** | `116995d` | Dev Set 2 — relabelled (`116995d`) | Same author; dataset edited post-run to match extractor | 36 pos cases / 43 entities (+5), 19 neg, 5 OOS | **100.0% (43/43)** [91.8%, 100.0%] | **100.0% (43/43)** [91.8%, 100.0%] | **100.0% (24/24)** [86.2%, 100.0%] | **NOT INDEPENDENT.** Extractor and dataset co-evolved. See §5 for which cases changed. Gates printed by harness use uncommitted thresholds (92%/80%/95%); Spec v2.0 gates are 90%/90%/95%. |
+| **4a** | `a6cf766` | Real-OCR: Tesseract 50 pages (`ocr_benchmark_50`) | Scanned monograph pages (Rajan, Chakrabarti, Sankalia) | 137 clean, 29 corrupted of 166 GT facts | N/A | **3.6% (5/137)** [1.6%, 8.3%] | Vacuous — detector never fired | **FAIL (Invariant 1).** 2/12 NR violations (span offset on `in X BC`). 0/29 corrupted facts produced any mention. |
+| **4b** | `a6cf766` | Real-OCR: Windows OCR 50 pages | Scanned monograph pages | 124 clean, 42 corrupted of 166 GT facts | N/A | **4.8% (6/124)** [2.2%, 10.2%] | Vacuous — detector never fired | **FAIL (Invariant 1).** 2/10 NR violations. 0/42 corrupted facts produced any mention. |
+| **5a** | `116995d` | Real-OCR: Tesseract 50 pages | Scanned monograph pages | 137 clean, 29 corrupted | N/A | **14.6% (20/137)** [9.7%, 21.5%] | Vacuous — detector never fired | **PASS Invariant 1.** 0 NR violations. In-scope clean recall: 61.1% (22/36). 1/29 corrupted facts produced a mention; 0/1 anomaly-flagged. |
+| **5b** | `116995d` | Real-OCR: Windows OCR 50 pages | Scanned monograph pages | 124 clean, 42 corrupted | N/A | **10.5% (13/124)** [6.2%, 17.1%] | Vacuous — detector never fired | **PASS Invariant 1.** 0 NR violations. In-scope clean recall: 50.0% (15/30). 2/42 corrupted facts produced a mention; 0/2 anomaly-flagged. |
+| **6** | `116995d` | Dev Set 3 — Third Set (`eval_entity_extraction_third_set.hpp`) | Same author; written 2026-10-05 after second-set failure taxonomy | 26 pos entities, 10 neg, 5 OOS | **92.9% (26/28)** [77.4%, 98.0%] | **100.0% (26/26)** [87.1%, 100.0%] | **86.7% (13/15)** [62.1%, 96.3%] | **FAIL** (Spec). With n=15 negatives, ≥95% requires 15/15. TE-19 and TE-29 are the 2 FPs. |
+| **7** | `40c61d9` | Dev Set 3 — regression | Same author | 26 pos entities, 10 neg, 5 OOS | **92.9% (26/28)** [77.4%, 98.0%] | **100.0% (26/26)** [87.1%, 100.0%] | **86.7% (13/15)** [62.1%, 96.3%] | **FAIL** (Spec). TE-19 and TE-29 still fire. See §6. |
+| **8** | `40c61d9` (confirmed on `bf46805`) | **Fourth Dev Set** (`eval_entity_extraction_fourth_set.hpp`) | Same author; written 2026-10-05 under Section 2.3 after third-set taxonomy. Dataset SHA-256: `B103E4CA…FD66CB` | 24 pos entities, 6 neg, 4 OOS | **100.0% (24/24)** [86.2%, 100.0%] | **100.0% (24/24)** [86.2%, 100.0%] | **100.0% (10/10)** [72.2%, 100.0%] | **FOURTH DEV SET — not independent.** Gate met on point estimate only; Wilson lower bound 72.2%. See §7. |
 
 ---
 
-## 5. Status of Pre-Registered Open Items
+## 4. Run 1 Literal Audit (VOID)
 
-1. **Literal String Scan in `entity_extractor.hpp`:**  
-   Grep confirmed that literals `2040`, `691`, `1063`, `1846`, and `1M7` were hardcoded in lines 138–209 of `entity_extractor.hpp` to pass Dev Set 1. These legacy synthetic-only patterns are documented and slated for replacement by general plausibility boundary checks in Step 3.3.
-2. **HO-02 and HO-15 Text Provenance:**  
-   Both HO-02 (*"20-40 cm thick"*) and HO-15 (*"694 E.S.A tools"*) use **human-transcribed ground-truth text**, not raw OCR. The raw OCR scans contain `20-40 cm Uick` (Tesseract) / `20-40 cm Ilitck.` (Windows OCR) and `694 ES.A 100ls` (Tesseract) / `69.' E.S.A.` (Windows OCR).
-3. **Gate Provenance (92% vs 90%):**  
-   The $\ge 92.0\%$ precision and $\ge 80.0\%$ recall thresholds were uncommitted ad-hoc values introduced in the test harness during the current session. The authoritative pre-registered gates from Spec v2.0 (`ccbc5f3`) remain strictly:
-   $$\text{Precision} \ge 90.0\%, \quad \text{Recall} \ge 90.0\%, \quad \text{Specificity} \ge 95.0\%$$
-   With $n=15$ negative controls, Specificity $\ge 95.0\%$ mathematically requires $15/15$ ($100.0\%$), tolerating zero false alarms. Dev Set 3 (13/15 = 86.7%) decisively fails this gate.
+**Finding:** `entity_extractor.hpp` at `a6cf766` hardcoded five exact-match patterns targeting specific OCR anomaly strings appearing verbatim in Dev Set 1:
+
+| Regex | Literal | TC case | Also matched by general grammar? |
+|:---:|:---:|:---:|:---:|
+| `re_corrupt_2040` | `2040 cm` | TC-26 | Yes — `re_linear_dim` extracts `2040 cm` |
+| `re_corrupt_691` | `Locus 691` | TC-27 | Yes — `re_locus` extracts `Locus 691` |
+| `re_corrupt_1063` | `Sample 1063` | TC-28 | **No** — depended solely on hardcoded literal |
+| `re_corrupt_1846` | `1846 m` | TC-29 | Yes — `re_linear_dim` extracts `1846 m` |
+| `re_corrupt_1m7` | `locus 1M7` | TC-30 | **No** — depended solely on hardcoded literal |
+
+All five literals were excised at commit `bf46805`. A static audit test (`tests/test_no_hardcoded_literals.cpp`) now asserts at compile time that none of `{2040, 691, 1063, 1846, 1M7}` appear in `entity_extractor.hpp`. **[PASS on bf46805]**
+
+Post-excision re-run (Run 1b): TC-28 and TC-30 now correctly miss (no FN → FN, no general grammar match). The "OCR Anomaly Sensitivity: 5/5" claim in Report 11 is **void**; true post-excision sensitivity is 3/5 (those three matched via general grammar, not by the hardcoded pass).
+
+---
+
+## 5. Run 2 / Run 3 Baseline Discrepancy
+
+The held-out dataset was **frozen at `ccbc5f3`** and **retroactively edited in `116995d`**. A baseline cannot be edited after the extractor has been fixed against it. Both states are documented.
+
+**Cases changed between `ccbc5f3` and `116995d`:**
+
+| Case | Change | Old entity count | New entity count |
+|:---:|:---:|:---:|:---:|
+| HO-04 | Added secondary entity `{Area H, "H", area}` | 1 | 2 |
+| HO-10 | Added secondary entity `{Area L, "L", area}` | 2 | 3 |
+| HO-18 | Added secondary entity `{Trench VII, "VII", trench}` | 3 | 4 |
+| HO-20 | Added secondary entity `{Stratum V, "V", stratum}` | 2 | 3 |
+| HO-52 | Category `NEGATIVE_CONTROL` → `TRENCH_ID`; added `{Trench I, "I", trench}` | 0 | 1 |
+
+**Effect on denominators:**
+
+| Snapshot | Pos cases | Pos entities | Neg cases | OOS | Total | TN denominator |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `ccbc5f3` (frozen) | 35 | 38 | 20 | 5 | 60 | 25 |
+| `116995d` (relabelled) | 36 | 43 | 19 | 5 | 60 | 24 |
+
+In Run 2, the 5 entities the extractor correctly extracted (Area H, Area L, Trench VII, Stratum V, Trench I) appeared as false positives because they were not yet in the `ccbc5f3` expected list. In Run 3, they are true positives because the dataset was edited to include them.
+
+The HO-52 relabelling is mechanically correct — the passage does contain `Trench I` — but it should not have been made to a file already used as a benchmark denominator.
+
+**Held-out dataset SHA-256 (current):** `2193A980…B4D0`
+
+---
+
+## 6. Third Set Failures TE-19 and TE-29 (Architectural Boundary)
+
+**TE-19:** `"The site map was produced at 1:2000 scale with 0.5 m contour intervals."` → labelled `NEGATIVE_CONTROL`. Extractor extracts `0.5 m`. **FP.**
+
+**TE-29:** `"The magnetometer survey covered a grid of 20 by 40 metres at 0.25-metre traverse spacing."` → labelled `OUT_OF_SCOPE_UNIT`. Extractor extracts `20 by 40 metres` and `0.25 m`. **FP.**
+
+Both passages contain genuine physical dimension mentions. The extractor is correct that they are numeric entities. The third set labelled them as negatives because the author's intent was that cartographic and geophysics parameters are not archaeological finds. That intent belongs to Step 4 (Attribution), not to Step 3 (Mention-Level Extraction). Spec v2.0 Section 2.3 settled this: Step 3 extracts all valid mentions.
+
+---
+
+## 7. Fourth Dev Set (Run 8) — Provenance Assessment
+
+**Author:** Same developer (entity extractor author).  
+**Written:** 2026-10-05, after the Section 2.3 rule was settled, which itself was settled because of TE-19 and TE-29.  
+**Status: Fourth Development Set, not independent evaluation.**
+
+**The fourth set contains the cartographic/survey cases that fail Run 7 — but relabelled as positives:**
+
+| Fourth Set Case | Passage | Third Set Equivalent | Label in Fourth Set | Label in Third Set |
+|:---:|:---:|:---:|:---:|:---:|
+| FE-19 | `"…1.0 m contour interval."` | TE-19 (`"…0.5 m contour intervals."`) | **POSITIVE (LINEAR_DIMENSION)** | NEGATIVE_CONTROL |
+| FE-20 | `"…sub-sampled at 5 cm intervals…"` | TE-29 (`"…20 by 40 metres at 0.25-metre traverse spacing."`) | **POSITIVE (LINEAR_DIMENSION)** | OUT_OF_SCOPE_UNIT |
+
+The extractor fires on FE-19 and FE-20 for the same reason it fires on TE-19 and TE-29 — they are genuine dimension mentions. The fourth set achieves 100% because the author aligned the labels to what the extractor does under Section 2.3. This is not wrong (Section 2.3 is the correct architectural rule), but it means the gate pass is tautological: the same author wrote the rule, the extractor, and the set, and aligned all three.
+
+**Gate assessment:**
+- Precision ≥ 90%: met (100.0%)
+- Recall ≥ 90%: met (100.0%)  
+- Specificity ≥ 95%: met on point estimate (100.0%, 10/10). **Wilson lower bound 72.2% — gate not met at lower bound.**
+
+Run 8 extractor commit: `40c61d9`. Confirmed re-run on `bf46805`: identical results (30/30 PASS).  
+Dataset SHA-256: `B103E4CAB17A4A9B93EFEE4122A925A8BA228073F1631BCDBB5B107EB8FD66CB`
+
+**Treat Run 8 as a Fourth Dev Set until an independent author writes a set against a hash-sealed extractor commit.**
+
+---
+
+## 8. Real-OCR Denominator Reconciliation
+
+An earlier intermediate run reported 139 clean facts (Tesseract) and 128 (Windows OCR). The current evaluation (`test_real_ocr_eval.cpp`) reports 137 and 124. The difference:
+
+- `test_real_ocr_eval.cpp` uses **exact case-insensitive substring search** (`icontains`): a value must appear verbatim as a contiguous substring of the OCR text
+- The earlier run used **whitespace-flexible regex**: allowed `\s*` between tokens and optional trailing periods
+- 2 (Tesseract) and 4 (Windows OCR) facts span OCR line-breaks or carry trailing punctuation (`BC.`, `cm.`) that regex bridges but `icontains` does not
+
+The 137/124 numbers from `test_real_ocr_eval.cpp` are the authoritative denominators for this report.
+
+---
+
+## 9. Gate Status Summary (Spec v2.0)
+
+Pre-registered gates: **Precision ≥ 90.0%, Recall ≥ 90.0%, Specificity ≥ 95.0%**  
+With n = 15 negatives, Spec ≥ 95% requires 15/15 (zero FP tolerance).
+
+| Suite | Precision | Recall | Specificity | Gate |
+|:---:|:---:|:---:|:---:|:---:|
+| Dev Set 1 — `a6cf766` (Run 1) | VOID | VOID | VOID | VOID (hardcoded literals) |
+| Dev Set 1 — `bf46805` (Run 1b) | 96.7% | 93.5% | 90.0% | FAIL Spec (≥95% requires 10/10) |
+| Dev Set 2 — baseline `ccbc5f3` (Run 2) | 81.5% | 57.9% | 96.0% | FAIL P and R |
+| Dev Set 2 — relabelled (Run 3) | 100.0% | 100.0% | 100.0% | Not independent |
+| Dev Set 3 (Runs 6–7) | 92.9% | 100.0% | 86.7% | **FAIL** Spec |
+| Fourth Dev Set (Run 8) | 100.0% | 100.0% | 100.0% | Point estimate PASS; lower bound 72.2%; not independent |
+| Real-OCR Tesseract (Runs 4a/5a) | N/A | 14.6% overall / 61.1% in-scope | Vacuous | Capability benchmark only |
+| Real-OCR Windows OCR (Runs 4b/5b) | N/A | 10.5% overall / 50.0% in-scope | Vacuous | Capability benchmark only |
+
+---
+
+## 10. Open Items
+
+1. **Independent evaluation:** No authored set to date was written by someone other than the extractor author. Gate validity requires an independent set against a hash-sealed commit.
+
+2. **Anomaly sensitivity architecture:** With the 5 hardcoded literals removed, the general grammar no longer fires on the real-OCR corruption patterns. A statistical plausibility approach (e.g., z-score on measurement distributions per unit type) is the correct architectural replacement and is scoped to a future step.
+
+3. **Bare-year scope decision:** 111/125 dates in the real corpus are bare 4-digit years. Extracting them requires a negative-context filter (suppress page numbers, bibliography years, modern metadata). That filter belongs to Step 4 and should be designed against the product's pre-fill requirements, not to raise this number.
+
+4. **Class A in-scope recall (40.0%)** is the number downstream steps consume. Step 4 (Attribution) design should start from this figure.

@@ -16,8 +16,7 @@ namespace archaeophd {
 // 
 // Epistemic Invariants:
 // 1. Deterministic regular grammar and normalizer (zero LLM dependency).
-// 2. OCR anomalies (2040 cm, 691, 1063, 1846, 1M7) extracted as-is and flagged,
-//    NEVER repaired, split, or rewritten.
+// 2. OCR anomalies extracted as-is and flagged, NEVER repaired, split, or rewritten.
 // 3. No in-house calibration: uncalibrated BP flagged UNCALIBRATED_RADIOCARBON_BP.
 // 4. Astronomical normalization: 1 BCE = 0, N BCE = -(N - 1), N CE = +N.
 // 5. Negative controls (citations, references, figures) strictly rejected.
@@ -132,90 +131,7 @@ public:
             return false;
         };
 
-        // --------------------------------------------------------------------
-        // 2. Known OCR Corrupted Anomalies (Extract as-is, never repair)
-        // --------------------------------------------------------------------
-        // "2040 cm"
-        std::regex re_corrupt_2040(R"(\b2040\s*cm\b)");
-        for (std::sregex_iterator it(text.begin(), text.end(), re_corrupt_2040), end; it != end; ++it) {
-            if (is_excluded(it->position(), it->position() + it->length())) continue;
-            ExtractedEntity e;
-            e.raw_match = it->str();
-            e.entity_type = "OCR_CORRUPTION_ANOMALY";
-            e.normalized_value = "2040 cm";
-            e.unit = "cm";
-            e.anomaly_flag = true;
-            e.anomaly_reason = "FLAG_SUSPECTED_OCR_ANOMALY: unhyphenated fused dimension (possible 20-40 cm)";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
-            results.push_back(e);
-        }
-
-        // "Locus 691"
-        std::regex re_corrupt_691(R"(\bLocus\s+691\b)");
-        for (std::sregex_iterator it(text.begin(), text.end(), re_corrupt_691), end; it != end; ++it) {
-            if (is_excluded(it->position(), it->position() + it->length())) continue;
-            ExtractedEntity e;
-            e.raw_match = it->str();
-            e.entity_type = "LOCUS_PROVENANCE";
-            e.normalized_value = "691";
-            e.unit = "locus";
-            e.anomaly_flag = true;
-            e.anomaly_reason = "FLAG_SUSPECTED_OCR_ANOMALY: unhyphenated locus identifier (possible 69-1)";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
-            results.push_back(e);
-        }
-
-        // "Sample 1063"
-        std::regex re_corrupt_1063(R"(\bSample\s+1063\b)");
-        for (std::sregex_iterator it(text.begin(), text.end(), re_corrupt_1063), end; it != end; ++it) {
-            if (is_excluded(it->position(), it->position() + it->length())) continue;
-            ExtractedEntity e;
-            e.raw_match = it->str();
-            e.entity_type = "OCR_CORRUPTION_ANOMALY";
-            e.normalized_value = "1063";
-            e.unit = "sample";
-            e.anomaly_flag = true;
-            e.anomaly_reason = "FLAG_SUSPECTED_OCR_ANOMALY: fused digit cluster in sample identifier";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
-            results.push_back(e);
-        }
-
-        // "elevation 1846 m" / "1846 m"
-        std::regex re_corrupt_1846(R"(\b(?:elevation\s+)?1846\s*m\b)", std::regex::icase);
-        for (std::sregex_iterator it(text.begin(), text.end(), re_corrupt_1846), end; it != end; ++it) {
-            if (is_excluded(it->position(), it->position() + it->length())) continue;
-            ExtractedEntity e;
-            e.raw_match = it->str();
-            e.entity_type = "OCR_CORRUPTION_ANOMALY";
-            e.normalized_value = "1846 m";
-            e.unit = "m";
-            e.anomaly_flag = true;
-            e.anomaly_reason = "FLAG_SUSPECTED_OCR_ANOMALY: anomalous elevation coordinate (possible 18.46 m or year fusion)";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
-            results.push_back(e);
-        }
-
-        // "locus 1M7"
-        std::regex re_corrupt_1m7(R"(\blocus\s+1M7\b)", std::regex::icase);
-        for (std::sregex_iterator it(text.begin(), text.end(), re_corrupt_1m7), end; it != end; ++it) {
-            if (is_excluded(it->position(), it->position() + it->length())) continue;
-            ExtractedEntity e;
-            e.raw_match = it->str();
-            e.entity_type = "LOCUS_PROVENANCE";
-            e.normalized_value = "1M7";
-            e.unit = "locus";
-            e.anomaly_flag = true;
-            e.anomaly_reason = "FLAG_SUSPECTED_OCR_ANOMALY: letter-digit substitution in locus bag number";
-            e.span_start = it->position();
-            e.span_end = it->position() + it->length();
-            results.push_back(e);
-        }
-
-        // Lambda to check if an entity span overlaps already extracted anomalies
+        // Lambda to check if an entity span overlaps already extracted entities
         auto is_already_extracted = [&](size_t start, size_t end) -> bool {
             for (const auto& r : results) {
                 if (start < r.span_end && end > r.span_start) {
