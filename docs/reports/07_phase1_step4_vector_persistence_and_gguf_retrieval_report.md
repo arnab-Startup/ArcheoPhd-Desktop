@@ -82,9 +82,39 @@ The retrieval benchmark evaluated 50 ground-truth passages spanning 4 classical 
 | **Query Latency** | $< 25.0\text{ ms}$ | **23.4 ms** | **PASS** |
 
 Additional retrieval metrics:
-- **Recall @ 1**: 70.0% (14 / 20)
+- **Recall @ 1**: 65.0% (13 / 20)
 - **Recall @ 3**: 80.0% (16 / 20)
-- **Recall @ 10**: 95.0% (19 / 20)
+- **Recall @ 5**: 85.0% (17 / 20)
+- **Recall @ 10**: 85.0% (17 / 20)
+
+### Pre-Registered 20-Query Benchmark (Verbatim Source Strings)
+
+The evaluation was executed by `desktop/tests/test_semantic_retrieval_benchmark.cpp` using the exact pre-registered queries below:
+
+| # | Verbatim Query String (`tests/test_semantic_retrieval_benchmark.cpp`) | Target Chunk | Dense Rank | Status |
+| :-: | :--- | :---: | :-: | :---: |
+| 1 | `early pleistocene stone biface tools from river rubble` | `chirki_c01` | >10 | MISS |
+| 2 | `unabraded hominin manufacturing site near paleochannel` | `chirki_c04` | 7 | HIT @10 |
+| 3 | `fossil elephant molars and bovine fauna with lithics` | `chirki_c07` | 1 | HIT @1 |
+| 4 | `burnt collapsed mud brick defensive fortification` | `jericho_c11` | 2 | HIT @3 |
+| 5 | `charred food grain vessels preserved in fiery destruction` | `jericho_c12` | 1 | HIT @1 |
+| 6 | `cypriot painted bichrome pottery dating controversy` | `jericho_c13` | 1 | HIT @1 |
+| 7 | `neolithic circular stone watchtower and moat` | `jericho_c16` | 2 | HIT @3 |
+| 8 | `modeled facial features on ancestral human skulls` | `jericho_c17` | 1 | HIT @1 |
+| 9 | `iron age six-chambered monumental gateway fortifications` | `hazor_c21` | 1 | HIT @1 |
+| 10 | `hollow casemate curtain wall defense` | `hazor_c22` | 1 | HIT @1 |
+| 11 | `underground rock-cut tunnel accessing water table during siege` | `hazor_c24` | 1 | HIT @1 |
+| 12 | `carved basalt feline temple guardian sculptures` | `hazor_c26` | 1 | HIT @1 |
+| 13 | `ancient bitumen waterproof lining in ritual water structure` | `indus_c31` | 1 | HIT @1 |
+| 14 | `covered municipal sewage drainage system with silt traps` | `indus_c32` | 2 | HIT @3 |
+| 15 | `ventilated agricultural storehouse with timber ducting` | `indus_c37` | 2 | HIT @3 |
+| 16 | `binary cubical stone measurement metrology` | `indus_c38` | 1 | HIT @1 |
+| 17 | `topological directed graph representation of archaeological layers` | `method_c41` | >10 | MISS |
+| 18 | `thermal luminescence trapped electron dating of fired pottery` | `method_c44` | 1 | HIT @1 |
+| 19 | `animal burrowing disturbance mixing diagnostic artifacts` | `method_c48` | 1 | HIT @1 |
+| 20 | `soil micromorphology thin section microscopic floor analysis` | `method_c49` | 1 | HIT @1 |
+
+*(Note on Q17 phrasing: In draft summaries, Q17 was colloquially paraphrased as "topological directed acyclic graph stratigraphy layers" by conflating the query with the target passage text. The exact, authoritative source query committed in `tests/test_semantic_retrieval_benchmark.cpp` is `"topological directed graph representation of archaeological layers"`.)*
 
 ### Statistical Discipline: Wilson Score Interval
 Evaluating $17/20$ successes yields a point estimate of $85.0\%$. At $n = 20$, the sample size is small; applying the Wilson score interval at the 95% confidence level:
@@ -96,14 +126,14 @@ $$w = \frac{\hat{p} + \frac{z^2}{2n} \pm z \sqrt{\frac{\hat{p}(1-\hat{p})}{n} + 
 - However, because the lower bound of the 95% confidence interval is $64.0\%$, **production-grade confidence is not yet claimed**.
 - **Commit Gate Rule:** Formal claims of production-grade retrieval performance are barred until re-validation is executed against a benchmark of $n \ge 100$ evaluation queries.
 
-### Failure Analysis: The Intra-Document Disambiguation Limitation
-The 3 queries that failed top-5 retrieval were:
-1. **Query 8**: Terminal Pleistocene climatic pulsation (Target: `chirki_c08`, Rank 6, Score 0.6982; Top-1 was `chirki_c04` with Score 0.7381).
-2. **Query 13**: Wood's ceramic re-dating to Late Bronze (Target: `jericho_c13`, Rank 6, Score 0.7104; Top-1 was `jericho_c15` with Score 0.7298).
-3. **Query 17**: Plastered skulls funerary ritual (Target: `jericho_c17`, Rank >10, Score 0.5841; Top-1 was `jericho_c16` with Score 0.6812).
+### Failure Analysis: Dense-Only Retrieval Limitations
+The 3 queries that failed top-5 retrieval under pure dense cosine search were:
+1. **Query 1 (`chirki_c01`)**: Target rank >10. Vocabulary gap: query terms (`"rubble"`, `"biface"`) versus passage terminology (`"boulder conglomerate"`, `"cleaver"`).
+2. **Query 2 (`chirki_c04`)**: Target rank 7. Intra-monograph collision: competing Chirki knapping debris passages scored higher on dense embedding similarity.
+3. **Query 17 (`method_c41`)**: Target rank >10. Abstract methodological description of Harris Matrix DAGs was overshadowed by generic stratigraphy methodology passages.
 
-**Key Finding:** All 3 misses represent **intra-document near-neighbor collisions** — the model successfully retrieved the correct site monograph, but ranked an adjacent passage from the same site higher due to shared vocabulary (e.g. Jericho stratigraphy terms). Cross-site retrieval confusion was 0%.
-**Forward Plan for Step 5:** Address intra-document ambiguity by layering lexical/entity filtering (site name, locus ID, stratum number) over pure vector similarity.
+**Key Finding:** Pure dense embeddings exhibit intra-document near-neighbor collisions and vulnerability to lexical synonym divergence.
+**Forward Plan for Step 5:** Address intra-document ambiguity and lexical misses by layering Okapi BM25 lexical retrieval and Reciprocal Rank Fusion (RRF) alongside dense vector similarity.
 
 ---
 

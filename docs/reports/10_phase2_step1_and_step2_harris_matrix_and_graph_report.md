@@ -15,7 +15,7 @@ Phase 2, Steps 1 and 2 deliver the core archaeological graph reasoning layer:
 1. **Unified Graph Store & Relational Cross-Referencing:** Multi-index join connecting Layer A (Physical Sites, Strata, Artifacts, Samples) $\leftrightarrow$ Layer B (Interpretive Claims) $\leftrightarrow$ Layer C (Evidence Links) $\leftrightarrow$ Vector/BM25 chunks (`chunk_id`, `doc_id`, `page_ref`).
 2. **Stratigraphic DAG & Harris Matrix Engine ([`harris_matrix.hpp`](../../engine/analysis/harris_matrix.hpp)):** Pure C++ Directed Acyclic Graph builder implementing Edward C. Harris's *Principles of Archaeological Stratigraphy* (1979).
 
-All **25 automated graph and matrix assertions** passed with zero regressions across the existing 72 Phase 1 assertions.
+All **83 automated graph and matrix assertions across 15 sub-suites** passed with zero regressions across the existing 72 Phase 1 assertions.
 
 ---
 
@@ -55,11 +55,11 @@ Exposed new native graph actions over the in-memory WebView2 bridge:
 
 ## 2. Verification & Test Results (`test_harris_matrix_and_graph.exe`)
 
-The dedicated Phase 2 test suite was compiled and executed:
+The hardened Phase 2 test suite was compiled and executed (commit `3706bae`):
 
 ```text
 ================================================================================
-  ArchaeoPhD Engine — Phase 2: Stratigraphic DAG & Harris Matrix Suite          
+  ArchaeoPhD Engine — Hardened Phase 2 Stratigraphic DAG & Graph Suite          
 ================================================================================
 
 [TEST 1] Stratigraphic DAG Construction & Topological Sequence...
@@ -75,23 +75,59 @@ The dedicated Phase 2 test suite was compiled and executed:
   [PASS] LBA level is 3
   [PASS] Zero inversions in coherent sequence
 
-[TEST 2] Stratigraphic Cycle & Impossible Paradox Detection...
-  [PASS] Cyclic sequence identified as NOT a valid DAG
+[TEST 2A] Length-3 Cycle Detection (A -> B -> C -> A)...
+  [PASS] Length-3 cyclic sequence identified as NOT a valid DAG
   [PASS] At least 1 cycle isolated by Tarjan SCC
   [PASS] Cycle contains 3 vertices
+  [PASS] Topological sequence is strictly empty on cycle
 
-[TEST 3] Law of Superposition Date Inversion Detection...
-  [PASS] Matrix is structurally a DAG
+[TEST 2B] Length-1 Self-Loop Detection (A -> A) & Downstream Abort...
+  [PASS] Self-loop identified as NOT a valid DAG
+  [PASS] Self-loop cycle isolated in cycles array
+  [PASS] Self-loop component contains exactly strat_self
+  [PASS] Downstream Kahn topological sort did NOT produce partial sequence
+
+[TEST 2C] Length-2 Mutual Cycle Detection (A <-> B)...
+  [PASS] Length-2 mutual cycle identified as NOT a valid DAG
+  [PASS] Cycle isolated contains 2 vertices
+  [PASS] Topological sequence is empty
+
+[TEST 2D] Multiple Disconnected Independent Cycles...
+  [PASS] Disconnected multi-cycle graph identified as NOT valid DAG
+  [PASS] Both independent cycles isolated by Tarjan SCC
+  [PASS] Topological sequence is empty
+
+[TEST 3A] Classical BCE Law of Superposition Inversion...
+  [PASS] DAG topology remains structurally valid
   [PASS] Inversion detected
+  [PASS] Inversion is marked as advisory review
   [PASS] Inversion flags upper stratum correctly
   [PASS] Inversion flags lower stratum correctly
-  [PASS] Inversion reason cites Law of Superposition
+  [PASS] Reason cites Stratigraphic date discrepancy
 
-[TEST 4] Radiometric C-14 Sample Inversion Cross-Check...
-  [PASS] Radiometric inversion detected
-  [PASS] Inversion cites C-14 lab code OXA-4022
+[TEST 3B] Astronomical Year 1 BCE / 1 CE Boundary Test (Zero-Year Trap Defense)...
+  [PASS] 1 BCE below 1 CE is a valid sequence
+  [PASS] No inversion on 1 BCE -> 1 CE boundary (astro 0 <= 1)
+  [PASS] 1 BCE below 2 BCE correctly flags boundary inversion
+  [PASS] Upper stratum flagged as 2 BCE
+  [PASS] Lower stratum flagged as 1 BCE
 
-[TEST 5] Relational Cross-Referencing in NativeStorage...
+[TEST 3C] Common Era (CE) Superposition Inversion...
+  [PASS] CE date inversion detected
+  [PASS] Flags early Roman as upper inverted stratum
+
+[TEST 4A] C-14 Overlapping 2-Sigma Range (Valid Stratigraphic Prior)...
+  [PASS] Overlapping 2-sigma calibrated ranges do NOT produce false positive inversion
+
+[TEST 4B] C-14 Strict Non-Overlap (Advisory Review Flag)...
+  [PASS] Strict non-overlap triggers inversion entry
+  [PASS] Inversion is marked as advisory (is_advisory == true)
+  [PASS] Cites upper lab code OXA-4022
+  [PASS] Cites lower lab code OXA-4021
+  [PASS] Reason contains 'Possible redeposition or context error — please review'
+  [PASS] DAG topology remains valid despite advisory C-14 inversion
+
+[TEST 5A] Relational Cross-Referencing in NativeStorage...
   [PASS] get_claims_by_site returned 1 claim
   [PASS] Returned claim is claim_wood_1990_01
   [PASS] get_claims_by_stratum returned 1 claim
@@ -107,7 +143,18 @@ The dedicated Phase 2 test suite was compiled and executed:
   [PASS] Stratum subgraph contains artifacts array
   [PASS] Stratum subgraph contains samples array
 
-[TEST 6] IPC Dispatcher Phase 2 Graph Endpoints...
+[TEST 5B] Schema Migration & Backward Compatibility (Legacy State Without CE Fields)...
+  [PASS] Legacy state loaded successfully
+  [PASS] Legacy stratum name preserved
+  [PASS] Legacy BCE date preserved
+  [PASS] New date_start_ce defaulted safely to 0
+  [PASS] New date_end_ce defaulted safely to 0
+  [PASS] Legacy sample loaded successfully
+  [PASS] New date_cal_start_ce defaulted safely to 0
+  [PASS] Round-trip save/load preserves legacy record
+  [PASS] Round-trip preserves BCE date
+
+[TEST 6A] IPC build_harris_matrix & get_entity_subgraph Endpoints...
   [PASS] IPC build_harris_matrix response has no error
   [PASS] IPC build_harris_matrix is_valid_dag == true
   [PASS] IPC build_harris_matrix sequence length == 2
@@ -115,13 +162,44 @@ The dedicated Phase 2 test suite was compiled and executed:
   [PASS] IPC get_entity_subgraph response has no error
   [PASS] IPC get_entity_subgraph contains stratum
   [PASS] IPC get_entity_subgraph returned correct stratum name
-  [PASS] IPC query_knowledge_graph response has no error
-  [PASS] IPC query_knowledge_graph result contains passages and claims
+
+[TEST 6B] IPC query_knowledge_graph Uninitialized Model Failure Path...
+  [PASS] IPC query_knowledge_graph surfaces error when model uninitialized
+  [PASS] IPC query_knowledge_graph returns error_code == 'MODEL_NOT_INITIALIZED'
+  [PASS] Error message explains weights not loaded
+
+[TEST 6C] IPC query_knowledge_graph Compound Join & Site/Stratum Filtering...
+  [PASS] Compound query has no error when embedding ready
+  [PASS] Compound query returns passages array
+  [PASS] Compound query filtered claims to exactly site_hazor
+  [PASS] Returned claim is claim_hazor_gate
+  [PASS] Querying unrelated site returns zero claims
 
 ================================================================================
-  ALL 25 STRATIGRAPHIC DAG & KNOWLEDGE GRAPH TESTS PASSED WITH ZERO FAILURES!   
+  ALL HARDENED STRATIGRAPHIC DAG & KNOWLEDGE GRAPH TESTS PASSED (100%)!         
 ================================================================================
 ```
+
+### Breakdown of Assertions by Sub-Suite (83 Total)
+
+| Suite | Assertions | Focus Area |
+| :--- | :---: | :--- |
+| **TEST 1** | 11 | Stratigraphic DAG Construction & Kahn Topological Sequence |
+| **TEST 2A** | 4 | Length-3 Cycle Detection (Tarjan SCC) |
+| **TEST 2B** | 4 | Length-1 Self-Loop Detection ($A \to A$) & Kahn Abort |
+| **TEST 2C** | 3 | Length-2 Mutual Cycle Detection ($A \leftrightarrow B$) |
+| **TEST 2D** | 3 | Disconnected Multi-Cycle Isolation |
+| **TEST 3A** | 6 | BCE Law of Superposition Inversion (Advisory Warning) |
+| **TEST 3B** | 5 | Astronomical Year $1\text{ BCE} / 1\text{ CE}$ Boundary (Zero-Year Trap Defense) |
+| **TEST 3C** | 2 | Common Era (CE) Superposition Inversion |
+| **TEST 4A** | 1 | Radiometric $C^{14}$ Overlapping $2\sigma$ Calibration Range (No False Positive) |
+| **TEST 4B** | 6 | Radiometric $C^{14}$ Strict Non-Overlap (Advisory Review Flag) |
+| **TEST 5A** | 14 | Relational Cross-Referencing & Subgraph Assembly |
+| **TEST 5B** | 9 | Schema Migration & Backward Compatibility (Legacy State Without CE) |
+| **TEST 6A** | 7 | IPC `build_harris_matrix` & `get_entity_subgraph` Bridge Contracts |
+| **TEST 6B** | 3 | IPC `query_knowledge_graph` Uninitialized Model Guard (`MODEL_NOT_INITIALIZED`) |
+| **TEST 6C** | 5 | IPC `query_knowledge_graph` Compound Join & Site Filtering |
+| **Total** | **83** | **15 Sub-Suites, 83 Assertions (100% Pass Rate)** |
 
 ---
 

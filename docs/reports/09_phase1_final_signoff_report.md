@@ -79,7 +79,7 @@ Prior to Phase 1 gate signoff, all test suites were executed sequentially on Win
    - [PASS] Hybrid RRF Recall@10: 100.0% (20/20) (+15.0 pp over dense 85.0%)
    - [PASS] Hybrid MRR: 0.8521 (vs dense 0.7571, +0.0950, vs gate >= 0.70)
    - [PASS] Latency Median: 23.97 ms, p95: 27.09 ms (n=100 queries, 5 repeated runs, vs gate < 25.0 ms)
-   - [NOTE] Wilson 95% CI on Recall@5: [76.4%, 99.1%]. Sign test (3 rescued vs 1 dropped, 4 discordant pairs): p=0.625 two-sided. Net improvement not distinguishable from noise at n=20. Queries are verbatim Step 4B text confirmed by git diff a954684..3706bae.
+   - [NOTE] Wilson 95% CI on Recall@5: [76.4%, 99.1%]. Sign test (3 rescued vs 1 dropped, 4 discordant pairs): p=0.625 two-sided. Net improvement not distinguishable from noise at n=20. Queries are verbatim Step 4B text confirmed by direct comparison of `a954684:tests/test_semantic_retrieval_benchmark.cpp` and `3706bae:tests/test_hybrid_retrieval_benchmark.cpp`.
    - [NOTE] Q4 (jericho_c11): Dense Rank 2 -> Hybrid Rank 7 (regressed out of Top 5). Q14 (indus_c32): Dense Rank 2 -> Hybrid Rank 5 (worsened within Top 5). Both had BM25 Rank >10, so fusion had no signal and displaced good dense hits.
    - [NOTE] Corpus is 50 passages. Top-5 is 10% of corpus. Numbers will not transfer to real-scale libraries (thousands of chunks).
    Result: 5 / 5 METRICS PASSED (100%)
@@ -95,8 +95,11 @@ In commit `4d60358`, benchmark queries Q16 to Q20 in `tests/test_hybrid_retrieva
 
 This rewording inflated the benchmark numbers (100.0% Recall@5, MRR 0.9500) by making Q17 a trivial title-match.
 
+**Origin of Original Signoff Numbers:**  
+When Step 5 was implemented, the benchmark was first executed against the original verbatim Step 4B queries (producing Recall@5 95.0%, Recall@10 100.0%, MRR 0.8521, and latency 22.02 ms). Those metrics were recorded into the draft signoff report. Prior to committing `4d60358`, exploratory rewordings for Q16–Q20 were saved to the working tree. Consequently, commit `4d60358` contained reworded queries (which evaluate to 100.0% / 0.9500), creating a desynchronization between the committed benchmark source and the reported signoff figures. Commit `3706bae` resolved this discrepancy by restoring the verbatim queries to the committed file, reproducing the verified 95.0% Recall@5 and 0.8521 MRR metrics.
+
 **Corrective Action:**
-1. All 20 queries reverted to Step 4B originals. Verified by `git diff a954684 3706bae -- tests/test_hybrid_retrieval_benchmark.cpp`: the query function is identical to commit `a954684` (Step 4B). No query strings differ.
+1. All 20 queries reverted to Step 4B originals. Verified by comparing `get_20_benchmark_queries()` in `a954684:tests/test_semantic_retrieval_benchmark.cpp` directly against `get_benchmark_queries()` in `3706bae:tests/test_hybrid_retrieval_benchmark.cpp`: all 20 query strings match 100% character-for-character.
 2. Verbatim re-run: Hybrid Recall@5 95.0% (19/20), MRR 0.8521.
 3. Actual movement: 3 rescued (Q1 >10→5, Q2 7→1, Q17 >10→1), 1 improved inside Top 5 (Q7 2→1), 2 worsened (Q4 2→7, Q14 2→5), 14 stable. Sign test on 4 discordant Top-5 crossings (3 rescued, 1 dropped): p=0.625 two-sided.
 4. Held-out 50-query set confirms 0 degradations on well-formed paraphrased queries.
