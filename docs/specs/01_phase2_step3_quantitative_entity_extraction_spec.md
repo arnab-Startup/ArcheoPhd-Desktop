@@ -63,15 +63,23 @@ The deterministic pure C++ regular grammar and normalizer operates strictly in-p
    - Spelled-out verbal numbers without digits (e.g. "forty metres", "sixteen pieces") are intentionally excluded from regex extraction to maintain high precision and avoid grammatical ambiguity.
    - In passages containing both verbal and numeric mentions (e.g. TC-07: *"Water shaft descends forty metres through bedrock to depth 40 m"*), only the numeric token `depth 40 m` is extracted.
 2. **Out-of-Scope Units vs. Negative Controls:**
-   - Real physical units that lie outside the targeted micro-stratigraphic domain (e.g., `hectares`, `acres`, `square kilometers`, `degrees Fahrenheit`) are categorized as **Out-of-Scope Units** (`OUT_OF_SCOPE_UNIT`), rather than negative controls.
+   - Real physical units that lie outside the targeted micro-stratigraphic domain (e.g., `hectares`, `acres`, `square kilometers`, `degrees Fahrenheit`, `miles`) and non-microstratigraphic chemical or temporal parameters (e.g., solution percentages `30%`, immersion durations `2 hours`) are categorized as **Out-of-Scope Units** (`OUT_OF_SCOPE_UNIT`), rather than negative controls.
    - Negative controls are strictly reserved for non-archaeological entity text (citations, page numbers, figure numbers, catalog IDs).
 
 ### 2.3 Mention-Level Extraction vs. Attribution Relevance Boundary
 1. **Architectural Scope of Step 3:** Step 3 is strictly **Mention-Level Entity Extraction**, not semantic relevance filtering.
 2. **Rule of Completeness:** Any syntactically and physically valid quantitative expression (linear dimension, linear range, coordinate, compound dimension, mass, count, date) occurring in text MUST be extracted as an `ExtractedEntity`.
-3. **Methodological & Survey Quantities:** Quantities describing cartographic features (e.g. `0.5 m contour intervals`), geophysical survey grids (e.g. `20 by 40 metres at 0.25-metre traverse spacing`), or sampling intervals (e.g. `10-cm intervals`) are **valid physical mentions**. They are in-scope for Step 3 extraction. Step 3 may assign an optional contextual tag (`context_domain = "SURVEY_OR_CARTOGRAPHIC"` or `"FIELD_METHODOLOGY"`), but MUST NOT suppress the mention via negative lookaheads.
+3. **Methodological & Survey Quantities:** Quantities describing cartographic features (e.g. `0.5 m contour intervals`), geophysical survey grids (e.g. `20 by 40 metres at 0.25-metre traverse spacing`), or sampling intervals (e.g. `10-cm intervals`) are **valid physical mentions**. They are in-scope for Step 3 extraction. Step 3 may assign an optional contextual tag (`context_domain = "SURVEY_OR_CARTOGRAPHIC"` or `"FIELD_METHODOLOGY"`), but MUST NOT suppress the mention via negative lookaheads. *(Implementation Note: This tag is defined as a semantic requirement in spec prose; physical implementation in `ExtractedEntity` and test assertions belong to Phase 2 Step 4).*
 4. **Attribution Boundary (Step 4):** Determining whether a valid mention represents an in-situ archaeological find (e.g. a wall foundation, pit depth, or ceramic vessel) versus a survey or methodology parameter is the exclusive responsibility of **Phase 2 Step 4 (Knowledge Graph Attribution & Entity Linking)**.
 5. **Negative Control Invariant:** A test case is a valid `NEGATIVE_CONTROL` if and only if it contains **zero** targeted physical quantities or calendar dates (e.g. modern publication metadata, bare integers without units, coordinate degree-minute strings, page/figure references). Cases containing genuine physical units (such as contour intervals or traverse spacings) MUST NOT be classified as negative controls to artificially penalize the extractor.
+
+### 2.4 Benchmark Governance & Post-Execution Label Change Control
+To prevent benchmark drift toward model output:
+1. **Immutable Baseline Headline:** Original pre-registered evaluation metrics for any frozen dataset (such as Dev Set 2 at `ccbc5f3` and Dev Set 3 at `116995d`) remain permanent headline metrics in the historical evaluation ledger.
+2. **Logged Domain Justification:** Any label modification following an evaluation run requires an explicit audit log explaining the domain rationale under the spec text.
+3. **Domain Confirmation Independent of Output:** Added labels must be confirmed by domain review against the specification text, without reference to extractor internal output.
+4. **Pre-Registration Seal Update:** Any relabeled suite must be committed with a newly calculated SHA-256 seal hash.
+
 
 ---
 

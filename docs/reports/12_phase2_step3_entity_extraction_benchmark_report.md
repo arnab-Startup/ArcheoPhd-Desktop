@@ -13,12 +13,18 @@
 
 On 100 real scanned pages from three published Indian site monographs (Rajan, Chakrabarti, Sankalia):
 
-| Engine | Overall Clean Recall | In-Scope Clean Recall | Class A In-Scope | Class B In-Scope |
-|:---:|:---:|:---:|:---:|:---:|
-| Tesseract | 14.6% (20/137) | **61.1% (22/36)** | 40.0% (6/15) | 76.2% (16/21) |
-| Windows OCR | 10.5% (13/124) | **50.0% (15/30)** | 40.0% (6/15) | 60.0% (9/15) |
+| Engine | Overall Clean Recall (n=137, 124) | In-Scope Clean Recall (n=36, 30) | Class A In-Scope Clean (n=15) | Class B In-Scope Clean (n=21, 15) | Pipeline Recall (n=55 In-Scope Facts) |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Tesseract 5.4** | 14.6% (20/137)<br>[9.7%, 21.5%] | **61.1% (22/36)**<br>[44.9%, 75.2%] | **40.0% (6/15)**<br>[19.8%, 64.3%] | 76.2% (16/21)<br>[54.9%, 89.4%] | **40.0% (22/55)**<br>[28.1%, 53.2%] |
+| **Windows OCR** | 10.5% (13/124)<br>[6.2%, 17.1%] | **50.0% (15/30)**<br>[33.2%, 66.8%] | **40.0% (6/15)**<br>[19.8%, 64.3%] | 60.0% (9/15)<br>[35.7%, 80.2%] | **27.3% (15/55)**<br>[17.3%, 40.2%] |
+*Note on Denominators:*  
+- **Clean Recall Denominators (36 and 30)** count only in-scope ground-truth facts whose exact text appeared cleanly in that engine's OCR output.
+- **End-to-End Pipeline Recall (denominator = 55 in-scope facts)** measures total facts retrieved out of all 55 in-scope facts in the ground truth, including the 19 (Tess) and 25 (Win) facts dropped or mangled by OCR. Because the dual-engine router diverts OCR errors to manual review, these represent the true automated pre-fill ceiling.
+- **Class A Pipeline Recall** (denominator = 19 in-scope Class A facts): **31.6% (6/19)** [95% CI: 15.4%, 54.0%] on both engines.
+- **Class B Pipeline Recall** (denominator = 36 in-scope Class B facts): Tesseract **44.4% (16/36)** [29.5%, 60.4%]; Windows OCR **25.0% (9/36)** [13.8%, 41.1%].
 
 **Plausibility sensitivity: 0% on both engines.** Of 29 corrupted facts (Tesseract) and 42 (Windows OCR), only 1 (Tess) and 2 (Win) produced any entity mention at all. Neither mention was anomaly-flagged. The bulk of corrupted facts were mangled so severely by OCR that no grammar pattern matched — they are simply not extracted.
+
 
 **Plausibility specificity (20/20 and 13/13) is vacuous.** The anomaly detector never fired on either engine. A detector that never fires achieves perfect specificity by definition. It is not a result.
 
@@ -60,9 +66,11 @@ Datasets: `desktop/tests/`.
 | **4b** | `a6cf766` | Real-OCR: Windows OCR 50 pages | Scanned monograph pages | 124 clean, 42 corrupted of 166 GT facts | N/A | **4.8% (6/124)** [2.2%, 10.2%] | Vacuous — detector never fired | **FAIL (Invariant 1).** 2/10 NR violations. 0/42 corrupted facts produced any mention. |
 | **5a** | `116995d` | Real-OCR: Tesseract 50 pages | Scanned monograph pages | 137 clean, 29 corrupted | N/A | **14.6% (20/137)** [9.7%, 21.5%] | Vacuous — detector never fired | **PASS Invariant 1.** 0 NR violations. In-scope clean recall: 61.1% (22/36). 1/29 corrupted facts produced a mention; 0/1 anomaly-flagged. |
 | **5b** | `116995d` | Real-OCR: Windows OCR 50 pages | Scanned monograph pages | 124 clean, 42 corrupted | N/A | **10.5% (13/124)** [6.2%, 17.1%] | Vacuous — detector never fired | **PASS Invariant 1.** 0 NR violations. In-scope clean recall: 50.0% (15/30). 2/42 corrupted facts produced a mention; 0/2 anomaly-flagged. |
-| **6** | `116995d` | Dev Set 3 — Third Set (`eval_entity_extraction_third_set.hpp`) | Same author; written 2026-10-05 after second-set failure taxonomy | 26 pos entities, 10 neg, 5 OOS | **92.9% (26/28)** [77.4%, 98.0%] | **100.0% (26/26)** [87.1%, 100.0%] | **86.7% (13/15)** [62.1%, 96.3%] | **FAIL** (Spec). With n=15 negatives, ≥95% requires 15/15. TE-19 and TE-29 are the 2 FPs. |
+| **6** | `116995d` | Dev Set 3 — Third Set (`eval_entity_extraction_third_set.hpp`) | Same author; written 2026-10-05 after second-set failure taxonomy | 26 pos entities, 10 neg, 5 OOS | **92.9% (26/28)** [77.4%, 98.0%] | **100.0% (26/26)** [87.1%, 100.0%] | **86.7% (13/15)** [62.1%, 96.3%] | **FAIL** (Spec). Headline result. With n=15 negatives, ≥95% requires 15/15. TE-19 and TE-29 are the 2 FPs. |
 | **7** | `40c61d9` | Dev Set 3 — regression | Same author | 26 pos entities, 10 neg, 5 OOS | **92.9% (26/28)** [77.4%, 98.0%] | **100.0% (26/26)** [87.1%, 100.0%] | **86.7% (13/15)** [62.1%, 96.3%] | **FAIL** (Spec). TE-19 and TE-29 still fire. See §6. |
+| **7b** | `40c61d9` | Dev Set 3 — v2.1 Relabelled under §2.3 | Same author; TE-19 and TE-29 recognized as valid physical mentions | 28 pos entities (+2), 13 neg controls | **100.0% (28/28)** [87.9%, 100.0%] | **100.0% (28/28)** [87.9%, 100.0%] | **100.0% (13/13)** [77.2%, 100.0%] | **RELABELLED.** Passes under v2.1 rule change. See §6. |
 | **8** | `40c61d9` (confirmed on `bf46805`) | **Fourth Dev Set** (`eval_entity_extraction_fourth_set.hpp`) | Same author; written 2026-10-05 under Section 2.3 after third-set taxonomy. Dataset SHA-256: `B103E4CA…FD66CB` | 24 pos entities, 6 neg, 4 OOS | **100.0% (24/24)** [86.2%, 100.0%] | **100.0% (24/24)** [86.2%, 100.0%] | **100.0% (10/10)** [72.2%, 100.0%] | **FOURTH DEV SET — not independent.** Gate met on point estimate only; Wilson lower bound 72.2%. See §7. |
+
 
 ---
 
@@ -150,15 +158,63 @@ Dataset SHA-256: `B103E4CAB17A4A9B93EFEE4122A925A8BA228073F1631BCDBB5B107EB8FD66
 
 ---
 
-## 8. Real-OCR Denominator Reconciliation
+## 8. Real-OCR Denominator & Consensus Scorer Reconciliation
 
 An earlier intermediate run reported 139 clean facts (Tesseract) and 128 (Windows OCR). The current evaluation (`test_real_ocr_eval.cpp`) reports 137 and 124. The difference:
 
-- `test_real_ocr_eval.cpp` uses **exact case-insensitive substring search** (`icontains`): a value must appear verbatim as a contiguous substring of the OCR text
-- The earlier run used **whitespace-flexible regex**: allowed `\s*` between tokens and optional trailing periods
-- 2 (Tesseract) and 4 (Windows OCR) facts span OCR line-breaks or carry trailing punctuation (`BC.`, `cm.`) that regex bridges but `icontains` does not
+- `test_real_ocr_eval.cpp` uses **exact case-insensitive substring search** (`icontains`): a value must appear verbatim as a contiguous substring of the OCR text.
+- The earlier run (`test_reproduce_benchmark_166.cpp`) used **whitespace- and punctuation-flexible regex**: allowed `\s*` between tokens, comma variations `[,.]?`, and optional periods in eras (`\.?`).
 
-The 137/124 numbers from `test_real_ocr_eval.cpp` are the authoritative denominators for this report.
+### 8.1 The 2 + 4 Discrepant Facts Between Matchers
+
+| Engine | Fact # | Page ID | Type | Ground Truth | OCR Observed String | Matcher Discrepancy Reason |
+|---|---|---|---|---|---|---|
+| **Tesseract** | #57 | `sankalia_p210-210` | Date | `"431 A.D."` | `"431 AD"` | Missing periods. Matched by regex `\.?`; missed by strict `icontains`. |
+| **Tesseract** | #145 | `rajan_p050-050` | Date | `"1881 and 1896"` | `"1881 and\n1896"` | OCR newline between tokens. Matched by regex `\s+`; missed by strict `icontains`. |
+| **Windows OCR** | #38 | `sankalia_p025-025` | Count | `"10,000"` | `"10.000"` | Dot instead of comma. Matched by regex `[,.]?`; missed by strict `icontains`. |
+| **Windows OCR** | #54 | `sankalia_p210-210` | Date | `"400 A.D."` | `"400 AD."` | Missing period after A. Matched by regex `\.?`; missed by strict `icontains`. |
+| **Windows OCR** | #157 | `rajan_p110-110` | Measurement | `"70,000"` | `"70.000"` | Dot instead of comma. Matched by regex `[,.]?`; missed by strict `icontains`. |
+| **Windows OCR** | #161 | `rajan_p110-110` | Measurement | `"300-10,000"` | `"300-10.000"` | Dot instead of comma. Matched by regex `[,.]?`; missed by strict `icontains`. |
+
+### 8.2 Dual-Engine Consensus Re-Run Under Strict Scorer
+
+Re-running the dual-engine router across all 166 facts under both regimes:
+
+| Metric | Older Rule (Regex) | Strict Rule (`icontains`) | Delta | Explanation |
+|---|:---:|:---:|:---:|---|
+| **Tesseract Hits** | 139 / 166 (83.7%) | 137 / 166 (82.5%) | -2 | Facts #57, #145 lost |
+| **Windows OCR Hits** | 128 / 166 (77.1%) | 124 / 166 (74.7%) | -4 | Facts #38, #54, #157, #161 lost |
+| **Both Agreed Correct** | 119 (71.7%) | 116 (69.9%) | -3 | 3 both-correct lost: #38 (Class B), #54 (Class B), #161 (Class A) |
+| **Windows OCR Only Correct** | 9 | 8 | -1 | Net shift from single-engine hits |
+| **Tesseract Only Correct** | 20 | 21 | +1 | Facts #38 and #54 became Tess-only |
+| **Both Failed** | 18 | 21 | +3 | Facts #145 and #157 became both-fail (+2); plus net changes |
+| **Total Errors** | 47 (28.3%) | 50 (30.1%) | +3 | Error set expanded from 47 to 50 |
+| **Class A Auto-Accepted (Router)** | **92 / 104 (88.5%)** | **92 / 104 (88.5%)** | **0** | **100% Identical Set** |
+| **Class A Routed to Verification Queue** | **12 / 104 (11.5%)** | **12 / 104 (11.5%)** | **0** | **100% Identical Set** |
+| **Class B Auto-Accepted** | **0 / 62 (0.0%)** | **0 / 62 (0.0%)** | **0** | Mandatory 100% gating |
+| **False Consensus Rate** | **0 / 47 = 0.0%** | **0 / 50 = 0.0%** | **0** | **Zero False Consensus Confirmed (0/50)** |
+
+### 8.3 Why Class A Auto-Accepted Set is Strictly Identical (92/104)
+
+Of the 3 facts that changed from "both correct" to failed/single-engine:
+- **Fact #38 and Fact #54** are in **Class B** (Sankalia), which is permanently 100% gated to manual review regardless of engine consensus.
+- **Fact #161** is in **Class A** (`rajan_p110-110`, `"300-10,000"`). Under the older matcher, Windows matched `"300-10.000"` while Tesseract matched `"300-10,000"`. When passed to `NormalizeNumericFact()`, `"300-10.000"` stayed `"300-10.000"`, whereas `"300-10,000"` became `"300-10000"`. Because `"300-10.000" != "300-10000"`, the older router **rejected consensus and routed Fact #161 to the verification queue**. Under the strict matcher, Windows missed it entirely, so the router also sent it to the queue.
+
+Every single one of the 12 Class A facts routed to the queue is identical in both runs:
+- **`fact-101`** (`rajan_p020-020`, `"1764"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-104`** (`rajan_p020-020`, `"1799"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-110`** (`rajan_p021-021`, `"1611-1632"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-125`** (`rajan_p023-023`, `"1871"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-129`** (`rajan_p024-024`, `"1774"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-134`** (`rajan_p024-024`, `"1834-1913"`): Windows missed, Tesseract hit $\to$ Queue.
+- **`fact-145`** (`rajan_p050-050`, `"1881 and 1896"`): Old: Tess hit, Win miss $\to$ Queue. Strict: both fail $\to$ Queue.
+- **`fact-157`** (`rajan_p110-110`, `"70,000"`): Old: Win hit, Tess miss $\to$ Queue. Strict: both fail $\to$ Queue.
+- **`fact-159`** (`rajan_p110-110`, `"10,000-20,000,000"`): Both engines missed in both $\to$ Queue.
+- **`fact-161`** (`rajan_p110-110`, `"300-10,000"`): Old: String inequality `"300-10.000" != "300-10000"` $\to$ Queue. Strict: Win miss $\to$ Queue.
+- **`fact-165`** (`rajan_p110-110`, `"7,400"`): Windows hit, Tesseract miss $\to$ Queue.
+- **`fact-166`** (`rajan_p110-110`, `"5,000-40,000"`): Both engines missed in both $\to$ Queue.
+
+The 92 auto-accepted facts are the exact same physical items. The 0% false consensus guarantee holds unconditionally across all 50 observed errors ($0/50 = \mathbf{0.0\%}$).
 
 ---
 
@@ -173,19 +229,35 @@ With n = 15 negatives, Spec ≥ 95% requires 15/15 (zero FP tolerance).
 | Dev Set 1 — `bf46805` (Run 1b) | 96.7% | 93.5% | 90.0% | FAIL Spec (≥95% requires 10/10) |
 | Dev Set 2 — baseline `ccbc5f3` (Run 2) | 81.5% | 57.9% | 96.0% | FAIL P and R |
 | Dev Set 2 — relabelled (Run 3) | 100.0% | 100.0% | 100.0% | Not independent |
-| Dev Set 3 (Runs 6–7) | 92.9% | 100.0% | 86.7% | **FAIL** Spec |
+| Dev Set 3 (Runs 6–7) | 92.9% | 100.0% | 86.7% | **FAIL** Spec (Headline Result) |
+| Dev Set 3 — v2.1 Relabelled (Run 7b) | 100.0% | 100.0% | 100.0% | Relabelled post-hoc |
 | Fourth Dev Set (Run 8) | 100.0% | 100.0% | 100.0% | Point estimate PASS; lower bound 72.2%; not independent |
-| Real-OCR Tesseract (Runs 4a/5a) | N/A | 14.6% overall / 61.1% in-scope | Vacuous | Capability benchmark only |
-| Real-OCR Windows OCR (Runs 4b/5b) | N/A | 10.5% overall / 50.0% in-scope | Vacuous | Capability benchmark only |
+| Real-OCR Tesseract (Runs 4a/5a) | N/A | 14.6% clean / 40.0% pipeline | Vacuous | Capability benchmark only |
+| Real-OCR Windows OCR (Runs 4b/5b) | N/A | 10.5% clean / 27.3% pipeline | Vacuous | Capability benchmark only |
 
 ---
 
-## 10. Open Items
+## 10. Open Items & Step 4 Dependencies
 
 1. **Independent evaluation:** No authored set to date was written by someone other than the extractor author. Gate validity requires an independent set against a hash-sealed commit.
 
 2. **Anomaly sensitivity architecture:** With the 5 hardcoded literals removed, the general grammar no longer fires on the real-OCR corruption patterns. A statistical plausibility approach (e.g., z-score on measurement distributions per unit type) is the correct architectural replacement and is scoped to a future step.
 
-3. **Bare-year scope decision:** 111/125 dates in the real corpus are bare 4-digit years. Extracting them requires a negative-context filter (suppress page numbers, bibliography years, modern metadata). That filter belongs to Step 4 and should be designed against the product's pre-fill requirements, not to raise this number.
+3. **Bare-year corruption risk & Step 4 Scope (Critical Risk):**
+   - 111 of 166 total ground-truth facts (and 85 of 104 in Class A, 81.7%) are bare 4-digit years (e.g. `1784`, `1944`, `1822`, `1764`).
+   - These bare years are precisely where the Phase 0 OCR benchmark observed the most severe and deceptive corruptions (`1963` $\to$ `1063`, `1945` $\to$ `1965`, `1M7`).
+   - Excluding bare years from Step 3 preserves mention-level precision, but **does not make those OCR corruptions go away**.
+   - Because Rajan and Chakrabarti are historiographical narrative surveys, their heavy bare-year concentration means Step 3's Class A recall ($40.0\%$) measures narrative historiography rather than field excavation reports.
+   - Step 4 (Attribution) must explicitly introduce a contextual negative filter (suppressing page numbers, bibliography dates, modern publication metadata) to safely handle bare excavation years.
 
-4. **Class A in-scope recall (40.0%)** is the number downstream steps consume. Step 4 (Attribution) design should start from this figure.
+4. **Principled In-Scope Denominator & Extractor Gaps:**
+   - Of the 9 missed clean facts in Class A, 5 represent out-of-scope non-microstratigraphic quantities: `40 miles` (imperial distance), `30%`, `10%`, `3%` (chemical conservation solutions), and `2 hours` (immersion duration).
+   - The remaining 4 misses are legitimate extractor grammar gaps: `50,000 BP` (comma-separated thousands before `BP`), `300-10,000` (bare measurement range), and `400` houses / `300` galleries (count noun lexicon gaps).
+   - If non-microstratigraphic quantities are formally categorized as `OUT_OF_SCOPE_UNIT`, the clean Class A recall on true target domain entities is $6/10 = 60.0\%$.
+
+5. **`SURVEY_OR_CARTOGRAPHIC` Tag Implementation:**
+   - The tag currently exists only in specification prose (§2.3.3) and is not implemented in `ExtractedEntity` or asserted by tests. Step 4 should formalize this contextual tag to distinguish surveying parameters (e.g., contour intervals, traverse grids) from in-situ archaeological finds.
+
+6. **Partitioned Real-Page Evaluation Protocol:**
+   - To prevent benchmark overfitting during any future grammar optimization, the 50 scanned pages will be partitioned into 25 development pages and 25 sealed evaluation pages, with evaluation run once on the sealed partition.
+

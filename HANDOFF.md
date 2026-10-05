@@ -50,15 +50,18 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 
 ### Real-OCR capability numbers (the only numbers that matter for Step 4 planning)
 
-| Metric | Tesseract | Windows OCR |
+| Metric | Tesseract 5.4 | Windows OCR |
 |---|:---:|:---:|
-| Overall clean recall | 14.6% (20/137) | 10.5% (13/124) |
-| **In-scope clean recall** | **61.1% (22/36)** | **50.0% (15/30)** |
-| In-scope Class A (Rajan/Chakrabarti) | 40.0% (6/15) | 40.0% (6/15) |
-| In-scope Class B (Sankalia, letterpress) | 76.2% (16/21) | 60.0% (9/15) |
+| Overall clean recall (n=137, 124) | 14.6% (20/137) [9.7%, 21.5%] | 10.5% (13/124) [6.2%, 17.1%] |
+| **In-scope clean recall (n=36, 30)** | **61.1% (22/36)** [44.9%, 75.2%] | **50.0% (15/30)** [33.2%, 66.8%] |
+| In-scope Class A Clean (n=15) | 40.0% (6/15) [19.8%, 64.3%] | 40.0% (6/15) [19.8%, 64.3%] |
+| In-scope Class B Clean (n=21, 15) | 76.2% (16/21) [54.9%, 89.4%] | 60.0% (9/15) [35.7%, 80.2%] |
+| **Class A Pipeline Recall (n=19)** | **31.6% (6/19)** [15.4%, 54.0%] | **31.6% (6/19)** [15.4%, 54.0%] |
+| Class B Pipeline Recall (n=36) | 44.4% (16/36) [29.5%, 60.4%] | 25.0% (9/36) [13.8%, 41.1%] |
+| **End-to-End Pipeline Recall (n=55)** | **40.0% (22/55)** [28.1%, 53.2%] | **27.3% (15/55)** [17.3%, 40.2%] |
 | Plausibility sensitivity | 0% (0/29 corrupted) | 0% (0/42 corrupted) |
 
-**"In-scope"** means: era-marked dates (BC/BCE/AD/CE/BP), measurements, and counts. The 111 bare 4-digit years in the corpus are **out-of-scope by design** — adding them would cause massive false positives on page numbers and bibliography years.
+**"In-scope"** means: era-marked dates (BC/BCE/AD/CE/BP), measurements, and counts (55 total facts). The 111 bare 4-digit years in the corpus are **out-of-scope by design** — adding them would cause massive false positives on page numbers and bibliography years. **Pipeline recall** measures retrieval out of all 55 in-scope facts, including those mangled or dropped by OCR.
 
 **Class A pages** (Rajan, Chakrabarti) are where the application pre-fills form fields. Class B (Sankalia letterpress) is permanently manual-transcription only.
 
@@ -73,10 +76,12 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 | File | Run | P | R | Spec | Gate |
 |---|:---:|:---:|:---:|:---:|:---:|
 | `eval_entity_extraction_dataset.hpp` (Dev Set 1) | Run 1b on `0e54f90` | 96.7% | 93.5% | 90.0% | FAIL Spec (≥95%) |
-| `eval_entity_extraction_held_out.hpp` (Dev Set 2, frozen `ccbc5f3`) | Run 2 on `a6cf766` | 81.5% | 57.9% | 96.0% | FAIL P+R |
-| `eval_entity_extraction_third_set.hpp` (Dev Set 3) | Run 7 on `40c61d9` | 92.9% | 100.0% | 86.7% | FAIL Spec |
+| `eval_entity_extraction_held_out.hpp` (Dev Set 2, frozen `ccbc5f3`) | Run 2 on `a6cf766` | 81.5% | 57.9% | 96.0% | FAIL P+R (Headline) |
+| `eval_entity_extraction_third_set.hpp` (Dev Set 3) | Run 7 on `40c61d9` | 92.9% | 100.0% | 86.7% | FAIL Spec (Headline) |
+| `eval_entity_extraction_third_set.hpp` (Dev Set 3) | Run 7b (v2.1 §2.3) | 100.0% | 100.0% | 100.0% | Relabelled post-hoc |
 | `eval_entity_extraction_fourth_set.hpp` (Dev Set 4) | Run 8 on `40c61d9` | 100.0% | 100.0% | 100.0% | PASS (same author, point estimate) |
-| Real-OCR (`ocr_benchmark_50/`, 166 facts) | Runs 5a/5b on `116995d` | — | 14.6% / 10.5% | Vacuous | Capability benchmark only |
+| Real-OCR (`ocr_benchmark_50/`, 166 facts) | Runs 5a/5b on `116995d` | — | 14.6% clean / 40.0% pipe | Vacuous | Capability benchmark only |
+
 
 > Dev Set 4 passes gates on the point estimate. Wilson lower bound for specificity (10/10 negatives) is **72.2%**. Treat as a fourth development set, not an independent validation.
 
