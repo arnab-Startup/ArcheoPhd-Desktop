@@ -201,6 +201,8 @@ The hardened Phase 2 test suite was compiled and executed (commit `3706bae`):
 | **TEST 6C** | 5 | IPC `query_knowledge_graph` Compound Join & Site Filtering |
 | **Total** | **83** | **15 Sub-Suites, 83 Assertions (100% Pass Rate)** |
 
+*Historical context on interim figures:* The initial pre-hardening baseline contained 25 assertions. During subsequent development passes, 36 was reported after adding early DAG cycle sub-checks before IPC expansion, and 78 was an interim manual tally prior to accounting for all 15 sub-suites. The definitive, verified count from raw runner output (`[PASS]` line count) is exactly 83.
+
 ---
 
 ## 3. Regression Safeguard Audit

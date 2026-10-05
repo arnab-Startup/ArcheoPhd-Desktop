@@ -146,7 +146,7 @@ The runner printed no grand count. Counting from individual [PASS] lines in the 
 | TEST 6C — compound join & site filter | 5 |
 | **Total** | **83** |
 
-**Previous counts:** Report 10 cited 25 (from prior 9-suite run). This session expanded to 15 sub-suites, correct count is 83.
+**Historical context on interim figures:** Report 10 originally cited 25 (from the initial 6-suite baseline). During subsequent development, 36 was reported after adding initial DAG validation sub-checks before IPC expansion, and 78 was an interim manual count before accounting for all 15 sub-suites. The definitive, verified count from raw runner output (`[PASS]` line count) is exactly 83.
 
 ### 2.3 Open Questions Answered
 
