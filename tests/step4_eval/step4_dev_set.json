@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ArchaeoPhD Step 4 Development & Tuning Set",
-  "version": "1.0.0-dev",
-  "description": "Development set containing all 22 forensic audit facts across five outcome categories (UNIT_LOST, DISPLACED, PARTIAL, ABSENT, CORRECT). The candidate generator is freely developed, tuned, and tested against this set.",
+  "version": "2.0.0-dev",
+  "description": "Development set containing all 22 forensic audit facts plus 5 targeted challenge cases (OCR-spaced footnote numerals, excavation vs bibliographic years, clausal multi-candidate ambiguity, table header unit binding). Freely used for generator development and tuning.",
   "cases": [
     {
       "case_id": "DEV-01-FC37",
@@ -12,10 +12,32 @@
       "source_chunk": "Continental Daily Mail, Paris, 14.6.1947 ... reporting brain surgery 10,000 years ago",
       "target_entity": "newspaper_report_date",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "newspaper report date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1947",
-        "unit": "CE",
-        "location_span": [36, 40],
+        "structured_value": {
+          "raw": "1947",
+          "value_type": "SINGLE",
+          "numeric_start": 1947,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1947,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            36,
+            40
+          ],
+          "unit_span": [
+            41,
+            43
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Competing adjacent token 10,000 refers to prehistoric era, not newspaper date 1947."
@@ -28,10 +50,32 @@
       "source_chunk": "reached a basal gravel depth of about 6 m below surface",
       "target_entity": "stratum_depth",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "stratum depth",
+        "property": "STRATUM_DEPTH",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "6",
-        "unit": "m",
-        "location_span": [38, 41],
+        "structured_value": {
+          "raw": "6",
+          "value_type": "SINGLE",
+          "numeric_start": 6,
+          "numeric_end": null,
+          "normalized_unit": "m",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            38,
+            41
+          ],
+          "unit_span": [
+            42,
+            43
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must strictly bind and preserve unit 'm'; bare '6' is forbidden."
@@ -44,10 +88,26 @@
       "source_chunk": "assigned a period of 5 years to the reign of the western satrap",
       "target_entity": "satrap_accession_date",
       "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "entity_slot": {
+        "subject": "satrap accession date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "415",
-        "unit": "AD",
-        "location_span": null,
+        "structured_value": {
+          "raw": "415",
+          "value_type": "SINGLE",
+          "numeric_start": 415,
+          "numeric_end": null,
+          "normalized_unit": "AD",
+          "astronomical_year_start": 415,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": null,
+          "unit_span": null,
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "UNANCHORED_OR_DEGRADED"
       },
       "disambiguation_challenge": "Ground truth 415 AD is absent from window; token '5' is a duration, not calendar date."
@@ -60,10 +120,26 @@
       "source_chunk": "the regnal sequence extended through 5 years until subsequent conquest",
       "target_entity": "dynasty_end_date",
       "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "entity_slot": {
+        "subject": "dynasty end date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "428",
-        "unit": "AD",
-        "location_span": null,
+        "structured_value": {
+          "raw": "428",
+          "value_type": "SINGLE",
+          "numeric_start": 428,
+          "numeric_end": null,
+          "normalized_unit": "AD",
+          "astronomical_year_start": 428,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": null,
+          "unit_span": null,
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "UNANCHORED_OR_DEGRADED"
       },
       "disambiguation_challenge": "Ground truth 428 AD is absent from window; token '5' is duration."
@@ -76,10 +152,32 @@
       "source_chunk": "who came to India in 1538 and was the viceroy of Goa during 1545-48",
       "target_entity": "viceroy_office_tenure",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "viceroy office tenure",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1545-48",
-        "unit": "CE",
-        "location_span": [60, 67],
+        "structured_value": {
+          "raw": "1545-48",
+          "value_type": "RANGE",
+          "numeric_start": 1545,
+          "numeric_end": 48,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1545,
+          "astronomical_year_end": 48
+        },
+        "spans": {
+          "value_span": [
+            60,
+            67
+          ],
+          "unit_span": [
+            68,
+            70
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must bind tenure to 1545-48 and not arrival year 1538."
@@ -92,10 +190,26 @@
       "source_chunk": "Asiatick Researches 7 (1785): 323-32 detailing colonial correspondence",
       "target_entity": "original_epistle_date",
       "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "entity_slot": {
+        "subject": "original epistle date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1712",
-        "unit": "CE",
-        "location_span": null,
+        "structured_value": {
+          "raw": "1712",
+          "value_type": "SINGLE",
+          "numeric_start": 1712,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1712,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": null,
+          "unit_span": null,
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "UNANCHORED_OR_DEGRADED"
       },
       "disambiguation_challenge": "Ground truth 1712 is on next page; 323-32 are page numbers."
@@ -108,10 +222,32 @@
       "source_chunk": "departed Arabia on 13 September 1763 ... work published in Amsterdam in 1780",
       "target_entity": "monograph_publication_year",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "monograph publication year",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1780",
-        "unit": "CE",
-        "location_span": [72, 76],
+        "structured_value": {
+          "raw": "1780",
+          "value_type": "SINGLE",
+          "numeric_start": 1780,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1780,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            72,
+            76
+          ],
+          "unit_span": [
+            77,
+            79
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must separate publication date 1780 from travel departure 1763."
@@ -124,10 +260,32 @@
       "source_chunk": "the coastal outpost of Sutkagendor, 40 miles north-west of Gwadar",
       "target_entity": "geographic_distance",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "geographic distance",
+        "property": "GEOGRAPHIC_DISTANCE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "40",
-        "unit": "miles",
-        "location_span": [36, 44],
+        "structured_value": {
+          "raw": "40",
+          "value_type": "SINGLE",
+          "numeric_start": 40,
+          "numeric_end": null,
+          "normalized_unit": "miles",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            36,
+            44
+          ],
+          "unit_span": [
+            45,
+            50
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must preserve unit 'miles'; bare '40' loses archaeological semantics."
@@ -140,10 +298,32 @@
       "source_chunk": "first published in 1923 but underwent an expanded second edition in 1927",
       "target_entity": "revised_edition_date",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "revised edition date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1927",
-        "unit": "CE",
-        "location_span": [68, 72],
+        "structured_value": {
+          "raw": "1927",
+          "value_type": "SINGLE",
+          "numeric_start": 1927,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1927,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            68,
+            72
+          ],
+          "unit_span": [
+            73,
+            75
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disambiguate second edition 1927 from initial edition 1923."
@@ -156,10 +336,32 @@
       "source_chunk": "created about 3700 BC, while Pope Clement VIII dated the creation to 5199 BC",
       "target_entity": "clement_creation_estimate",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "clement creation estimate",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "5199",
-        "unit": "BC",
-        "location_span": [69, 76],
+        "structured_value": {
+          "raw": "5199",
+          "value_type": "SINGLE",
+          "numeric_start": 5199,
+          "numeric_end": null,
+          "normalized_unit": "BC",
+          "astronomical_year_start": -5198,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            69,
+            76
+          ],
+          "unit_span": [
+            77,
+            79
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Target Clement estimate is 5199 BC; 3700 BC is the Jewish calendar rabbinical date."
@@ -172,10 +374,32 @@
       "source_chunk": "C.J.Thomsen (1788-1865) was invited in 1816 by the Danish Royal Commission",
       "target_entity": "curator_appointment_year",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "curator appointment year",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1816",
-        "unit": "CE",
-        "location_span": [39, 43],
+        "structured_value": {
+          "raw": "1816",
+          "value_type": "SINGLE",
+          "numeric_start": 1816,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1816,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            39,
+            43
+          ],
+          "unit_span": [
+            44,
+            46
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "1788-1865 is scholar biographical lifespan; appointment is 1816."
@@ -188,10 +412,32 @@
       "source_chunk": "opened to the public as early as 1819, his guide book appeared only in 1839",
       "target_entity": "guidebook_publication_year",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "guidebook publication year",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1839",
-        "unit": "CE",
-        "location_span": [71, 75],
+        "structured_value": {
+          "raw": "1839",
+          "value_type": "SINGLE",
+          "numeric_start": 1839,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1839,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            71,
+            75
+          ],
+          "unit_span": [
+            76,
+            78
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disambiguate museum opening 1819 from guidebook release 1839."
@@ -204,10 +450,32 @@
       "source_chunk": "Origin of Species published in 1859 and Herbert Spencer’s (1820-1903) evolutionary approach",
       "target_entity": "spencer_lifespan",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "spencer lifespan",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1820-1903",
-        "unit": "CE",
-        "location_span": [59, 68],
+        "structured_value": {
+          "raw": "1820-1903",
+          "value_type": "RANGE",
+          "numeric_start": 1820,
+          "numeric_end": 1903,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1820,
+          "astronomical_year_end": 1903
+        },
+        "spans": {
+          "value_span": [
+            59,
+            68
+          ],
+          "unit_span": [
+            69,
+            71
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "1859 is Darwin's book; Spencer's lifespan is compound 1820-1903."
@@ -220,10 +488,32 @@
       "source_chunk": "Modern Savages (1865) and the second book The Origin of Civilisation (1870) went",
       "target_entity": "second_treatise_publication",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "second treatise publication",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1870",
-        "unit": "CE",
-        "location_span": [70, 74],
+        "structured_value": {
+          "raw": "1870",
+          "value_type": "SINGLE",
+          "numeric_start": 1870,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1870,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            70,
+            74
+          ],
+          "unit_span": [
+            75,
+            77
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disambiguate first book 1865 from second volume 1870."
@@ -236,10 +526,32 @@
       "source_chunk": "St Francis Xavier (1506-1552), who arrived in Goa in 1542, noted megaliths",
       "target_entity": "xavier_mission_arrival",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "xavier mission arrival",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1542",
-        "unit": "CE",
-        "location_span": [53, 57],
+        "structured_value": {
+          "raw": "1542",
+          "value_type": "SINGLE",
+          "numeric_start": 1542,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1542,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            53,
+            57
+          ],
+          "unit_span": [
+            58,
+            60
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "1506-1552 is lifespan dates; arrival in Goa is 1542."
@@ -252,10 +564,32 @@
       "source_chunk": "settlement of Pulicat in south India from 1631 to 1641 recorded Dutch trade",
       "target_entity": "dutch_trading_tenure",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "dutch trading tenure",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1631-1641",
-        "unit": "CE",
-        "location_span": [42, 54],
+        "structured_value": {
+          "raw": "1631-1641",
+          "value_type": "RANGE",
+          "numeric_start": 1631,
+          "numeric_end": 1641,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1631,
+          "astronomical_year_end": 1641
+        },
+        "spans": {
+          "value_span": [
+            42,
+            54
+          ],
+          "unit_span": [
+            55,
+            57
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must capture full range 1631-1641; single token 1631 is an incomplete partial read."
@@ -268,10 +602,32 @@
       "source_chunk": "Wheeler (1956:81) described the stratigraphic sequence of the citadel",
       "target_entity": "citation_year",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "citation year",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1956",
-        "unit": "CE",
-        "location_span": [9, 13],
+        "structured_value": {
+          "raw": "1956",
+          "value_type": "SINGLE",
+          "numeric_start": 1956,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1956,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            9,
+            13
+          ],
+          "unit_span": [
+            14,
+            16
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Citation contains page suffix ':81'; generator must isolate 1956 without mangling."
@@ -284,10 +640,32 @@
       "source_chunk": "Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology (1952)",
       "target_entity": "kenyon_primer_date",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "kenyon primer date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "1952",
-        "unit": "CE",
-        "location_span": [73, 77],
+        "structured_value": {
+          "raw": "1952",
+          "value_type": "SINGLE",
+          "numeric_start": 1952,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1952,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            73,
+            77
+          ],
+          "unit_span": [
+            78,
+            80
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disambiguate Kenyon's manual 1952 from Wheeler's manual 1954."
@@ -300,10 +678,32 @@
       "source_chunk": "immerse the corroded bronze artifact in a 30% solution of formic acid",
       "target_entity": "conservation_chemical_concentration",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "conservation chemical concentration",
+        "property": "PERCENTAGE_FREQUENCY",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "30",
-        "unit": "%",
-        "location_span": [42, 45],
+        "structured_value": {
+          "raw": "30",
+          "value_type": "SINGLE",
+          "numeric_start": 30,
+          "numeric_end": null,
+          "normalized_unit": "%",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            42,
+            45
+          ],
+          "unit_span": [
+            46,
+            47
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must preserve '%' symbol; stripping '%' corrupts metallurgical recipe."
@@ -316,10 +716,32 @@
       "source_chunk": "Field Conservation 181 ... the metal core remained immersed for 2 hours",
       "target_entity": "soaking_duration",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "soaking duration",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "2",
-        "unit": "hours",
-        "location_span": [64, 71],
+        "structured_value": {
+          "raw": "2",
+          "value_type": "SINGLE",
+          "numeric_start": 2,
+          "numeric_end": null,
+          "normalized_unit": "hours",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            64,
+            71
+          ],
+          "unit_span": [
+            72,
+            77
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Running page header '181' must be rejected; true finding is '2 hours'."
@@ -332,10 +754,32 @@
       "source_chunk": "stabilized with a mixture containing 10% benzotriazole in alcohol",
       "target_entity": "reagent_concentration",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "reagent concentration",
+        "property": "PERCENTAGE_FREQUENCY",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "10",
-        "unit": "%",
-        "location_span": [37, 40],
+        "structured_value": {
+          "raw": "10",
+          "value_type": "SINGLE",
+          "numeric_start": 10,
+          "numeric_end": null,
+          "normalized_unit": "%",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            37,
+            40
+          ],
+          "unit_span": [
+            41,
+            42
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Must preserve unit '%'; bare '10' is unverified."
@@ -348,13 +792,186 @@
       "source_chunk": "10% benzotriazole in distilled water (or 3% in ethanol solution)",
       "target_entity": "alternate_ethanol_concentration",
       "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "alternate ethanol concentration",
+        "property": "PERCENTAGE_FREQUENCY",
+        "resolution": "DIRECT_CLAUSAL"
+      },
       "ground_truth": {
-        "value": "3",
-        "unit": "%",
-        "location_span": [41, 43],
+        "structured_value": {
+          "raw": "3",
+          "value_type": "SINGLE",
+          "numeric_start": 3,
+          "numeric_end": null,
+          "normalized_unit": "%",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            41,
+            43
+          ],
+          "unit_span": [
+            44,
+            45
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disambiguate ethanol concentration 3% from aqueous concentration 10% in same clause."
+    },
+    {
+      "case_id": "DEV-23-OCR-FOOTNOTE-SPACED",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "chakrabarti_p017",
+      "source_chunk": "Trench depth reached 3.5 m. 14 before seasonal water table rose",
+      "target_entity": "trench_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "trench depth",
+        "property": "STRATUM_DEPTH",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "3.5",
+          "value_type": "SINGLE",
+          "numeric_start": 3.5,
+          "numeric_end": null,
+          "normalized_unit": "m",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            21,
+            24
+          ],
+          "unit_span": [
+            25,
+            26
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "OCR produced space between period and footnote numeral ' 14'; must capture 3.5 m and reject footnote numeral 14."
+    },
+    {
+      "case_id": "DEV-24-BIBLIO-VS-EXCAVATION-POS",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "rajan_p020",
+      "source_chunk": "The Kenyon 1957 excavations at Jericho uncovered pre-pottery Neolithic architecture",
+      "target_entity": "excavation_season_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "Kenyon excavations at Jericho",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "1957",
+          "value_type": "SINGLE",
+          "numeric_start": 1957,
+          "numeric_end": null,
+          "normalized_unit": "CE",
+          "astronomical_year_start": 1957,
+          "astronomical_year_end": 1957
+        },
+        "spans": {
+          "value_span": [
+            11,
+            15
+          ],
+          "unit_span": null,
+          "unit_origin": "INFERRED_ERA"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Excavation campaign noun phrase 'Kenyon 1957 excavations'; must extract 1957 as an event date, distinguishing it from an author-year literature citation."
+    },
+    {
+      "case_id": "DEV-25-BIBLIO-VS-EXCAVATION-NEG",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "rajan_p020",
+      "source_chunk": "as demonstrated in Kenyon (1957: 42) regarding pre-pottery Neolithic flint tools",
+      "target_entity": "bibliographic_citation",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "literature citation",
+        "property": "BIBLIOGRAPHIC_CITATION",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "disambiguation_challenge": "Author-date literature citation 'Kenyon (1957: 42)'; must be rejected under Rejection Rule 2."
+    },
+    {
+      "case_id": "DEV-26-CLAUSAL-AMBIGUITY-MULTI",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "AMBIGUOUS_MULTI_CANDIDATE",
+      "source_doc": "chakrabarti_p018",
+      "source_chunk": "Layer 2 contained 45 microliths and 12 potsherds at a depth of 1.4 m below surface",
+      "target_entity": "artifact_count_query",
+      "expected_action": "FLAG_AMBIGUOUS_MULTI_CANDIDATE",
+      "entity_slot": {
+        "subject": "Layer 2 artifacts",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "AMBIGUOUS_MULTI_CANDIDATE"
+      },
+      "disambiguation_challenge": "Two competing artifact counts (45 and 12) inside same clause without specific query target; generator must flag AMBIGUOUS_MULTI_CANDIDATE and route both to verification queue."
+    },
+    {
+      "case_id": "DEV-27-TABLE-HEADER-UNIT",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "rajan_p110",
+      "source_chunk": "Depth (m) | Layer | Charcoal C14 BP \n 1.85      | II    | 2450 +/- 60",
+      "target_entity": "stratum_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "Layer II",
+        "property": "STRATUM_DEPTH",
+        "resolution": "TABLE_ROW"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "1.85",
+          "value_type": "SINGLE",
+          "numeric_start": 1.85,
+          "numeric_end": null,
+          "normalized_unit": "m",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            45,
+            49
+          ],
+          "unit_span": [
+            7,
+            8
+          ],
+          "unit_origin": "TABLE_HEADER"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disjoint span: unit 'm' is located in the table header line, while value '1.85' is in the data row; generator must bind header unit to cell value."
     }
   ]
 }
