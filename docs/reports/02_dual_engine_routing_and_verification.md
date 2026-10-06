@@ -51,7 +51,8 @@ The router executes four disjoint deterministic states:
 ### State 1: AUTO_ACCEPT
 $$\text{Condition: } \text{Class}(p) = \text{Class A} \quad \land \quad v_{\text{win}} = v_{\text{tess}} \quad \land \quad v_{\text{win}} \neq \emptyset$$
 - **Action:** Entity is written directly to the local compressed database (`.zst` / `.qvec`).
-- **Safety Guarantee:** Empirical false consensus rate = $0.0\%$.
+- **Status (ERRATUM 2026-10-06):** **PAUSED.** The previously reported "0.0% empirical false consensus rate" was **unmeasured** in Phase 1 (an artifact of test code assuming dual failures never agreed). Rigorous evaluation under span anchoring (`docs/specs/03_anchored_scorer_rules.md`) shows that while true optical false consensus is 0.00% (0/72 in Class A [Wilson 95% CI: 0.00%, 5.07%]), string-level agreement without span or unit binding admits 25.00% (18/72) agreed errors from dropped units (4.17%) and adjacent-number displacements (16.67%). Automated ingestion is paused; all Class A facts currently route to State 2 (Verification Queue) pending Step 4 attribution and unit validation.
+
 
 ### State 2: ROUTED_TO_VERIFICATION
 $$\text{Condition: } \text{Class}(p) = \text{Class A} \quad \land \quad v_{\text{win}} \neq v_{\text{tess}} \quad \land \quad (v_{\text{win}} \neq \emptyset \lor v_{\text{tess}} \neq \emptyset)$$
@@ -82,6 +83,7 @@ To eliminate the gap between offline analytical benchmarks and shipping applicat
 | **Total** | **104** (100.0%) | **62** (100.0%) | **166** (100.0%) | 100% of facts accounted for |
 
 *\*Note: Under the Phase 1 hardening policy, all 62 Class B facts are diverted to Hard-Gated Manual Transcription, preventing any auto-writes regardless of engine consensus on degraded paper.*
+*\*Erratum Note (2026-10-06): The 92 Class A facts were marked Auto-Accepted under the unanchored string-matching test harness. In production, automated ingestion for Class A is PAUSED; all facts route to the Verification Queue until Step 4 implements location- and unit-bound candidate extraction and attribution.*
 
 ### Verification Arithmetic Check:
 $$\text{Class A Total} = 92 \text{ (Auto-Accepted)} + 9 \text{ (Verification)} + 3 \text{ (Rejected)} = 104 \text{ facts (100.0\%)}$$

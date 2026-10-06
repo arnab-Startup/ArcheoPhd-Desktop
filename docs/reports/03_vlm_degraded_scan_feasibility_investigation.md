@@ -37,6 +37,8 @@ The most critical product insight from this investigation is that **assistive pr
 
 **Standing System Rule:** Anywhere in ArchaeoPhD where machine learning extraction lacks verified dual-engine consensus, the application must **never pre-fill the form**. Fields must remain blank, requiring clean human double-entry.
 
+> **ERRATUM (2026-10-06):** While dual-engine consensus remains an effective optical filter, agreement between Tesseract and Windows OCR was unmeasured in Phase 1 and does not guarantee factual ground-truth correctness without attribution. Empirical evaluation under span anchoring shows that 25.0% of dual-engine agreements in Class A represent errors from dropped units (4.17%) or adjacent numbers (16.67%). Automated form pre-filling is therefore **paused** even under dual consensus, pending Step 4 contextual attribution and unit validation.
+
 ---
 
 ## 3. Empirical Test Results & Raw Evidence

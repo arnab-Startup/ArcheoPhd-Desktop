@@ -184,7 +184,8 @@ The runner printed no grand count. Counting from individual [PASS] lines in the 
 
 Phase 1 establishes the permanent epistemic foundations of ArchaeoPhD:
 1. **Zero Pre-Fill Invariant:** Manual transcription forms for Class B letterpress documents are strictly blank. No LLM or single-engine OCR guess is ever inserted as a form default, preventing cognitive anchoring.
-2. **Dual-Engine Consensus Gate:** Automated fact ingestion requires exact 100% consensus between two orthogonal OCR engines (Windows Native OCR + Tesseract LSTM) on confirmed Class A print.
+2. **Dual-Engine Consensus Gate:** Automated fact ingestion requires exact 100% consensus between two orthogonal OCR engines (Windows Native OCR + Tesseract LSTM) on confirmed Class A print.  
+   *(ERRATUM 2026-10-06):* Signoff Gate 2 relied on an unmeasured assumption of 0% false consensus. The first empirical measurement under localized clausal evaluation confirms that **true optical false consensus is 0.00% (0/72 in Class A [Wilson 95% CI: 0.00%, 5.07%])**. However, dual OCR consensus permits unit-dropping (4.17% in Class A) and neighbor token displacement (16.67%). Automated ingestion in Class A is **paused**; all facts route to the human verification queue pending Step 4 attribution and unit validation.
 3. **Anti-Anchoring Resolution Lockout:** Human researchers cannot resolve verification queue items until the physical optical image crop is verified on disk and rendered in the DOM.
 4. **Truth-Plane Isolation:** The rough text search index (`UNVERIFIED_ROUGH_SCAN`) allows exploratory passage discovery across unverified monographs without polluting the authoritative Knowledge Graph.
 5. **Retroactive Purge:** Any mid-session reclassification of a document from Class A to Class B immediately purges all automated consensus claims while preserving human manual transcriptions.
