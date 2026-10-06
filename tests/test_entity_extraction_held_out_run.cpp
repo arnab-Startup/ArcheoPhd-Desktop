@@ -185,13 +185,13 @@ int main() {
 
     // -------------------------------------------------------------------------
     // Hard gate evaluation
-    // Gate criteria (pre-registered 2026-10-05):
-    //   Precision   >= 92.0%  (recall weighted lower; every FP costs analyst time)
-    //   Recall      >= 80.0%
+    // Gate criteria (Spec v2.0 Section 6):
+    //   Precision   >= 90.0%
+    //   Recall      >= 90.0%
     //   Specificity >= 95.0%
     // -------------------------------------------------------------------------
-    constexpr double GATE_PRECISION    = 92.0;
-    constexpr double GATE_RECALL       = 80.0;
+    constexpr double GATE_PRECISION    = 90.0;
+    constexpr double GATE_RECALL       = 90.0;
     constexpr double GATE_SPECIFICITY  = 95.0;
 
     bool gate_p   = (precision   >= GATE_PRECISION);

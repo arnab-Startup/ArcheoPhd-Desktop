@@ -1,0 +1,200 @@
+{
+  "37": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Continental Daily Mail, Paris, 14.6.[1947]",
+    "highlight_win": "66. [1947] ••ney• brain surgery 10.000 years ago",
+    "picked": "10,000",
+    "analysis": "Scorer picked adjacent 10,000 because anchor center fell near \"brain surgery\", while GT 1947 appears verbatim in both windows."
+  },
+  "51": {
+    "cat": "unit or symbol dropped",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "depth of about [6 m]",
+    "highlight_win": "depth of ab)ut [6 m] below",
+    "picked": "6",
+    "analysis": "Both engines transcribed \"6 m\" cleanly. Scorer stripped unit \"m\" and extracted bare number \"6\". Not a transcription error."
+  },
+  "55": {
+    "cat": "GT absent from window",
+    "gt_present_tess": false,
+    "gt_present_win": false,
+    "highlight_tess": "ABSENT (window contains \"assigned a period of [5] yeans\")",
+    "highlight_win": "ABSENT (window contains \"assigned a peruxl oi [5] Fars\")",
+    "picked": "5",
+    "analysis": "Anchor context words located narrative discussion of a 5-year reign length. The absolute date 415 A.D. is absent from this paragraph."
+  },
+  "56": {
+    "cat": "GT absent from window",
+    "gt_present_tess": false,
+    "gt_present_win": false,
+    "highlight_tess": "ABSENT (window contains \"assigned a period of [5] yeans\")",
+    "highlight_win": "ABSENT (window contains \"assigned a peruxl oi [5] Fars\")",
+    "picked": "5",
+    "analysis": "Anchor context words located same narrative paragraph as #55. GT 428 A.D. is absent from the window."
+  },
+  "65": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "who came to India in 1538 and was the viceroy of Goa during [1545-48]",
+    "highlight_win": "who to India in 1538 and was the viceroy ofGoa during [1545-48]",
+    "picked": "1538",
+    "analysis": "Both engines transcribed \"1545-48\" verbatim. Scorer picked arrival date 1538 because anchor center was placed closer to arrival clause."
+  },
+  "73": {
+    "cat": "GT absent from window",
+    "gt_present_tess": false,
+    "gt_present_win": false,
+    "highlight_tess": "ABSENT (window contains journal pages \"7 (1785): [323-32]\")",
+    "highlight_win": "ABSENT (window contains journal pages \"7 (1785): [323-32]\")",
+    "picked": "323-32",
+    "analysis": "Anchor context matched journal citation heading. The letter date 1712 appears further down the page and is absent from this window."
+  },
+  "84": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Arabia on 13 September 1763... published in Amsterdam in [1780]",
+    "highlight_win": "Arabia on 13 September 1763... published in Amsterdaxn in [1780]",
+    "picked": "1763",
+    "analysis": "Both engines transcribed \"in 1780\" verbatim. Scorer picked arrival date 1763 because anchor keywords centered near Bombay arrival."
+  },
+  "93": {
+    "cat": "unit or symbol dropped",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Sutkagendor, [40 miles] north- west of Gwadar",
+    "highlight_win": "Sutkagendor, [40 miles] north- west ofGwadar",
+    "picked": "40",
+    "analysis": "Both engines transcribed \"40 miles\" verbatim. Scorer candidate normalizer dropped the unit \"miles\" and extracted bare \"40\"."
+  },
+  "95": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "first published in 1923 but underwent a second edition in [1927]",
+    "highlight_win": "first published in 1923 but underwent a second edition in [1927]",
+    "picked": "1923",
+    "analysis": "Both engines transcribed \"second edition in 1927\" verbatim. Scorer picked 1923 because anchor centered on book title."
+  },
+  "97": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "created about 3700 BC, while Pope Clement VIII dated the creation to [5199 BC]",
+    "highlight_win": "created about 3700 BC, while Pope Clement VIII dated the creation to [5199 BC]",
+    "picked": "3700 BC",
+    "analysis": "Both engines transcribed \"5199 BC\" verbatim. Scorer picked adjacent Rabbinical estimate 3700 BC due to window center position."
+  },
+  "117": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "C.J.Thomsen (1788-1865) was invited in [1816] by the Danish Royal Commission",
+    "highlight_win": "C.J.Thomsen (1788-1865) was invited in [1816] by the Danish Royal Commission",
+    "picked": "1788-1865",
+    "analysis": "Both engines transcribed \"in 1816\" verbatim. Scorer picked biographical lifespan 1788-1865 immediately adjacent to scholar name."
+  },
+  "119": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "public as early as 1819, his guide book... appeared only in [1839]",
+    "highlight_win": "public as early as 1819, his guide book... appeared only in [1839]",
+    "picked": "1819",
+    "analysis": "Both engines transcribed \"appeared only in 1839\" verbatim. Scorer picked opening year 1819 closer to start of clause."
+  },
+  "124": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Origin of Species published in 1859 and Herbert Spencer’s ([1820-1903]) evolutionary approach",
+    "highlight_win": "Origin of Species published in 1859 and Herbert Spencer's ( [1820-1903]) evolutionary approach",
+    "picked": "1859",
+    "analysis": "Both engines transcribed \"(1820-1903)\" verbatim. Scorer picked Darwin publication year 1859."
+  },
+  "135": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Modern Savages (1865) and the second book The Origin of Civilisation... ([1870]) went",
+    "highlight_win": "Modern Savages (1865) and the second book The Origin of Civilisation... ([1870]) went",
+    "picked": "1865",
+    "analysis": "Both engines transcribed \"(1870)\" verbatim. Scorer picked first book year 1865."
+  },
+  "139": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "St Francis Xavier (1506-1552), who arrived in Goa in [1542], In a letter",
+    "highlight_win": "St Francis Xavier (1506-1552), who arrived in Goa in [1542]. In a letter",
+    "picked": "1506-1552",
+    "analysis": "Both engines transcribed \"arrived in Goa in 1542\" verbatim. Scorer picked lifespan dates 1506-1552 adjacent to Xavier name."
+  },
+  "143": {
+    "cat": "partial read",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "settlement of Pulicat in south India [from 1631 to 1641] translated",
+    "highlight_win": "settlement of Pulicat in south India [from 1631 to 1641] translated",
+    "picked": "1631",
+    "analysis": "Both engines transcribed \"from 1631 to 1641\" verbatim. Single-number candidate extractor captured only initial date 1631."
+  },
+  "144": {
+    "cat": "partial read",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Sir Mortimer Wheeler ([1956:81]) said “The experienced excavator",
+    "highlight_win": "Sir Mortimer Wheeler ([1956:81]) said \"The experienced excavator",
+    "picked": "1956",
+    "analysis": "Both engines transcribed citation \"(1956:81)\" verbatim. Candidate extractor stopped at colon delimiter, extracting only year 1956."
+  },
+  "148": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology ([1952])",
+    "highlight_win": "Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology ([1952])",
+    "picked": "1954",
+    "analysis": "Both engines transcribed \"(1952)\" verbatim. Scorer picked Wheeler publication year 1954."
+  },
+  "151": {
+    "cat": "unit or symbol dropped",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "immerse the object in a [30%] solution of formic agtd",
+    "highlight_win": "immerse the object in a [30%] solution of formic acid",
+    "picked": "30",
+    "analysis": "Both engines transcribed \"30%\" cleanly. Candidate extractor stripped \"%\" symbol, yielding \"30\". Not an optical misread."
+  },
+  "152": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "Field Conservation 181... immersed for [2 hours] in a mix",
+    "highlight_win": "Field Conservation 181... immersed for [2 hours] in a mix",
+    "picked": "181",
+    "analysis": "Both engines transcribed \"2 hours\" verbatim. Scorer picked running page header number 181."
+  },
+  "153": {
+    "cat": "unit or symbol dropped",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "mix containing [10%] benzotriazole in distilled water",
+    "highlight_win": "mix containing [10%] benzotriazole in distilled water",
+    "picked": "10",
+    "analysis": "Both engines transcribed \"10%\" verbatim. Candidate extractor stripped \"%\" symbol, yielding \"10\"."
+  },
+  "154": {
+    "cat": "wrong token picked by scorer",
+    "gt_present_tess": true,
+    "gt_present_win": true,
+    "highlight_tess": "10% benzotriazole in distilled water (or [3%] in alcohol)",
+    "highlight_win": "10% benzotriazole in distilled water (or [3%] in alcohol)",
+    "picked": "10",
+    "analysis": "Both engines transcribed \"3%\" verbatim in same sentence. Scorer picked earlier concentration 10%."
+  }
+}
