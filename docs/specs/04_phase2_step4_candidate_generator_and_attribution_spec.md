@@ -180,20 +180,28 @@ Degraded letterpress scans (Class B, e.g. Sankalia) remain **$100\%$ routed to m
 
 ## 6. Monograph Page Partition Protocol
 
-All 50 pages from Phase 0 were previously inspected across Phase 0, Step 1, Step 2, and Step 3. Partitions are defined mechanically from the ground-truth fact locations in `evaluated_166.json`:
+### 6.1 Partition Rationale & Evolution from Initial 25/25 Draft
+Early exploratory drafts proposed an arbitrary 25 development / 25 sealed page split without mapping the exact page locations of the 22 forensic audit facts. Direct mechanical extraction from `evaluated_166.json` revealed that the 22 audit facts resided across 15 distinct monograph pages (4 Chakrabarti, 8 Rajan, 3 Sankalia). To prevent test contamination and circular tuning, all pages containing audit facts were moved out of the held-out partition and assigned strictly to the Development set, alongside 1 challenge case table page (`rajan_p110-110`).
 
-- **Step 4 Development Pages (Tuning Allowed, $N = 16$):**
-  - All 15 monograph pages containing the 22 forensic audit facts, plus 1 challenge case table page:
-    - **Chakrabarti (4 pages):** `chakrabarti_p015-015` (#65), `chakrabarti_p018-018` (#73), `chakrabarti_p021-021` (#84), `chakrabarti_p215-215` (#93, #95)
-    - **Rajan (9 pages):** `rajan_p019-019` (#97), `rajan_p022-022` (#117, #119), `rajan_p023-023` (#124), `rajan_p024-024` (#135), `rajan_p025-025` (#139, #143), `rajan_p050-050` (#144), `rajan_p075-075` (#148), `rajan_p100-100` (#151, #152, #153, #154), `rajan_p110-110` (DEV-27 table cell)
-    - **Sankalia (3 pages):** `sankalia_p025-025` (#37), `sankalia_p150-150` (#51), `sankalia_p210-210` (#55, #56)
-  - All generator development, regular expressions, and clausal heuristics are restricted strictly to these 16 pages and the dev set.
+This establishes the authoritative, mechanically verified partition:
+- **Total Monograph Benchmark Pages:** 50 pages across 3 monographs.
+- **Development Pages (Tuning Allowed, $N = 16$):**
+  - **Chakrabarti (4 pages):** `chakrabarti_p015-015` (#65), `chakrabarti_p018-018` (#73), `chakrabarti_p021-021` (#84), `chakrabarti_p215-215` (#93, #95)
+  - **Rajan (9 pages):** `rajan_p019-019` (#97), `rajan_p022-022` (#117, #119), `rajan_p023-023` (#124), `rajan_p024-024` (#135), `rajan_p025-025` (#139, #143), `rajan_p050-050` (#144), `rajan_p075-075` (#148), `rajan_p100-100` (#151, #152, #153, #154), `rajan_p110-110` (DEV-27 table cell)
+  - **Sankalia (3 pages):** `sankalia_p025-025` (#37), `sankalia_p150-150` (#51), `sankalia_p210-210` (#55, #56)
+  - *Usage:* All candidate generator regex patterns, clausal parsers, and disambiguation heuristics are developed and tuned strictly against these 16 pages and the dev set.
 - **Held-Out Pages (Tuning Locked, $N = 34$):**
-  - Remaining 34 monograph pages from the 50-page benchmark:
-    - **Chakrabarti (6 pages):** `chakrabarti_p016-016`, `chakrabarti_p017-017`, `chakrabarti_p019-019`, `chakrabarti_p020-020`, `chakrabarti_p065-065`, `chakrabarti_p130-130`
-    - **Rajan (6 pages):** `rajan_p016-016`, `rajan_p017-017`, `rajan_p018-018`, `rajan_p020-020`, `rajan_p021-021`, `rajan_p140-140`
-    - **Sankalia (22 pages):** `sankalia_p052-052` through `sankalia_p071-071` (20 pages), `sankalia_p104-104`, `sankalia_p280-280`
-  - Strictly held out from Step 4 development tuning.
-- **Partition Disjointness & Verification:**
-  - $\text{Dev Pages} \cap \text{Held-Out Pages} = \emptyset$ (Intersection size: **0**, mechanically verified).
-  - All Class B Sankalia pages containing audit facts (#37, #51, #55, #56) reside exclusively in the Development partition, eliminating contamination from the held-out partition. Class B scans remain permanently hard-gated to manual double-entry transcription in production.
+  - **Chakrabarti (6 pages):** `chakrabarti_p016-016`, `chakrabarti_p017-017`, `chakrabarti_p019-019`, `chakrabarti_p020-020`, `chakrabarti_p065-065`, `chakrabarti_p130-130`
+  - **Rajan (6 pages):** `rajan_p016-016`, `rajan_p017-017`, `rajan_p018-018`, `rajan_p020-020`, `rajan_p021-021`, `rajan_p140-140`
+  - **Sankalia (22 pages):** `sankalia_p052-052` through `sankalia_p071-071` (20 consecutive pages), `sankalia_p104-104`, `sankalia_p280-280`
+
+### 6.2 Partition Disjointness, Inspection Caveat & Class A Thinness
+- **Mechanical Disjointness Proof:**
+  $$\text{Dev Pages} \cap \text{Held-Out Pages} = \emptyset \quad (\text{Intersection size: } 0)$$
+  All Sankalia pages containing audit facts (#37, #51, #55, #56) reside exclusively in the Development partition.
+- **Inspection Caveat:** Every page in the 50-page set was previously inspected during Phase 0, Step 1, Step 2, and Step 3. Therefore, "held-out" means strictly **"held out from Step 4 development tuning"**, not uninspected source text.
+- **Class A Pool Limitation:** Because Class B degraded letterpress scans (Sankalia) are permanently hard-gated to manual double-entry transcription in production, the 22 held-out Sankalia pages carry zero production automated ingestion claim. The genuine held-out evaluation pool for automated Class A extraction is restricted to **12 pages** (6 Chakrabarti + 6 Rajan). Any automated performance claims evaluated against this 12-page held-out sample will be statistically thin ($N \le 12$ pages).
+- **Cryptographic Seal:**
+  The 60-case sealed evaluation benchmark (`step4_sealed_benchmark.json`) embeds this partition metadata and was cryptographically frozen at commit `e7794fb`:
+  - **SHA-256 Hash:** `4B9AD58F8AEDF40237F9CE104978472175188086168D765B6509A821420B8F3C`
+  - Committed prior to the creation of any Step 4 candidate generator implementation code.
