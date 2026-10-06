@@ -40,7 +40,7 @@
         },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
-      "disambiguation_challenge": "Competing adjacent token 10,000 refers to prehistoric era, not newspaper date 1947."
+      "disambiguation_challenge": "Generator must bind 1947 to newspaper report date and suppress prehistoric count 10,000."
     },
     {
       "case_id": "DEV-02-FC51",
@@ -94,23 +94,11 @@
         "resolution": "DIRECT_CLAUSAL"
       },
       "ground_truth": {
-        "structured_value": {
-          "raw": "415",
-          "value_type": "SINGLE",
-          "numeric_start": 415,
-          "numeric_end": null,
-          "normalized_unit": "AD",
-          "astronomical_year_start": 415,
-          "astronomical_year_end": null
-        },
-        "spans": {
-          "value_span": null,
-          "unit_span": null,
-          "unit_origin": "ADJACENT_TEXT"
-        },
-        "status": "UNANCHORED_OR_DEGRADED"
+        "structured_value": null,
+        "spans": null,
+        "status": "ABSENT_OR_UNANCHORED"
       },
-      "disambiguation_challenge": "Ground truth 415 AD is absent from window; token '5' is a duration, not calendar date."
+      "disambiguation_challenge": "GT 415 A.D. absent from paragraph; regnal duration 5 is not a calendar date. Generator must route to queue as unanchored."
     },
     {
       "case_id": "DEV-04-FC56",
@@ -126,23 +114,11 @@
         "resolution": "DIRECT_CLAUSAL"
       },
       "ground_truth": {
-        "structured_value": {
-          "raw": "428",
-          "value_type": "SINGLE",
-          "numeric_start": 428,
-          "numeric_end": null,
-          "normalized_unit": "AD",
-          "astronomical_year_start": 428,
-          "astronomical_year_end": null
-        },
-        "spans": {
-          "value_span": null,
-          "unit_span": null,
-          "unit_origin": "ADJACENT_TEXT"
-        },
-        "status": "UNANCHORED_OR_DEGRADED"
+        "structured_value": null,
+        "spans": null,
+        "status": "ABSENT_OR_UNANCHORED"
       },
-      "disambiguation_challenge": "Ground truth 428 AD is absent from window; token '5' is duration."
+      "disambiguation_challenge": "GT 428 A.D. absent from paragraph; regnal duration 5 is not a calendar date. Generator must route to queue as unanchored."
     },
     {
       "case_id": "DEV-05-FC65",
@@ -196,23 +172,11 @@
         "resolution": "DIRECT_CLAUSAL"
       },
       "ground_truth": {
-        "structured_value": {
-          "raw": "1712",
-          "value_type": "SINGLE",
-          "numeric_start": 1712,
-          "numeric_end": null,
-          "normalized_unit": "CE",
-          "astronomical_year_start": 1712,
-          "astronomical_year_end": null
-        },
-        "spans": {
-          "value_span": null,
-          "unit_span": null,
-          "unit_origin": "ADJACENT_TEXT"
-        },
-        "status": "UNANCHORED_OR_DEGRADED"
+        "structured_value": null,
+        "spans": null,
+        "status": "ABSENT_OR_UNANCHORED"
       },
-      "disambiguation_challenge": "Ground truth 1712 is on next page; 323-32 are page numbers."
+      "disambiguation_challenge": "GT 1712 absent from window; journal page range 323-32 rejected under Rule 1. Generator must route to queue as unanchored."
     },
     {
       "case_id": "DEV-07-FC84",
@@ -250,7 +214,7 @@
         },
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
-      "disambiguation_challenge": "Must separate publication date 1780 from travel departure 1763."
+      "disambiguation_challenge": "Generator must bind publication year 1780 in Amsterdam clause and separate travel departure 1763."
     },
     {
       "case_id": "DEV-08-FC93",
@@ -613,45 +577,32 @@
         "status": "REJECTED_NON_FINDING"
       },
       "rejection_rule": "RULE_2_BIBLIOGRAPHY_CITATION",
-      "rejection_reason": "Author-date-page citation 'Wheeler (1956:81)' inside quotation context is a bibliographical reference, not an archaeological stratum or artifact finding."
+      "rejection_reason": "Author-date-page citation 'Wheeler (1956:81)' inside quotation context is a bibliographical reference, not an archaeological stratum or artifact finding.",
+      "disambiguation_challenge": "Generator must suppress author-date-page citation \"(1956:81)\" under Rule 2 and emit no candidate (status: REJECTED_NON_FINDING)."
     },
     {
       "case_id": "DEV-18-FC148",
       "category": "FINDING_POSITIVE",
-      "outcome_class": "DISPLACED",
+      "outcome_class": "AMBIGUOUS_MULTI_CANDIDATE",
       "source_doc": "rajan_p075-075",
       "source_chunk": "Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology (1952)",
       "target_entity": "kenyon_primer_date",
-      "expected_action": "EXTRACT_ATTRIBUTED",
+      "expected_action": "FLAG_AMBIGUOUS_MULTI_CANDIDATE",
       "entity_slot": {
         "subject": "kenyon primer date",
         "property": "HISTORICAL_DATE",
         "resolution": "DIRECT_CLAUSAL"
       },
       "ground_truth": {
-        "structured_value": {
-          "raw": "1952",
-          "value_type": "SINGLE",
-          "numeric_start": 1952,
-          "numeric_end": null,
-          "normalized_unit": "CE",
-          "astronomical_year_start": 1952,
-          "astronomical_year_end": null
-        },
-        "spans": {
-          "value_span": [
-            73,
-            77
-          ],
-          "unit_span": [
-            78,
-            80
-          ],
-          "unit_origin": "ADJACENT_TEXT"
-        },
-        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+        "structured_value": null,
+        "spans": null,
+        "status": "AMBIGUOUS_MULTI_CANDIDATE",
+        "candidates": [
+          "1952",
+          "1954"
+        ]
       },
-      "disambiguation_challenge": "Disambiguate Kenyon's manual 1952 from Wheeler's manual 1954."
+      "disambiguation_challenge": "Competing publication dates 1954 and 1952 in same sentence; generator must emit AMBIGUOUS and bundle candidates [1952, 1954] for human review."
     },
     {
       "case_id": "DEV-19-FC151",
@@ -770,40 +721,26 @@
     {
       "case_id": "DEV-22-FC154",
       "category": "FINDING_POSITIVE",
-      "outcome_class": "DISPLACED",
+      "outcome_class": "AMBIGUOUS_MULTI_CANDIDATE",
       "source_doc": "rajan_p100-100",
       "source_chunk": "10% benzotriazole in distilled water (or 3% in ethanol solution)",
       "target_entity": "alternate_ethanol_concentration",
-      "expected_action": "EXTRACT_ATTRIBUTED",
+      "expected_action": "FLAG_AMBIGUOUS_MULTI_CANDIDATE",
       "entity_slot": {
         "subject": "alternate ethanol concentration",
         "property": "PERCENTAGE_FREQUENCY",
         "resolution": "DIRECT_CLAUSAL"
       },
       "ground_truth": {
-        "structured_value": {
-          "raw": "3",
-          "value_type": "SINGLE",
-          "numeric_start": 3,
-          "numeric_end": null,
-          "normalized_unit": "%",
-          "astronomical_year_start": null,
-          "astronomical_year_end": null
-        },
-        "spans": {
-          "value_span": [
-            41,
-            43
-          ],
-          "unit_span": [
-            44,
-            45
-          ],
-          "unit_origin": "ADJACENT_TEXT"
-        },
-        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+        "structured_value": null,
+        "spans": null,
+        "status": "AMBIGUOUS_MULTI_CANDIDATE",
+        "candidates": [
+          "10%",
+          "3%"
+        ]
       },
-      "disambiguation_challenge": "Disambiguate ethanol concentration 3% from aqueous concentration 10% in same clause."
+      "disambiguation_challenge": "Competing concentrations 10% and 3% in same sentence; generator must emit AMBIGUOUS and bundle candidates [10%, 3%] for human review."
     },
     {
       "case_id": "DEV-23-OCR-FOOTNOTE-SPACED",
@@ -955,6 +892,319 @@
         "status": "CANDIDATE_ATTRIBUTED_FINDING"
       },
       "disambiguation_challenge": "Disjoint span: unit 'm' is located in the table header line, while value '1.85' is in the data row; generator must bind header unit to cell value."
+    },
+    {
+      "case_id": "DEV-28-RULE1-PAGE-FOLIO",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "rajan_p100-100",
+      "source_chunk": "Field Conservation 181 \n The copper stabilization was begun",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "running header folio",
+        "property": "PAGE_NUMBER",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_1_PAGE_NUMBER",
+      "disambiguation_challenge": "Running header folio 181 must be rejected under Rule 1."
+    },
+    {
+      "case_id": "DEV-29-RULE1-PAGE-XREF",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "rajan_p025-025",
+      "source_chunk": "as discussed in detail on page 42 of the preliminary site monograph",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "page cross-reference",
+        "property": "PAGE_NUMBER",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_1_PAGE_NUMBER",
+      "disambiguation_challenge": "Page cross-reference 'page 42' must be rejected under Rule 1."
+    },
+    {
+      "case_id": "DEV-30-RULE3-CONTOUR",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "chakrabarti_p015-015",
+      "source_chunk": "The site topography was mapped at a contour interval of 5 m across the river terrace",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "contour interval",
+        "property": "CONTOUR_INTERVAL",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_3_CONTOUR_INTERVAL",
+      "disambiguation_challenge": "Contour interval '5 m' is cartographic metadata, not finding depth; reject under Rule 3."
+    },
+    {
+      "case_id": "DEV-31-RULE3-GRID",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "rajan_p019-019",
+      "source_chunk": "Excavation units were laid out in 10 x 10 m grid squares separated by one-meter balks",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "grid quadrant dimensions",
+        "property": "GRID_DIMENSIONS",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_3_CONTOUR_INTERVAL",
+      "disambiguation_challenge": "Balk grid dimensions '10 x 10 m' is excavation geometry, not architecture; reject under Rule 3."
+    },
+    {
+      "case_id": "DEV-32-RULE4-CATALOG-SPECIMEN",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "sankalia_p025-025",
+      "source_chunk": "Specimen No. 104 was recovered from the upper gravel matrix",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "specimen tag",
+        "property": "CATALOG_ACCESSION",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_4_CATALOG_ACCESSION",
+      "disambiguation_challenge": "Specimen tag 'Specimen No. 104' is accession number, not artifact count; reject under Rule 4."
+    },
+    {
+      "case_id": "DEV-33-RULE4-PLATE-FIGURE",
+      "category": "NON_FINDING_NEGATIVE",
+      "outcome_class": "REJECTED_NON_FINDING",
+      "source_doc": "chakrabarti_p021-021",
+      "source_chunk": "Plate 24, Fig. 5 illustrates the burnished carinated bowl rim profile",
+      "target_entity": "rejected_non_finding",
+      "expected_action": "REJECT_NON_FINDING",
+      "entity_slot": {
+        "subject": "plate figure pointer",
+        "property": "CATALOG_ACCESSION",
+        "resolution": "UNRESOLVED_SUBJECT"
+      },
+      "ground_truth": {
+        "structured_value": null,
+        "spans": null,
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_rule": "RULE_4_CATALOG_ACCESSION",
+      "disambiguation_challenge": "Plate and figure indices 'Plate 24, Fig. 5' must be rejected under Rule 4."
+    },
+    {
+      "case_id": "DEV-34-RULE5-FOOTNOTE-FUSED",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "sankalia_p150-150",
+      "source_chunk": "The basal gravel depth reached 3.5 m.14 before the seasonal monsoon halted excavation",
+      "target_entity": "stratum_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "stratum depth",
+        "property": "STRATUM_DEPTH",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "3.5",
+          "value_type": "SINGLE",
+          "numeric_start": 3.5,
+          "numeric_end": null,
+          "normalized_unit": "m",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            31,
+            34
+          ],
+          "unit_span": [
+            35,
+            36
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Footnote numeral '14' fused to 'm.' must be rejected under Rule 5, preserving clean depth 3.5 m."
+    },
+    {
+      "case_id": "DEV-35-CLEAN-DEPTH",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "sankalia_p150-150",
+      "source_chunk": "Stratum III reached a maximum depth of 1.25 m below datum",
+      "target_entity": "stratum_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "stratum depth",
+        "property": "STRATUM_DEPTH",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "1.25",
+          "value_type": "SINGLE",
+          "numeric_start": 1.25,
+          "numeric_end": null,
+          "normalized_unit": "m",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            39,
+            43
+          ],
+          "unit_span": [
+            44,
+            45
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Clean control: unambiguous stratum depth 1.25 m."
+    },
+    {
+      "case_id": "DEV-36-CLEAN-ERA-DATE",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "rajan_p019-019",
+      "source_chunk": "The catastrophic destruction of the citadel dates securely to 1177 BCE",
+      "target_entity": "citadel_destruction_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "citadel destruction date",
+        "property": "HISTORICAL_DATE",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "1177",
+          "value_type": "SINGLE",
+          "numeric_start": 1177,
+          "numeric_end": null,
+          "normalized_unit": "BCE",
+          "astronomical_year_start": -1176,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            62,
+            66
+          ],
+          "unit_span": [
+            67,
+            70
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Clean control: unambiguous historical destruction date 1177 BCE."
+    },
+    {
+      "case_id": "DEV-37-CLEAN-COUNT",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "chakrabarti_p215-215",
+      "source_chunk": "Trench IV yielded 694 bifaces from the lower paleolithic assemblage",
+      "target_entity": "biface_tally",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "biface tally",
+        "property": "ARTIFACT_COUNT",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "694",
+          "value_type": "SINGLE",
+          "numeric_start": 694,
+          "numeric_end": null,
+          "normalized_unit": "",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            18,
+            21
+          ],
+          "unit_span": null,
+          "unit_origin": "NONE"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Clean control: bare artifact count 694 bound to bifaces."
+    },
+    {
+      "case_id": "DEV-38-CLEAN-THICKNESS",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "CORRECT",
+      "source_doc": "rajan_p023-023",
+      "source_chunk": "Clearing revealed a compact plaster floor of 12 cm thickness",
+      "target_entity": "floor_thickness",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "entity_slot": {
+        "subject": "floor thickness",
+        "property": "STRATUM_THICKNESS",
+        "resolution": "DIRECT_CLAUSAL"
+      },
+      "ground_truth": {
+        "structured_value": {
+          "raw": "12",
+          "value_type": "SINGLE",
+          "numeric_start": 12,
+          "numeric_end": null,
+          "normalized_unit": "cm",
+          "astronomical_year_start": null,
+          "astronomical_year_end": null
+        },
+        "spans": {
+          "value_span": [
+            45,
+            47
+          ],
+          "unit_span": [
+            48,
+            50
+          ],
+          "unit_origin": "ADJACENT_TEXT"
+        },
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Clean control: unambiguous stratum thickness 12 cm."
     }
   ]
 }
