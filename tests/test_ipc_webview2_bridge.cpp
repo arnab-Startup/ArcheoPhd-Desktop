@@ -1115,13 +1115,97 @@ int main() {
         std::cout << "  ✓ Classification promotion verified; reflag to Class B retroactively purges automated claims while preserving manual transcription.\n\n";
     }
 
+    // TEST 25: Adversarial Endpoint & Safeguard Hardening: verify_claim_grounding & put_claim Safeguards
+    {
+        std::cout << "[TEST 25] Adversarial IPC & Storage Safeguards: verify_claim_grounding & put_claim...\n";
+
+        // 1. Non-existent claim_id in verify_claim_grounding: must fail and NOT insert any claim
+        size_t claimsBefore = storage.get_claims().size();
+        auto ghostRes = bridge.call("verify_claim_grounding", {
+            {"claim_id", "ghost_adversarial_claim_999"},
+            {"corrected_text", "Spoofed malicious claim text"},
+            {"action", "correct"},
+            {"origin_type", "manual_transcription"} // Client attempting to supply origin_type
+        });
+        assert(ghostRes.resolved == true);
+        assert(ghostRes.result["success"] == false);
+        assert(storage.get_claims().size() == claimsBefore); // ZERO new claims inserted!
+
+        // 2. Supply full embedded claim object to verify_claim_grounding: must be ignored and not insert
+        auto injectRes = bridge.call("verify_claim_grounding", {
+            {"claim_id", "ghost_adversarial_claim_888"},
+            {"claim", {
+                {"id", "ghost_adversarial_claim_888"},
+                {"origin_type", "manual_transcription"},
+                {"verification_status", "VERIFIED"},
+                {"claim_text", "Malicious upsert attempt"}
+            }}
+        });
+        assert(injectRes.resolved == true);
+        assert(injectRes.result["success"] == false);
+        assert(storage.get_claims().size() == claimsBefore); // ZERO new claims inserted!
+
+        // 3. Attempt to call put_claim via IPC with spoofed origin_type ("manual_transcription"):
+        // Must be rejected because IPC put_claim hardcodes is_human_verified=false
+        auto spoofManualRes = bridge.call("put_claim", {
+            {"claim", {
+                {"id", "spoofed_manual_claim_001"},
+                {"claim_text", "Fraudulent manual entry via automated endpoint"},
+                {"origin_type", "manual_transcription"},
+                {"verification_status", "VERIFIED"}
+            }}
+        });
+        assert(spoofManualRes.resolved == false); // Paused/rejected!
+        assert(spoofManualRes.rejected == true);
+
+        // 4. Attempt to call put_claim via IPC with consensus origin_type:
+        auto spoofConsensusRes = bridge.call("put_claim", {
+            {"claim", {
+                {"id", "spoofed_consensus_claim_002"},
+                {"claim_text", "Automated consensus write attempt"},
+                {"origin_type", "scanned_ocr_dual_consensus"},
+                {"verification_status", "VERIFIED"}
+            }}
+        });
+        assert(spoofConsensusRes.resolved == false); // Paused/rejected!
+        assert(spoofConsensusRes.rejected == true);
+
+        // 5. C++ storage level guard: direct put_claim call with unverified consensus claim
+        Claim unverifiedConsensus;
+        unverifiedConsensus.id = "cpp_unverified_consensus_001";
+        unverifiedConsensus.origin_type = "scanned_ocr_dual_consensus";
+        unverifiedConsensus.verification_status = "PENDING";
+        unverifiedConsensus.claim_text = "Direct C++ bypass attempt";
+        bool directPutConsensusOk = storage.put_claim(unverifiedConsensus);
+        assert(directPutConsensusOk == false); // Blocked by storage policy guard!
+
+        // 6. C++ storage level guard: direct put_claim call on Class B source with non-manual origin
+        Source classBSrc;
+        classBSrc.id = "src_class_b_guard_test";
+        classBSrc.degradation_class = "CLASS_B";
+        storage.put_source(classBSrc);
+
+        Claim badClassBClaim;
+        badClassBClaim.id = "cpp_class_b_bad_claim_001";
+        badClassBClaim.source_id = "src_class_b_guard_test";
+        badClassBClaim.origin_type = "automated_heuristic";
+        badClassBClaim.verification_status = "VERIFIED";
+        badClassBClaim.claim_text = "Automated claim into Class B";
+        bool directPutClassBOk = storage.put_claim(badClassBClaim);
+        assert(directPutClassBOk == false); // Blocked by Class B hard gate!
+
+        std::cout << "  ✓ verify_claim_grounding non-existent claim rejected; no upsert permitted.\n";
+        std::cout << "  ✓ put_claim IPC rejects arbitrary/spoofed origin types.\n";
+        std::cout << "  ✓ Storage put_claim programmatically enforces consensus pause and Class B hard gate.\n\n";
+    }
+
     // Clean up temporary files
     std::filesystem::remove(dummyPdf, ec);
     std::filesystem::remove_all(testDir, ec);
     std::filesystem::remove_all("crops", ec);
 
     std::cout << "================================================================================\n";
-    std::cout << "  ALL 24 WEBVIEW2 IPC BRIDGE & NATIVE UI TESTS PASSED WITH ZERO FAILURES!       \n";
+    std::cout << "  ALL 25 WEBVIEW2 IPC BRIDGE & NATIVE UI TESTS PASSED WITH ZERO FAILURES!       \n";
     std::cout << "================================================================================\n";
     return 0;
 }

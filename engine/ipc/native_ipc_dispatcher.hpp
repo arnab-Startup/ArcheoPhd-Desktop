@@ -283,8 +283,8 @@ public:
                         c.verification_status = "VERIFIED";
                         c.anomaly_flag = false;
                         c.anomaly_reason = "";
-                        storage_->put_claim(c);
-                        found = true;
+                        bool putOk = storage_->put_claim(c);
+                        found = putOk;
                         break;
                     }
                 }

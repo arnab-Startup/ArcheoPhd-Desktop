@@ -33,7 +33,8 @@ To eliminate test-set contamination and prevent circular data dredging:
 - **Composition ($N = 27$):**
   - **All 22 Forensic Audit Facts** (`hand_audit_22.json` / `false_consensus_22_windows.md`) across five failure classes:
     - `UNIT_LOST`: Facts #51 (`6 m`), #93 (`40 miles`), #151 (`30%`), #153 (`10%`).
-    - `PARTIAL`: Facts #143 (`1631-1641`), #144 (`1956:81`).
+    - `PARTIAL`: Fact #143 (`1631-1641`).
+    - `REJECTED_NON_FINDING`: Fact #144 (`1956:81` — Wheeler citation year/page relabeled from PARTIAL to Rule 2 Bibliographical Citation rejection).
     - `DISPLACED`: Facts #37 (`1947` vs `10,000`), #65 (`1545-48` vs `1538`), #84 (`1780` vs `1763`), #95 (`1927` vs `1923`), #97 (`5199 BC` vs `3700 BC`), #117 (`1816` vs `1788-1865`), #119 (`1839` vs `1819`), #124 (`1820-1903` vs `1859`), #135 (`1870` vs `1865`), #139 (`1542` vs `1506-1552`), #148 (`1952` vs `1954`), #152 (`2 hours` vs `181`), #154 (`3%` vs `10%`).
     - `ABSENT`: Facts #55 (`415 AD`), #56 (`428 AD`), #73 (`1712`).
     - `CORRECT`: Clean single-value baselines.
@@ -86,9 +87,11 @@ struct StructuredValue {
 };
 
 struct EntitySlot {
-    std::string subject_entity;             // Archaeological subject/locus (e.g. "Layer 3", "Trench IX", "tools")
-    std::string property_type;              // STRATUM_DEPTH, STRATUM_THICKNESS, RADIOMETRIC_DATE, ARTIFACT_COUNT, etc.
+    std::string subject_text;               // Surface text mention (e.g. "Layer 3", "Trench IX", "microliths")
+    std::string subject_entity_id;          // Resolved Knowledge Graph foreign key (e.g. "stratum:layer_3", "site:chirki_loc102", "artifact_class:microlith")
+    std::string property_type;              // STRATUM_DEPTH, STRATUM_THICKNESS, RADIOMETRIC_DATE, HISTORICAL_DATE, ARTIFACT_DIMENSION, ARTIFACT_COUNT, etc.
     AttributeResolution resolution;         // DIRECT_CLAUSAL | TABLE_ROW | SECTION_HEADER | UNRESOLVED_SUBJECT
+    double linkage_confidence;              // Entity linkage confidence score [0.0, 1.0]
 };
 
 struct CandidateSpans {
@@ -114,20 +117,26 @@ struct AttributedCandidate {
    - Chronological eras are normalized to astronomical integer years using the Step 3 normalizer (`NormalizeEraYear`): e.g. `95-55 BC` $\to$ `[-94, -54]`; `415 AD` $\to$ `415`.
    - Thousand separators are normalized (`10,000` $\to$ `10000.0`). Truncating a range into a single number is an extraction failure.
 
-2. **Entity Slot Attribution (Solving the Orphan Quantity Problem):**
+2. **Entity Slot Attribution & Knowledge Graph Linkage:**
    - In Step 3, numbers were unattached quantities with no owner.
    - In Step 4, every candidate finding MUST bind to an `EntitySlot`:
-     - `subject_entity`: The excavated feature, layer, locus, or artifact category (e.g. `"Layer 3"`, `"Trench IX"`, `"Locus 102"`, `"microliths"`).
+     - `subject_text`: Exact surface text token identifying the archaeological feature, locus, stratum, or artifact category (e.g. `"Layer 3"`, `"Trench IX"`, `"Locus 102"`).
+     - `subject_entity_id`: Canonical Knowledge Graph foreign key formatted as `<entity_type>:<canonical_slug>` (e.g. `"stratum:layer_3"`, `"site:chirki_loc102"`, `"artifact_type:cleaver"`), directly ingestible by the Phase 2 graph store. If an entity cannot be linked to known project entities, a minted local slug is generated or `resolution = UNRESOLVED_SUBJECT` is recorded.
      - `property_type`: Archaeological semantic dimension (`STRATUM_DEPTH`, `STRATUM_THICKNESS`, `RADIOMETRIC_DATE`, `HISTORICAL_DATE`, `ARTIFACT_DIMENSION`, `ARTIFACT_COUNT`, `GEOGRAPHIC_DISTANCE`).
-     - `resolution`: How the subject was bound. If no subject can be resolved (`UNRESOLVED_SUBJECT`), the candidate cannot be auto-committed and must be routed to verification.
+     - `resolution`: How the subject was bound (`DIRECT_CLAUSAL`, `TABLE_ROW`, `SECTION_HEADER`, or `UNRESOLVED_SUBJECT`).
+   - **Target Subject Resolution Rate:** On positive archaeological findings, at least **85.0%** ($\ge 26/30$) of emitted candidates must resolve to an explicit entity slot subject (`DIRECT_CLAUSAL`, `TABLE_ROW`, or `SECTION_HEADER`). At most **15.0%** may fall back to `UNRESOLVED_SUBJECT` (which routes candidates to the human verification queue). On the 21 positive dev-set findings, the generator must achieve $\ge 18/21$ ($\ge 85.7\%$) explicit subject resolution.
 
 3. **Disjoint Spans & Table Cells:**
    - For running prose, `value_span` bounds the number and `unit_span` bounds the immediately following unit token (`unit_origin = ADJACENT_TEXT`).
    - For table cells (e.g. `rajan_p110`), the unit is in the column header and the number is in the data row. The generator records `value_span` bounding the cell text, sets `unit_span = null`, and records `unit_origin = TABLE_HEADER`.
 
-4. **Explicit Trigger Rule for `AMBIGUOUS_MULTI_CANDIDATE`:**
-   - **Trigger Condition:** If within a sentence or clausal scope, multiple numeric tokens match the same dimension type (e.g., two dates `1947` and `10,000`, or two depths `3.5 m` and `6.2 m`), and the syntactic context contains no deterministic prepositional or relational anchor (e.g., "dated to", "depth of", "measuring") directly tying the target entity slot to a single candidate, the generator **MUST NOT** guess or default to the nearest token.
-   - **Action:** The generator marks `status = AMBIGUOUS_MULTI_CANDIDATE`, bundles all competing candidates with their respective spans, and routes the cluster directly to the human verification queue for disambiguation.
+4. **Explicit Trigger Rule for `AMBIGUOUS_MULTI_CANDIDATE` & Clausal Scope Definition:**
+   - **Clausal Scope Segmentation Specification:** A "clause" is defined deterministically as:
+     1. *Sentence Boundary:* Terminal punctuation (`.`, `?`, `!`) followed by whitespace or EOF, excluding common scholarly abbreviations (`Fig.`, `Pl.`, `ca.`, `approx.`, `dr.`, `prof.`, `st.`, `no.`, `vol.`, `pp.`).
+     2. *Intra-Sentence Clausal Segment:* Sub-divided by major punctuation boundaries: semicolons (`;`), em-dashes (`—` / `--`), colons (`:`), or coordinating conjunctions preceded by commas (`, and`, `, but`, `, while`, `, whereas`).
+     3. *Token Window Ceiling:* A hard maximum window of **25 tokens (or $\le 160$ characters)** centered around the entity mention or property keyword.
+   - **Trigger Condition:** If within a single clausal segment, multiple numeric tokens match the same dimension type (e.g., two dates `1947` and `10,000`, or two depths `3.5 m` and `6.2 m`), and the syntactic context contains no distinct prepositional or relational head-word anchor directly distinguishing them, the generator **MUST NOT** guess or default to the nearest token.
+   - **Action:** The generator marks `status = AMBIGUOUS_MULTI_CANDIDATE`, bundles competing candidates with their respective spans, and routes the cluster directly to the human verification queue for disambiguation.
 
 ---
 
@@ -171,17 +180,20 @@ Degraded letterpress scans (Class B, e.g. Sankalia) remain **$100\%$ routed to m
 
 ## 6. Monograph Page Partition Protocol
 
-All 50 pages from Phase 0 were previously inspected across Phase 0, Step 1, Step 2, and Step 3. Therefore, partitions are defined honestly as previously seen pages allocated between development tuning and held-out evaluation:
+All 50 pages from Phase 0 were previously inspected across Phase 0, Step 1, Step 2, and Step 3. Partitions are defined mechanically from the ground-truth fact locations in `evaluated_166.json`:
 
-- **Step 4 Development Pages (Tuning Allowed):**
-  - All 16 monograph pages containing the 22 forensic audit facts:
-    - 6 Chakrabarti pages (`p015`, `p017`, `p018`, `p020`, `p021`, `p215`)
-    - 10 Rajan pages (`p019`, `p022`, `p023`, `p024`, `p025`, `p050`, `p075`, `p100`, `p110`, `p181`)
-  - All generator development, regular expressions, and clausal heuristics are restricted to these pages and the dev set.
-- **Held-Out Pages (Tuning Locked):**
-  - Remaining Class A monograph pages:
-    - Chakrabarti: `p016`, `p019`, `p065`, `p130`
-    - Rajan: `p016`, `p017`, `p018`, `p020`, `p021`, `p140`
-  - Held out from Step 4 development tuning.
-- **Class B Scans (Sankalia):**
-  - Permanently hard-gated to manual double-entry transcription. Excluded from automated candidate generator precision evaluation because Class B never permits automated extraction.
+- **Step 4 Development Pages (Tuning Allowed, $N = 16$):**
+  - All 15 monograph pages containing the 22 forensic audit facts, plus 1 challenge case table page:
+    - **Chakrabarti (4 pages):** `chakrabarti_p015-015` (#65), `chakrabarti_p018-018` (#73), `chakrabarti_p021-021` (#84), `chakrabarti_p215-215` (#93, #95)
+    - **Rajan (9 pages):** `rajan_p019-019` (#97), `rajan_p022-022` (#117, #119), `rajan_p023-023` (#124), `rajan_p024-024` (#135), `rajan_p025-025` (#139, #143), `rajan_p050-050` (#144), `rajan_p075-075` (#148), `rajan_p100-100` (#151, #152, #153, #154), `rajan_p110-110` (DEV-27 table cell)
+    - **Sankalia (3 pages):** `sankalia_p025-025` (#37), `sankalia_p150-150` (#51), `sankalia_p210-210` (#55, #56)
+  - All generator development, regular expressions, and clausal heuristics are restricted strictly to these 16 pages and the dev set.
+- **Held-Out Pages (Tuning Locked, $N = 34$):**
+  - Remaining 34 monograph pages from the 50-page benchmark:
+    - **Chakrabarti (6 pages):** `chakrabarti_p016-016`, `chakrabarti_p017-017`, `chakrabarti_p019-019`, `chakrabarti_p020-020`, `chakrabarti_p065-065`, `chakrabarti_p130-130`
+    - **Rajan (6 pages):** `rajan_p016-016`, `rajan_p017-017`, `rajan_p018-018`, `rajan_p020-020`, `rajan_p021-021`, `rajan_p140-140`
+    - **Sankalia (22 pages):** `sankalia_p052-052` through `sankalia_p071-071` (20 pages), `sankalia_p104-104`, `sankalia_p280-280`
+  - Strictly held out from Step 4 development tuning.
+- **Partition Disjointness & Verification:**
+  - $\text{Dev Pages} \cap \text{Held-Out Pages} = \emptyset$ (Intersection size: **0**, mechanically verified).
+  - All Class B Sankalia pages containing audit facts (#37, #51, #55, #56) reside exclusively in the Development partition, eliminating contamination from the held-out partition. Class B scans remain permanently hard-gated to manual double-entry transcription in production.

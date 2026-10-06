@@ -412,9 +412,21 @@ public:
         NativeGuard lock(mutex_);
         samples_[s.id] = std::move(s);
     }
-    void put_claim(Claim c) {
+    bool put_claim(Claim c) {
         NativeGuard lock(mutex_);
+        // POLICY PAUSE GUARD: Direct insertion of unverified dual-consensus claims is strictly forbidden.
+        if (c.origin_type == "scanned_ocr_dual_consensus" && c.verification_status != "VERIFIED") {
+            return false;
+        }
+        // CLASS B HARD GATE: Automated claims are strictly prohibited on Class B sources.
+        auto s_it = sources_.find(c.source_id);
+        if (s_it != sources_.end() && s_it->second.degradation_class == "CLASS_B") {
+            if (c.origin_type != "manual_transcription") {
+                return false;
+            }
+        }
         claims_[c.id] = std::move(c);
+        return true;
     }
     void put_evidence(EvidenceLink e) {
         NativeGuard lock(mutex_);
