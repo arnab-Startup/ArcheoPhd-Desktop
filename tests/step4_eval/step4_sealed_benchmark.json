@@ -1,0 +1,983 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArchaeoPhD Phase 2 Step 4 Sealed Evaluation Benchmark",
+  "version": "2.0.0-sealed",
+  "frozen_date": "2026-10-06T11:00:00Z",
+  "description": "Sealed, independent evaluation benchmark for Step 4 candidate generation, semantic attribution, and non-finding rejection. Contains 60 completely new cases NOT derived from the 22 forensic audit facts: 30 positive archaeological findings and 30 hard negative non-findings (including adversarial negatives: page citations inside excavation sentences, author-date citations in artifact discussions, contour intervals in methods paragraphs, plate/figure indices adjacent to dimensions, and footnote numbers fused to measurements).",
+  "benchmark_policy": {
+    "role": "FAIL_ONLY_GATE",
+    "clearance_scope": "Permits candidate presentation in human verification queue only. Does NOT grant auto-commit authority.",
+    "auto_accept_requirement": "Full auto-commit path requires a subsequent statistically powered validation trial of N >= 180 consecutive error-free facts."
+  },
+  "acceptance_gates": {
+    "negative_rejection_specificity_pct": 100.0,
+    "negative_rejection_wilson_lower_pct": 88.7,
+    "positive_attribution_precision_pct": 96.7,
+    "positive_attribution_max_misses": 1,
+    "positive_attribution_wilson_lower_pct": 83.3,
+    "unit_preservation_accuracy_pct": 100.0,
+    "auto_commit_permitted_on_pass": false
+  },
+  "cases": [
+    {
+      "case_id": "SEALED-POS-01",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p050",
+      "source_chunk": "The calibrated radiocarbon determination from charcoal in locus 102 gave 1880-1690 BCE at two sigma",
+      "target_entity": "radiometric_calibrated_range",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1880-1690",
+        "unit": "BCE",
+        "location_span": [73, 86],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Must capture compound range 1880-1690 and epoch unit BCE."
+    },
+    {
+      "case_id": "SEALED-POS-02",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p065",
+      "source_chunk": "Excavation of trench IX revealed an intact basalt rubble horizon measuring 45 cm in thickness",
+      "target_entity": "rubble_horizon_thickness",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "45",
+        "unit": "cm",
+        "location_span": [75, 80],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Must isolate layer thickness 45 cm and reject trench identifier IX."
+    },
+    {
+      "case_id": "SEALED-POS-03",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p065",
+      "source_chunk": "The basal gravels rested directly upon decomposing bedrock at a depth of 8.2 m below surface",
+      "target_entity": "bedrock_contact_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "8.2",
+        "unit": "m",
+        "location_span": [74, 79],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Decimal measurement precision 8.2 m."
+    },
+    {
+      "case_id": "SEALED-POS-04",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p066",
+      "source_chunk": "Trench XII yielded a total assemblage of 42 Acheulian cleavers from the lower gravels",
+      "target_entity": "cleaver_assemblage_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "42",
+        "unit": "cleavers",
+        "location_span": [41, 52],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Artifact count bound to noun cleavers; trench numeral XII must not be extracted as quantity."
+    },
+    {
+      "case_id": "SEALED-POS-05",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p075",
+      "source_chunk": "Stratum IV destruction horizon was firmly dated to 1184 BCE by commemorative epigraph",
+      "target_entity": "destruction_horizon_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1184",
+        "unit": "BCE",
+        "location_span": [51, 59],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Calendar year inside running historical narrative; stratum IV must not be parsed as 4 BCE."
+    },
+    {
+      "case_id": "SEALED-POS-06",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p068",
+      "source_chunk": "The defensive ditch surrounding the settlement had an average width of 3.4 m across all cuts",
+      "target_entity": "ditch_width",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "3.4",
+        "unit": "m",
+        "location_span": [72, 77],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Decimal dimension with physical unit m."
+    },
+    {
+      "case_id": "SEALED-POS-07",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p130",
+      "source_chunk": "Cunningham recorded the stupa base diameter as 32 m during the 1871 survey campaign",
+      "target_entity": "stupa_base_diameter",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "32",
+        "unit": "m",
+        "location_span": [48, 52],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Disambiguate physical diameter 32 m from survey campaign year 1871."
+    },
+    {
+      "case_id": "SEALED-POS-08",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p100",
+      "source_chunk": "Underwater submerged masonry structures were recorded at a depth of 12 m off Poompuhar",
+      "target_entity": "submerged_structure_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "12",
+        "unit": "m",
+        "location_span": [68, 72],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Marine archaeological depth finding."
+    },
+    {
+      "case_id": "SEALED-POS-09",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p070",
+      "source_chunk": "The rubble layer contained an assemblage of 118 micro-blades knapped on chalcedony",
+      "target_entity": "microblade_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "118",
+        "unit": "micro-blades",
+        "location_span": [44, 60],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Compound hyphenated artifact noun micro-blades preserved as count unit."
+    },
+    {
+      "case_id": "SEALED-POS-10",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p215",
+      "source_chunk": "Marshall cleared the great bath showing an outer retaining wall height of 1.8 m",
+      "target_entity": "retaining_wall_height",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1.8",
+        "unit": "m",
+        "location_span": [74, 79],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Decimal architectural dimension."
+    },
+    {
+      "case_id": "SEALED-POS-11",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p110",
+      "source_chunk": "Ceramic rim diameters in period II clustered strictly between 14-22 cm",
+      "target_entity": "rim_diameter_range",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "14-22",
+        "unit": "cm",
+        "location_span": [62, 70],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Hyphenated dimension range 14-22 with unit cm; period II must not be extracted."
+    },
+    {
+      "case_id": "SEALED-POS-12",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p104",
+      "source_chunk": "The storage pit floor yielded 7 terracotta figurines of stylized humped bulls",
+      "target_entity": "figurine_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "7",
+        "unit": "figurines",
+        "location_span": [30, 42],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Low-integer artifact tally bound to figurines."
+    },
+    {
+      "case_id": "SEALED-POS-13",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p140",
+      "source_chunk": "Megalithic cist burial circle 4 measured exactly 6.5 m across the stone perimeter",
+      "target_entity": "cist_circle_diameter",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "6.5",
+        "unit": "m",
+        "location_span": [49, 54],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Disambiguate burial circle index 4 from diameter 6.5 m."
+    },
+    {
+      "case_id": "SEALED-POS-14",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p150",
+      "source_chunk": "Blade core length averaged 52 mm with parallel fluting scars on both faces",
+      "target_entity": "core_length",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "52",
+        "unit": "mm",
+        "location_span": [27, 32],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Millimeter unit preservation."
+    },
+    {
+      "case_id": "SEALED-POS-15",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p065",
+      "source_chunk": "The ash horizon yielded charcoal dated to 3450 BP by the radiocarbon laboratory",
+      "target_entity": "radiometric_raw_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "3450",
+        "unit": "BP",
+        "location_span": [42, 49],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Uncalibrated radiocarbon BP epoch preservation."
+    },
+    {
+      "case_id": "SEALED-POS-16",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p210",
+      "source_chunk": "The megalithic capstone weighed an estimated 4.5 tons resting upon four upright orthostats",
+      "target_entity": "capstone_weight",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "4.5",
+        "unit": "tons",
+        "location_span": [45, 53],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Weight dimension with unit tons; orthostat count four written as word."
+    },
+    {
+      "case_id": "SEALED-POS-17",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p050",
+      "source_chunk": "Thermoluminescence analysis of the burnished ware provided a terminus of 750 BCE",
+      "target_entity": "tl_terminus_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "750",
+        "unit": "BCE",
+        "location_span": [74, 81],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "BCE era date extraction."
+    },
+    {
+      "case_id": "SEALED-POS-18",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p280",
+      "source_chunk": "Post hole diameter measured 25 cm with charcoal packing at the perimeter",
+      "target_entity": "posthole_diameter",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "25",
+        "unit": "cm",
+        "location_span": [28, 33],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Structural post-hole diameter."
+    },
+    {
+      "case_id": "SEALED-POS-19",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p130",
+      "source_chunk": "The brick revetment stood to an intact height of 2.1 m along the northern perimeter",
+      "target_entity": "revetment_height",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "2.1",
+        "unit": "m",
+        "location_span": [49, 54],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Architectural height dimension."
+    },
+    {
+      "case_id": "SEALED-POS-20",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p075",
+      "source_chunk": "Excavation exposed 16 storage jars embedded in floor plaster of room 3",
+      "target_entity": "storage_jar_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "16",
+        "unit": "jars",
+        "location_span": [19, 33],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Disambiguate jar tally 16 from room index 3."
+    },
+    {
+      "case_id": "SEALED-POS-21",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p062",
+      "source_chunk": "A total of 8 copper bangles were recovered from the urn burial fill",
+      "target_entity": "bangle_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "8",
+        "unit": "bangles",
+        "location_span": [11, 27],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Artifact count bound to bangles."
+    },
+    {
+      "case_id": "SEALED-POS-22",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p020",
+      "source_chunk": "The silver punch-marked hoard contained 342 coins enclosed within an earthen pot",
+      "target_entity": "coin_hoard_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "342",
+        "unit": "coins",
+        "location_span": [40, 49],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Three-digit numismatic tally."
+    },
+    {
+      "case_id": "SEALED-POS-23",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p110",
+      "source_chunk": "Trench depth reached 4.8 m before sterile virgin soil was encountered",
+      "target_entity": "sterile_soil_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "4.8",
+        "unit": "m",
+        "location_span": [21, 26],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Stratigraphic datum elevation."
+    },
+    {
+      "case_id": "SEALED-POS-24",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p067",
+      "source_chunk": "The workshop floor yielded 19 handaxes in various stages of manufacture",
+      "target_entity": "handaxe_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "19",
+        "unit": "handaxes",
+        "location_span": [27, 39],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Lithic artifact assemblage tally."
+    },
+    {
+      "case_id": "SEALED-POS-25",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p021",
+      "source_chunk": "The citadel enclosure measured 120 m on its east-west axis",
+      "target_entity": "citadel_axis_length",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "120",
+        "unit": "m",
+        "location_span": [31, 36],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Three-digit enclosure dimension."
+    },
+    {
+      "case_id": "SEALED-POS-26",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p017",
+      "source_chunk": "C-14 analysis on sample PRL-204 gave a calibrated date of 2150 BCE",
+      "target_entity": "calibrated_horizon_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "2150",
+        "unit": "BCE",
+        "location_span": [58, 66],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Disambiguate lab sample PRL-204 from calibrated date 2150 BCE."
+    },
+    {
+      "case_id": "SEALED-POS-27",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p069",
+      "source_chunk": "The occupation layer had a uniform thickness of 0.35 m across the central locus",
+      "target_entity": "occupation_layer_thickness",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "0.35",
+        "unit": "m",
+        "location_span": [48, 54],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Decimal sub-meter stratum measurement."
+    },
+    {
+      "case_id": "SEALED-POS-28",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_chakrabarti_p065",
+      "source_chunk": "Excavators recovered 5 iron spearheads from the burial deposit",
+      "target_entity": "spearhead_count",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "5",
+        "unit": "spearheads",
+        "location_span": [20, 36],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Single-digit artifact tally."
+    },
+    {
+      "case_id": "SEALED-POS-29",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_rajan_p140",
+      "source_chunk": "The fortification wall was traced for 450 m along the river terrace",
+      "target_entity": "wall_extent",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "450",
+        "unit": "m",
+        "location_span": [38, 43],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Macro-scale site dimension."
+    },
+    {
+      "case_id": "SEALED-POS-30",
+      "category": "FINDING_POSITIVE",
+      "source_doc": "holdout_sankalia_p071",
+      "source_chunk": "Bedrock sandstone rubble depth was established at 1.4 m below the modern surface",
+      "target_entity": "sandstone_rubble_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1.4",
+        "unit": "m",
+        "location_span": [50, 55],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "challenge": "Stratigraphic datum measurement."
+    },
+    {
+      "case_id": "SEALED-NEG-01",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_sankalia_p065",
+      "source_chunk": "In trench 14, locus 52 yielded a basalt mortar during the morning clearing",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "14",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [10, 12],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Trench designation numeral 14 is an administrative spatial index, not an artifact quantity or stratum dimension."
+    },
+    {
+      "case_id": "SEALED-NEG-02",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_sankalia_p065",
+      "source_chunk": "The stratigraphy was recorded on page 181 during clearing of Trench IV",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "181",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [37, 40],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Folio cross-reference page 181 embedded in excavation prose."
+    },
+    {
+      "case_id": "SEALED-NEG-03",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_rajan_p075",
+      "source_chunk": "Detailed profile drawings appear on sheet 50 of the site atlas",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "50",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [42, 44],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Atlas sheet pagination index 50."
+    },
+    {
+      "case_id": "SEALED-NEG-04",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_chakrabarti_p130",
+      "source_chunk": "See survey notes transcribed on pp. 24-28 of the field diary",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "24-28",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [36, 41],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Page range citation pp. 24-28 in field narrative."
+    },
+    {
+      "case_id": "SEALED-NEG-05",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_sankalia_p025",
+      "source_chunk": "71 Studies in Indian Archaeology Chirki Workshop Site",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "71",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [0, 2],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Running header folio page number 71."
+    },
+    {
+      "case_id": "SEALED-NEG-06",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PAGE_IN_EXCAVATION_SENTENCE",
+      "source_doc": "holdout_rajan_p016",
+      "source_chunk": "Archaeology : Principles and Methods 17 Section II Methodology",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "17",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [37, 39],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Header folio page numeral 17."
+    },
+    {
+      "case_id": "SEALED-NEG-07",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_rajan_p025",
+      "source_chunk": "The rim form closely parallels the sequence in Kenyon (1957: 42) for Jericho",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1957",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [55, 59],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Author-date literature citation year 1957 embedded in ceramic typology prose."
+    },
+    {
+      "case_id": "SEALED-NEG-08",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_chakrabarti_p215",
+      "source_chunk": "Wheeler (1946) argued for intrusive Aryan destruction of Harappan ramparts",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1946",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [9, 13],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Historiographical publication citation 1946; not a stratigraphic event date."
+    },
+    {
+      "case_id": "SEALED-NEG-09",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_sankalia_p025",
+      "source_chunk": "Bordes, F. (1961). Typologie du Paleolithique ancien et moyen. Delmas, Bordeaux.",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1961",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [12, 16],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Bibliographic reference imprint year 1961."
+    },
+    {
+      "case_id": "SEALED-NEG-10",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_chakrabarti_p015",
+      "source_chunk": "following the conclusions of the 1971 partition survey report",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1971",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [33, 37],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Modern survey mission year 1971."
+    },
+    {
+      "case_id": "SEALED-NEG-11",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_rajan_p020",
+      "source_chunk": "renovated by the Archaeological Survey of India in 1985 under conservation norms",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1985",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [51, 55],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Modern heritage agency repair year 1985."
+    },
+    {
+      "case_id": "SEALED-NEG-12",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "BIBLIO_IN_TYPOLOGY_DISCUSSION",
+      "source_doc": "holdout_sankalia_p280",
+      "source_chunk": "Indian Archaeology 1964-65: A Review, pp. 31-33",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1964-65",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [19, 26],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Institutional annual report issue year range 1964-65."
+    },
+    {
+      "case_id": "SEALED-NEG-13",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_sankalia_p053",
+      "source_chunk": "Topographic survey established with a 5 m contour interval across the alluvial terrace",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "5",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [39, 42],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Topographic contour interval 5 m; cartographic methodology parameter."
+    },
+    {
+      "case_id": "SEALED-NEG-14",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_rajan_p075",
+      "source_chunk": "Surface transect lines spaced at 20 m intervals along the south baseline",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "20",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [33, 37],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Methodological traverse spacing 20 m."
+    },
+    {
+      "case_id": "SEALED-NEG-15",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_rajan_p075",
+      "source_chunk": "The excavation grid was aligned into 10 x 10 m square balk quadrants",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "10 x 10",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [37, 46],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Balk excavation grid dimension 10 x 10 m; methodology parameter."
+    },
+    {
+      "case_id": "SEALED-NEG-16",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_sankalia_p058",
+      "source_chunk": "Planimetric site mapping drawn at 1:1,000 architectural scale",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1:1,000",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [34, 41],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Cartographic plan scale ratio 1:1,000."
+    },
+    {
+      "case_id": "SEALED-NEG-17",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_rajan_p100",
+      "source_chunk": "Side-scan sonar swath bathymetry surveyed at 50 m line spacing",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "50",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [45, 49],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Geophysical survey trackline spacing 50 m."
+    },
+    {
+      "case_id": "SEALED-NEG-18",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "CONTOUR_IN_METHODS_PARAGRAPH",
+      "source_doc": "holdout_chakrabarti_p215",
+      "source_chunk": "Contour lines drawn at 1 m intervals to register elevation of the mound",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "1",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [23, 26],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Mound elevation contour interval 1 m."
+    },
+    {
+      "case_id": "SEALED-NEG-19",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_rajan_p110",
+      "source_chunk": "Plate 24, Fig. 5: rim sherd diameter measuring 18 cm",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "24",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [6, 8],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Publication plate index 24 must be rejected (only diameter 18 cm is a finding)."
+    },
+    {
+      "case_id": "SEALED-NEG-20",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_rajan_p110",
+      "source_chunk": "Plate 24, Fig. 5: rim sherd diameter measuring 18 cm",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "5",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [15, 16],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Publication figure number 5 must be suppressed."
+    },
+    {
+      "case_id": "SEALED-NEG-21",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_sankalia_p064",
+      "source_chunk": "Specimen No. 104 found in unstratified surface debris",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "104",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [13, 16],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Museum accession specimen number 104."
+    },
+    {
+      "case_id": "SEALED-NEG-22",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_chakrabarti_p130",
+      "source_chunk": "Museum Accession Tag Acc. 4501 bronze figurine",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "4501",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [26, 30],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Accession inventory code Acc. 4501."
+    },
+    {
+      "case_id": "SEALED-NEG-23",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_rajan_p140",
+      "source_chunk": "Gazetteer Site Entry No. 84: Kodumanal",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "84",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [25, 27],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Site gazetteer serial number 84."
+    },
+    {
+      "case_id": "SEALED-NEG-24",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "PLATE_ADJACENT_TO_DIMENSION",
+      "source_doc": "holdout_sankalia_p070",
+      "source_chunk": "Drawing registered under Figure Cat. 12",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "12",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [37, 39],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Catalog drawing index 12."
+    },
+    {
+      "case_id": "SEALED-NEG-25",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_chakrabarti_p017",
+      "source_chunk": "Trench depth reached 3.5 m.14 before water table rose",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "14",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [27, 29],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Footnote marker 14 following period must be suppressed and not fused into measurement."
+    },
+    {
+      "case_id": "SEALED-NEG-26",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_rajan_p018",
+      "source_chunk": "recorded by the survey party.[5] The subsequent expedition confirmed it",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "5",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [30, 31],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Bracketed footnote numeral [5]."
+    },
+    {
+      "case_id": "SEALED-NEG-27",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_chakrabarti_p018",
+      "source_chunk": "For Stratum III date, see footnote 8 on page 92",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "8",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [35, 36],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Explicit footnote cross-reference index 8."
+    },
+    {
+      "case_id": "SEALED-NEG-28",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_rajan_p025",
+      "source_chunk": "as noted in commentary note 11 below",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "11",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [28, 30],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Bibliographic endnote reference 11."
+    },
+    {
+      "case_id": "SEALED-NEG-29",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_sankalia_p025",
+      "source_chunk": "loc. cit., p. 45, n. 2",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "2",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [21, 22],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Abbreviated Latin note index n. 2."
+    },
+    {
+      "case_id": "SEALED-NEG-30",
+      "category": "NON_FINDING_NEGATIVE",
+      "rejection_type": "FOOTNOTE_FUSED_TO_MEASUREMENT",
+      "source_doc": "holdout_chakrabarti_p019",
+      "source_chunk": "epigraphic reading contested in note (iv) of appendix",
+      "target_entity": null,
+      "expected_action": "REJECT_SUPPRESS",
+      "candidate_token": "iv",
+      "ground_truth": {
+        "value": null,
+        "unit": null,
+        "location_span": [38, 40],
+        "status": "REJECTED_NON_FINDING"
+      },
+      "rejection_reason": "Roman numeral footnote reference (iv)."
+    }
+  ]
+}

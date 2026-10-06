@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArchaeoPhD Step 4 Development & Tuning Set",
+  "version": "1.0.0-dev",
+  "description": "Development set containing all 22 forensic audit facts across five outcome categories (UNIT_LOST, DISPLACED, PARTIAL, ABSENT, CORRECT). The candidate generator is freely developed, tuned, and tested against this set.",
+  "cases": [
+    {
+      "case_id": "DEV-01-FC37",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "chakrabarti_p020",
+      "source_chunk": "Continental Daily Mail, Paris, 14.6.1947 ... reporting brain surgery 10,000 years ago",
+      "target_entity": "newspaper_report_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1947",
+        "unit": "CE",
+        "location_span": [36, 40],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Competing adjacent token 10,000 refers to prehistoric era, not newspaper date 1947."
+    },
+    {
+      "case_id": "DEV-02-FC51",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "UNIT_LOST",
+      "source_doc": "chakrabarti_p017",
+      "source_chunk": "reached a basal gravel depth of about 6 m below surface",
+      "target_entity": "stratum_depth",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "6",
+        "unit": "m",
+        "location_span": [38, 41],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must strictly bind and preserve unit 'm'; bare '6' is forbidden."
+    },
+    {
+      "case_id": "DEV-03-FC55",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "ABSENT",
+      "source_doc": "chakrabarti_p018",
+      "source_chunk": "assigned a period of 5 years to the reign of the western satrap",
+      "target_entity": "satrap_accession_date",
+      "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "ground_truth": {
+        "value": "415",
+        "unit": "AD",
+        "location_span": null,
+        "status": "UNANCHORED_OR_DEGRADED"
+      },
+      "disambiguation_challenge": "Ground truth 415 AD is absent from window; token '5' is a duration, not calendar date."
+    },
+    {
+      "case_id": "DEV-04-FC56",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "ABSENT",
+      "source_doc": "chakrabarti_p018",
+      "source_chunk": "the regnal sequence extended through 5 years until subsequent conquest",
+      "target_entity": "dynasty_end_date",
+      "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "ground_truth": {
+        "value": "428",
+        "unit": "AD",
+        "location_span": null,
+        "status": "UNANCHORED_OR_DEGRADED"
+      },
+      "disambiguation_challenge": "Ground truth 428 AD is absent from window; token '5' is duration."
+    },
+    {
+      "case_id": "DEV-05-FC65",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "chakrabarti_p015",
+      "source_chunk": "who came to India in 1538 and was the viceroy of Goa during 1545-48",
+      "target_entity": "viceroy_office_tenure",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1545-48",
+        "unit": "CE",
+        "location_span": [60, 67],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must bind tenure to 1545-48 and not arrival year 1538."
+    },
+    {
+      "case_id": "DEV-06-FC73",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "ABSENT",
+      "source_doc": "chakrabarti_p018",
+      "source_chunk": "Asiatick Researches 7 (1785): 323-32 detailing colonial correspondence",
+      "target_entity": "original_epistle_date",
+      "expected_action": "ROUTE_AMBIGUOUS_OR_UNANCHORED",
+      "ground_truth": {
+        "value": "1712",
+        "unit": "CE",
+        "location_span": null,
+        "status": "UNANCHORED_OR_DEGRADED"
+      },
+      "disambiguation_challenge": "Ground truth 1712 is on next page; 323-32 are page numbers."
+    },
+    {
+      "case_id": "DEV-07-FC84",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "chakrabarti_p021",
+      "source_chunk": "departed Arabia on 13 September 1763 ... work published in Amsterdam in 1780",
+      "target_entity": "monograph_publication_year",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1780",
+        "unit": "CE",
+        "location_span": [72, 76],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must separate publication date 1780 from travel departure 1763."
+    },
+    {
+      "case_id": "DEV-08-FC93",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "UNIT_LOST",
+      "source_doc": "chakrabarti_p215",
+      "source_chunk": "the coastal outpost of Sutkagendor, 40 miles north-west of Gwadar",
+      "target_entity": "geographic_distance",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "40",
+        "unit": "miles",
+        "location_span": [36, 44],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must preserve unit 'miles'; bare '40' loses archaeological semantics."
+    },
+    {
+      "case_id": "DEV-09-FC95",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "chakrabarti_p215",
+      "source_chunk": "first published in 1923 but underwent an expanded second edition in 1927",
+      "target_entity": "revised_edition_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1927",
+        "unit": "CE",
+        "location_span": [68, 72],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disambiguate second edition 1927 from initial edition 1923."
+    },
+    {
+      "case_id": "DEV-10-FC97",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p019",
+      "source_chunk": "created about 3700 BC, while Pope Clement VIII dated the creation to 5199 BC",
+      "target_entity": "clement_creation_estimate",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "5199",
+        "unit": "BC",
+        "location_span": [69, 76],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Target Clement estimate is 5199 BC; 3700 BC is the Jewish calendar rabbinical date."
+    },
+    {
+      "case_id": "DEV-11-FC117",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p022",
+      "source_chunk": "C.J.Thomsen (1788-1865) was invited in 1816 by the Danish Royal Commission",
+      "target_entity": "curator_appointment_year",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1816",
+        "unit": "CE",
+        "location_span": [39, 43],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "1788-1865 is scholar biographical lifespan; appointment is 1816."
+    },
+    {
+      "case_id": "DEV-12-FC119",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p022",
+      "source_chunk": "opened to the public as early as 1819, his guide book appeared only in 1839",
+      "target_entity": "guidebook_publication_year",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1839",
+        "unit": "CE",
+        "location_span": [71, 75],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disambiguate museum opening 1819 from guidebook release 1839."
+    },
+    {
+      "case_id": "DEV-13-FC124",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p023",
+      "source_chunk": "Origin of Species published in 1859 and Herbert Spencer’s (1820-1903) evolutionary approach",
+      "target_entity": "spencer_lifespan",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1820-1903",
+        "unit": "CE",
+        "location_span": [59, 68],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "1859 is Darwin's book; Spencer's lifespan is compound 1820-1903."
+    },
+    {
+      "case_id": "DEV-14-FC135",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p024",
+      "source_chunk": "Modern Savages (1865) and the second book The Origin of Civilisation (1870) went",
+      "target_entity": "second_treatise_publication",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1870",
+        "unit": "CE",
+        "location_span": [70, 74],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disambiguate first book 1865 from second volume 1870."
+    },
+    {
+      "case_id": "DEV-15-FC139",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p025",
+      "source_chunk": "St Francis Xavier (1506-1552), who arrived in Goa in 1542, noted megaliths",
+      "target_entity": "xavier_mission_arrival",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1542",
+        "unit": "CE",
+        "location_span": [53, 57],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "1506-1552 is lifespan dates; arrival in Goa is 1542."
+    },
+    {
+      "case_id": "DEV-16-FC143",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "PARTIAL",
+      "source_doc": "rajan_p025",
+      "source_chunk": "settlement of Pulicat in south India from 1631 to 1641 recorded Dutch trade",
+      "target_entity": "dutch_trading_tenure",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1631-1641",
+        "unit": "CE",
+        "location_span": [42, 54],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must capture full range 1631-1641; single token 1631 is an incomplete partial read."
+    },
+    {
+      "case_id": "DEV-17-FC144",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "PARTIAL",
+      "source_doc": "rajan_p025",
+      "source_chunk": "Wheeler (1956:81) described the stratigraphic sequence of the citadel",
+      "target_entity": "citation_year",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1956",
+        "unit": "CE",
+        "location_span": [9, 13],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Citation contains page suffix ':81'; generator must isolate 1956 without mangling."
+    },
+    {
+      "case_id": "DEV-18-FC148",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p025",
+      "source_chunk": "Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology (1952)",
+      "target_entity": "kenyon_primer_date",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "1952",
+        "unit": "CE",
+        "location_span": [73, 77],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disambiguate Kenyon's manual 1952 from Wheeler's manual 1954."
+    },
+    {
+      "case_id": "DEV-19-FC151",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "UNIT_LOST",
+      "source_doc": "rajan_p181",
+      "source_chunk": "immerse the corroded bronze artifact in a 30% solution of formic acid",
+      "target_entity": "conservation_chemical_concentration",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "30",
+        "unit": "%",
+        "location_span": [42, 45],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must preserve '%' symbol; stripping '%' corrupts metallurgical recipe."
+    },
+    {
+      "case_id": "DEV-20-FC152",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p181",
+      "source_chunk": "Field Conservation 181 ... the metal core remained immersed for 2 hours",
+      "target_entity": "soaking_duration",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "2",
+        "unit": "hours",
+        "location_span": [64, 71],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Running page header '181' must be rejected; true finding is '2 hours'."
+    },
+    {
+      "case_id": "DEV-21-FC153",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "UNIT_LOST",
+      "source_doc": "rajan_p181",
+      "source_chunk": "stabilized with a mixture containing 10% benzotriazole in alcohol",
+      "target_entity": "reagent_concentration",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "10",
+        "unit": "%",
+        "location_span": [37, 40],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Must preserve unit '%'; bare '10' is unverified."
+    },
+    {
+      "case_id": "DEV-22-FC154",
+      "category": "FINDING_POSITIVE",
+      "outcome_class": "DISPLACED",
+      "source_doc": "rajan_p181",
+      "source_chunk": "10% benzotriazole in distilled water (or 3% in ethanol solution)",
+      "target_entity": "alternate_ethanol_concentration",
+      "expected_action": "EXTRACT_ATTRIBUTED",
+      "ground_truth": {
+        "value": "3",
+        "unit": "%",
+        "location_span": [41, 43],
+        "status": "CANDIDATE_ATTRIBUTED_FINDING"
+      },
+      "disambiguation_challenge": "Disambiguate ethanol concentration 3% from aqueous concentration 10% in same clause."
+    }
+  ]
+}
