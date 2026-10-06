@@ -1194,9 +1194,45 @@ int main() {
         bool directPutClassBOk = storage.put_claim(badClassBClaim);
         assert(directPutClassBOk == false); // Blocked by Class B hard gate!
 
+        // 7. Call verify_claim_grounding on an existing consensus-tagged claim:
+        // Client attempts to supply origin_type: "manual_transcription".
+        // The endpoint must successfully update text, mark VERIFIED, and commit,
+        // but must NOT allow the client to alter origin_type (provenance remains immutable).
+        Claim consensusClaim;
+        consensusClaim.id = "consensus_audit_claim_001";
+        consensusClaim.source_id = "src_consensus_test";
+        consensusClaim.origin_type = "scanned_ocr_dual_consensus";
+        consensusClaim.verification_status = "VERIFIED";
+        consensusClaim.claim_text = "Original consensus text";
+        bool seedOk = storage.put_claim(consensusClaim);
+        assert(seedOk == true);
+
+        auto verifyConsensusRes = bridge.call("verify_claim_grounding", {
+            {"claim_id", "consensus_audit_claim_001"},
+            {"corrected_text", "Human-corrected consensus finding"},
+            {"action", "correct"},
+            {"origin_type", "manual_transcription"} // Client attempting to tamper with origin_type
+        });
+        assert(verifyConsensusRes.resolved == true);
+        assert(verifyConsensusRes.result["success"] == true);
+
+        // Verify storage provenance is preserved and NOT overwritten by client payload:
+        auto updatedClaims = storage.get_claims();
+        bool foundConsensus = false;
+        for (const auto& c : updatedClaims) {
+            if (c.id == "consensus_audit_claim_001") {
+                foundConsensus = true;
+                assert(c.claim_text == "Human-corrected consensus finding");
+                assert(c.verification_status == "VERIFIED");
+                assert(c.origin_type == "scanned_ocr_dual_consensus"); // Provenance intact!
+            }
+        }
+        assert(foundConsensus == true);
+
         std::cout << "  ✓ verify_claim_grounding non-existent claim rejected; no upsert permitted.\n";
         std::cout << "  ✓ put_claim IPC rejects arbitrary/spoofed origin types.\n";
-        std::cout << "  ✓ Storage put_claim programmatically enforces consensus pause and Class B hard gate.\n\n";
+        std::cout << "  ✓ Storage put_claim programmatically enforces consensus pause and Class B hard gate.\n";
+        std::cout << "  ✓ verify_claim_grounding on consensus claim updates text but preserves immutable origin_type.\n\n";
     }
 
     // Clean up temporary files

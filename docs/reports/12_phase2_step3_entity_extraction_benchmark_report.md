@@ -29,10 +29,12 @@ To understand the consensus risk for automated ingestion, three distinct operati
 |---|:---:|:---:|:---:|:---:|:---:|---|
 | **(a) True Optical False Consensus** | **0** | **0.00%** | **0** | **0.00%** | **[0.00%, 4.58%]** | Pure optical transcription agreement where target was present. |
 | **(b) Position-Based Picker Agreed Errors** | **18** | **25.00%** | **22** | **27.50%** | **[18.92%, 38.14%]** | **Design warning:** Heuristic picker selects neighboring numbers. |
-| — Unit / Symbol Loss (Safety Deficit) | 3 | 4.17% | 4 | 5.00% | [1.96%, 12.16%] | Correct digits, unit stripped (`40 miles` $\to$ `40`). |
-| — Partial Compound Read | 2 | 2.78% | 2 | 2.50% | [0.69%, 8.66%] | Sub-token from range/citation (`1631 to 1641` $\to$ `1631`). |
-| — Candidate Displacement (Attribution Failure) | 12 | 16.67% | 13 | 16.25% | [9.75%, 25.84%] | GT in window; picker chose adjacent date or header. |
-| — Agreed Wrong Candidate, GT Absent | 1 | 1.39% | 3 | 3.75% | [1.28%, 10.42%] | Both engines missed GT; both agreed on adjacent narrative number. |
+| — Token Displacement (Attribution Failure) | 10 | 13.89% | 11 | 13.75% | [7.86%, 22.95%] | GT in window; picker chose adjacent year or header (#37, #65, #84, #95, #97, #117, #119, #124, #135, #139, #152). |
+| — Ambiguous Multi-Candidate (Clausal Scope) | 2 | 2.78% | 2 | 2.50% | [0.69%, 8.66%] | Multiple valid candidates in same clause without distinguishing anchor (#148 [1954 vs 1952], #154 [10% vs 3%]). |
+| — Unit / Symbol Loss (Safety Deficit) | 3 | 4.17% | 4 | 5.00% | [1.96%, 12.16%] | Correct digits, unit stripped (`40 miles` $\to$ `40`, `30%` $\to$ `30`; #51, #93, #151, #153). |
+| — Agreed Wrong Candidate, GT Absent | 1 | 1.39% | 3 | 3.75% | [1.28%, 10.42%] | Both engines missed GT; both agreed on adjacent narrative number (#55, #56, #73). |
+| — Partial Range Truncation | 1 | 1.39% | 1 | 1.25% | [0.22%, 6.74%] | Sub-token captured from hyphenated/lexical range (`1631 to 1641` $\to$ `1631`; #143). |
+| — Bibliographical Citation Rejection | 1 | 1.39% | 1 | 1.25% | [0.22%, 6.74%] | Author-date-page citation extracted as date (`1956:81` $\to$ `1956`; #144 relabeled non-finding noise). |
 | **`BOTH_CORRECT` (Verified Target Hits)** | **54** | **75.00%** | **58** | **72.50%** | **[61.90%, 81.10%]** | Ground truth accurately transcribed and matched. |
 
 *Key Methodological Takeaways:*

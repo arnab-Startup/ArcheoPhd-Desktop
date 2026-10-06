@@ -381,9 +381,9 @@ n 1606, is acknowledged as the first European Sanskrit scholar. Abraham Roger, a
 - **Ground Truth Value:** 1956:81
 - **Fact Description:** Mortimer Wheeler citation year and page
 - **Extracted Candidate:** 1956 (Tesseract) | 1956 (Windows OCR)
-- **Audited Category:** PARTIAL_READ
+- **Audited Category:** BIBLIO_CITATION_REJECTION
 - **Router Auto-Accept Behavior:** Both engines emit identical string (1956), so the production router auto-accepts this as consensus (AUTO_ACCEPTED_CONSENSUS).
-- **Analysis:** Both engines transcribed citation "(1956:81)" verbatim. Candidate extractor stopped at colon delimiter, extracting only year 1956.
+- **Analysis:** Both engines transcribed citation "(1956:81)" verbatim. The position picker seized year 1956. Under Step 4 Rule 2, parenthetical author-date-page citations are non-finding noise and must be rejected (`REJECTED_NON_FINDING`). In the benchmark denominator, this relabels #144 from a partial range truncation to a bibliographical citation rejection, reducing partial compound reads from 2 to 1 (1.25%).
 
 #### Tesseract 5.4 Anchor Window (±120 chars)
 ```text
@@ -404,9 +404,9 @@ logical excavation remains with the archaeologist who has a flexibility and open
 - **Ground Truth Value:** 1952
 - **Fact Description:** Beginning in Archaeology publication year
 - **Extracted Candidate:** 1954 (Tesseract) | 1954 (Windows OCR)
-- **Audited Category:** SCORER_TOKEN_DISPLACEMENT
+- **Audited Category:** AMBIGUOUS_MULTI_CANDIDATE
 - **Router Auto-Accept Behavior:** Both engines emit identical string (1954), so the production router auto-accepts this as consensus (AUTO_ACCEPTED_CONSENSUS).
-- **Analysis:** Both engines transcribed "(1952)" verbatim. Scorer picked Wheeler publication year 1954.
+- **Analysis:** Both 1954 and 1952 appear in the same sentence (`Wheeler’s Archaeology from the Earth (1954) and Kenyon's Beginning in Archaeology (1952)`). The ground truth sought Kenyon's publication year (1952), but the position picker grabbed Wheeler's year (1954). Under Step 4 Spec §3.4, when two valid candidates of the same dimension occur in a single clausal segment, this is an `AMBIGUOUS_MULTI_CANDIDATE` condition that must be routed to the human verification queue for disambiguation.
 
 #### Tesseract 5.4 Anchor Window (±120 chars)
 ```text
@@ -496,9 +496,9 @@ Conservation 181 If active copper chlorides found. the object may be immersed fo
 - **Ground Truth Value:** 3%
 - **Fact Description:** Benzotriazole concentration in alcohol
 - **Extracted Candidate:** 10 (Tesseract) | 10 (Windows OCR)
-- **Audited Category:** SCORER_TOKEN_DISPLACEMENT
+- **Audited Category:** AMBIGUOUS_MULTI_CANDIDATE
 - **Router Auto-Accept Behavior:** Both engines emit identical string (10), so the production router auto-accepts this as consensus (AUTO_ACCEPTED_CONSENSUS).
-- **Analysis:** Both engines transcribed "3%" verbatim in same sentence. Scorer picked earlier concentration 10%.
+- **Analysis:** Both engines transcribed "10%" and "3%" verbatim in the same sentence (`10% benzotriazole in distilled water (or 3% in alcohol)`). The ground truth sought the alcohol concentration (`3%`), but the position picker seized the earlier concentration `10%` (and dropped `%`). Under Step 4 Spec §3.4, this two-candidate clausal competition requires `AMBIGUOUS_MULTI_CANDIDATE` classification and routing to the human verification queue.
 
 #### Tesseract 5.4 Anchor Window (±120 chars)
 ```text

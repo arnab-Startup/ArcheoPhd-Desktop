@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ArchaeoPhD Phase 2 Step 4 Sealed Evaluation Benchmark",
-  "version": "2.1.0-sealed",
-  "frozen_date": "2026-10-06T11:15:00Z",
+  "version": "2.2.0-sealed",
+  "frozen_date": "2026-10-06T11:55:00Z",
   "benchmark_provenance": "Sealed against development tuning; authored by the engineering team prior to candidate generator code; consists of 60 synthetic and styled archaeological test passages (30 finding positives, 30 hard adversarial negatives) containing extraction, unit binding, clausal span delimitation, and non-finding rejection challenges. Not drawn from raw uninspected scans.",
   "benchmark_policy": {
     "role": "FAIL_ONLY_GATE",
@@ -1745,5 +1745,65 @@
       "rejection_rule": "RULE_5_FOOTNOTE_ENDNOTE",
       "rejection_reason": "Roman numeral footnote reference (iv)."
     }
-  ]
+  ],
+  "monograph_page_partitions": {
+    "protocol": "Mechanical ground-truth partition from evaluated_166.json",
+    "development_pages_count": 16,
+    "development_pages": [
+      "chakrabarti_p015-015",
+      "chakrabarti_p018-018",
+      "chakrabarti_p021-021",
+      "chakrabarti_p215-215",
+      "rajan_p019-019",
+      "rajan_p022-022",
+      "rajan_p023-023",
+      "rajan_p024-024",
+      "rajan_p025-025",
+      "rajan_p050-050",
+      "rajan_p075-075",
+      "rajan_p100-100",
+      "rajan_p110-110",
+      "sankalia_p025-025",
+      "sankalia_p150-150",
+      "sankalia_p210-210"
+    ],
+    "held_out_pages_count": 34,
+    "held_out_pages": [
+      "chakrabarti_p016-016",
+      "chakrabarti_p017-017",
+      "chakrabarti_p019-019",
+      "chakrabarti_p020-020",
+      "chakrabarti_p065-065",
+      "chakrabarti_p130-130",
+      "rajan_p016-016",
+      "rajan_p017-017",
+      "rajan_p018-018",
+      "rajan_p020-020",
+      "rajan_p021-021",
+      "rajan_p140-140",
+      "sankalia_p052-052",
+      "sankalia_p053-053",
+      "sankalia_p054-054",
+      "sankalia_p055-055",
+      "sankalia_p056-056",
+      "sankalia_p057-057",
+      "sankalia_p058-058",
+      "sankalia_p059-059",
+      "sankalia_p060-060",
+      "sankalia_p061-061",
+      "sankalia_p062-062",
+      "sankalia_p063-063",
+      "sankalia_p064-064",
+      "sankalia_p065-065",
+      "sankalia_p066-066",
+      "sankalia_p067-067",
+      "sankalia_p068-068",
+      "sankalia_p069-069",
+      "sankalia_p070-070",
+      "sankalia_p071-071",
+      "sankalia_p104-104",
+      "sankalia_p280-280"
+    ],
+    "disjoint_intersection_size": 0
+  }
 }

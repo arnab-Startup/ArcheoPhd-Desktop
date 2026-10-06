@@ -6,7 +6,7 @@
 > **Authors:** ArchaeoPhD Core Architecture & Engineering Team  
 > **Provenance & Integrity:** Sealed against development tuning; authored by the engineering team prior to generator code; consists of 60 synthetic and styled archaeological test passages (30 finding positives, 30 hard adversarial negatives) testing unit binding, range capture, clausal attribution, and non-finding rejection. Not drawn from raw uninspected scans.  
 > **Sealed Benchmark Dataset:** [`tests/step4_eval/step4_sealed_benchmark.json`](file:///d:/Prorgram/Project/ArcheoPhd/desktop/tests/step4_eval/step4_sealed_benchmark.json)  
-> **Sealed Benchmark SHA-256:** `8A35BCFE5706378AC2194B1AB94FBB623FA7DAFA66AD26C8BF30167F96804C22`  
+> **Sealed Benchmark SHA-256:** `4B9AD58F8AEDF40237F9CE104978472175188086168D765B6509A821420B8F3C`  
 > **Development Dataset:** [`tests/step4_eval/step4_dev_set.json`](file:///d:/Prorgram/Project/ArcheoPhd/desktop/tests/step4_eval/step4_dev_set.json) (Seed: 22 Forensic Audit Facts + 5 Targeted Challenge Cases)  
 
 ---
@@ -56,7 +56,7 @@ To eliminate test-set contamination and prevent circular data dredging:
     - *Accession and plate numbers adjacent to dimensions:* e.g. plate and figure labels immediately preceding finding measurements ("Plate 24, Fig. 5: rim sherd diameter 18 cm", where 24 and 5 must be suppressed while 18 cm is preserved).
     - *Footnote numerals fused to measurements:* e.g. footnote markers following periods ("depth reached 3.5 m.14 before water table rose", where 14 must not corrupt the measurement into 3514 or 3.5 m 14).
 - **Cryptographic Seal:**
-  - **SHA-256 Hash:** `8A35BCFE5706378AC2194B1AB94FBB623FA7DAFA66AD26C8BF30167F96804C22`
+  - **SHA-256 Hash:** `4B9AD58F8AEDF40237F9CE104978472175188086168D765B6509A821420B8F3C`
   - The test harness verifies this hash before reading the file. Executed exactly **once** after generator development against the dev set is frozen.
 
 ---
