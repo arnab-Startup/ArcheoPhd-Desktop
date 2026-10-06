@@ -108,13 +108,25 @@ int main() {
         bool manualSaved = storage.put_claim_safeguarded(manualPreReflag, true);
         assert(manualSaved == true);
 
-        // Verify: 1 machine consensus claim + 1 manual claim committed; 1 discrepancy queued
-        assert(storage.get_claims().size() == 2);
-        assert(storage.get_verification_items().size() == 1);
-        assert(storage.get_verification_items()[0].candidate_a == "2040 cm");
-        assert(storage.get_verification_items()[0].candidate_b == "20-40 cm");
+        // Verify: 0 machine claims auto-committed (auto-commit paused); 1 manual claim committed;
+        // both consensus and discrepancy routed to verification queue
+        assert(storage.get_claims().size() == 1);
+        assert(storage.get_claims()[0].id == "manual_prior_001");
+        assert(storage.get_verification_items().size() == 2);
         assert(storage.get_verification_items()[0].status == "PENDING");
-        std::cout << "  ✓ Consensus fact auto-committed; Discrepancy queued with image crop link.\n\n";
+        assert(storage.get_verification_items()[1].status == "PENDING");
+
+        // ADVERSARIAL TEST: Attempt direct auto-commit of unverified dual-consensus claim (MUST BE BLOCKED)
+        Claim unverifiedConsensusClaim;
+        unverifiedConsensusClaim.id = "claim_consensus_adversarial_001";
+        unverifiedConsensusClaim.source_id = res.source_id;
+        unverifiedConsensusClaim.claim_text = "Chirki Discovery Year: 1963";
+        unverifiedConsensusClaim.origin_type = "scanned_ocr_dual_consensus";
+        unverifiedConsensusClaim.verification_status = "AUTO_ACCEPTED_CONSENSUS";
+        bool autoCommitBlocked = storage.put_claim_safeguarded(unverifiedConsensusClaim, false);
+        assert(autoCommitBlocked == false); // MUST FAIL: Auto-commit is paused!
+        std::cout << "  ✓ Class A auto-commit paused: 0 machine claims auto-committed; both consensus & discrepancy queued.\n";
+        std::cout << "  ✓ Direct unverified consensus auto-commit attempt was programmatically blocked.\n\n";
 
         std::cout << "[TEST 6] RETROACTIVE PURGE on Mid-Session Reflag (A -> B)...\n";
         // Researcher notices bleed-through on page 41 and clicks 1-click reflag to Class B!
@@ -124,8 +136,7 @@ int main() {
         assert(storage.get_sources()[0].confirmed_clean_offset == false);
 
         // Verify retroactive purge:
-        // 1. The auto-committed OCR consensus fact ('fact_001', 1963) MUST BE RETROACTIVELY PURGED!
-        // 2. The human manual transcription ('manual_prior_001') MUST SURVIVE!
+        // 1. The human manual transcription ('manual_prior_001') MUST SURVIVE!
         auto claimsAfterReflag = storage.get_claims();
         assert(claimsAfterReflag.size() == 1);
         assert(claimsAfterReflag[0].id == "manual_prior_001");
@@ -133,12 +144,14 @@ int main() {
 
         // Verify pending verification items are purged / rejected
         auto vItems = storage.get_verification_items();
-        assert(vItems[0].status == "REJECTED_DUE_TO_RECLASSIFICATION");
+        for (const auto& vi : vItems) {
+            assert(vi.status == "REJECTED_DUE_TO_RECLASSIFICATION");
+        }
 
         // Verify that subsequent automated writes are instantly rejected
         bool writeAfterReflag = storage.put_claim_safeguarded(c1, false);
         assert(writeAfterReflag == false);
-        std::cout << "  ✓ Retroactive purge wiped auto-committed OCR facts while preserving human double-entry.\n\n";
+        std::cout << "  ✓ Retroactive purge wiped unverified items while preserving human double-entry.\n\n";
 
         std::cout << "[TEST 7] Search Indexing vs Knowledge Graph Truth-Plane Isolation...\n";
         // Rough text indexed for discovery

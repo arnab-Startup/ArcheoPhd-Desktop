@@ -640,14 +640,19 @@ public:
         return true;
     }
 
-    // ADVERSARIAL PROTECTION: Put claim with strict Class B automated write prevention
+    // ADVERSARIAL PROTECTION: Put claim with strict Class B and Class A auto-commit prevention
     bool put_claim_safeguarded(Claim c, bool is_human_verified = false) {
         NativeGuard lock(mutex_);
+        // POLICY PAUSE (2026-10-06): Direct automated ingestion on Class A dual-consensus is paused.
+        // Direct auto-commits of unverified OCR consensus are strictly rejected across all sources.
+        if (c.origin_type == "scanned_ocr_dual_consensus" || !is_human_verified) {
+            return false;
+        }
         auto s_it = sources_.find(c.source_id);
         if (s_it != sources_.end()) {
             if (s_it->second.degradation_class == "CLASS_B") {
                 // For Class B sources, ONLY explicit manual transcription or verified human entry is permitted
-                if (c.origin_type != "manual_transcription" && !is_human_verified) {
+                if (c.origin_type != "manual_transcription") {
                     // HARD-GATE ENFORCED: Refuse automated write to Class B
                     return false;
                 }

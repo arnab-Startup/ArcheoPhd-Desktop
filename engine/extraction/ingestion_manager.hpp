@@ -339,17 +339,23 @@ public:
 
         for (const auto& f : result.facts) {
             if (f.status == FactVerificationStatus::AUTO_ACCEPTED_CONSENSUS) {
-                // Auto-commit verified consensus fact to Knowledge Graph
-                Claim c;
-                c.id = "claim_" + f.fact_id;
-                c.project_id = projectId;
-                c.source_id = sourceId;
-                c.claim_text = f.entity_name + ": " + f.resolved_value;
-                c.origin_type = "scanned_ocr_dual_consensus";
-                c.verification_status = "VERIFIED";
-                c.is_quantitative = true;
-                c.created_date = std::to_string(ms);
-                storage.put_claim_safeguarded(c, true);
+                // POLICY PAUSE (2026-10-06): Class A auto-commit paused pending Step 4 attribution.
+                // Every consensus fact routes to the human verification queue instead of auto-committing.
+                // Dual-engine consensus agreement is preserved as a high-confidence hint.
+                VerificationItem v;
+                v.id = "vitem_" + f.fact_id;
+                v.project_id = projectId;
+                v.source_id = sourceId;
+                v.field_type = f.type;
+                v.context_text = f.context_snippet;
+                v.crop_image_path = "crops/" + f.fact_id + ".png"; // Image crop reference
+                v.candidate_a = f.value_engine_a;
+                v.candidate_b = f.value_engine_b;
+                v.status = "PENDING";
+                v.audit_note = "Dual-engine consensus (auto-commit paused): Windows OCR = '" + f.value_engine_a + 
+                               "' matches Tesseract = '" + f.value_engine_b + "' (Confidence: " + std::to_string(f.confidence_score) + ")";
+                v.created_date = std::to_string(ms);
+                storage.put_verification_item(v);
             } else if (f.status == FactVerificationStatus::FLAGGED_DISAGREEMENT) {
                 // Route to human verification queue with optical crop link
                 VerificationItem v;

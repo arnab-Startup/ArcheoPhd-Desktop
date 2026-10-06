@@ -128,12 +128,14 @@ bool MatchCandidateInText(const std::string& text, const std::string& trueVal, s
 
 int main() {
     std::cout << "================================================================================\n";
-    std::cout << "  ArchaeoPhD Engine — End-to-End C++ Router Benchmark Reproduction (N=166)      \n";
+    std::cout << "  ArchaeoPhD Engine — Unanchored Routing-Count Check (Historical Phase 0, N=166)\n";
+    std::cout << "  (Routing-count check only: unanchored page search; false consensus was unmeasured)\n";
     std::cout << "================================================================================\n\n";
 
-    const std::string gtPath = "desktop/tests/ocr_benchmark_50/ground_truth.json";
-    const std::string winDir = "desktop/tests/ocr_benchmark_50/results_windows_ocr";
-    const std::string tessDir = "desktop/tests/ocr_benchmark_50/results_tesseract";
+    std::string prefix = std::filesystem::exists("tests/ocr_benchmark_50/ground_truth.json") ? "" : "desktop/";
+    const std::string gtPath = prefix + "tests/ocr_benchmark_50/ground_truth.json";
+    const std::string winDir = prefix + "tests/ocr_benchmark_50/results_windows_ocr";
+    const std::string tessDir = prefix + "tests/ocr_benchmark_50/results_tesseract";
 
     std::string gtRaw = ReadFileToString(gtPath);
     if (gtRaw.empty()) {
@@ -206,7 +208,7 @@ int main() {
     }
 
     std::cout << "\n--------------------------------------------------------------------------------\n";
-    std::cout << "1. C++ EXTRACTION VALIDATION ON FULL DATASET\n";
+    std::cout << "1. HISTORICAL UNANCHORED STRING-MATCHING HIT COUNT CHECK (N=166)\n";
     std::cout << "--------------------------------------------------------------------------------\n";
     std::cout << "  Total Facts Evaluated:             " << totalFacts << "\n";
     std::cout << "  Windows OCR Hits:                  " << winHits << " (" << std::fixed << std::setprecision(2) << (winHits * 100.0 / totalFacts) << "%)\n";
@@ -223,7 +225,7 @@ int main() {
               << ", tessOnly: " << tessOnlyCount 
               << ", bothFail: " << bothFailCount << "\n" << std::flush;
 
-    // Verify exact reproduction against benchmark results
+    // Verify historical routing count reproduction against Phase 0 dataset
     assert(totalFacts == 166);
     assert(winHits == 128);
     assert(tessHits == 139);
@@ -232,10 +234,10 @@ int main() {
     assert(tessOnlyCount == 20);
     assert(bothFailCount == 18);
     assert(totalErrorsCount == 47);
-    std::cout << "  ✓ All counts match the 166-fact benchmark with 100% exact numerical agreement!\n";
+    std::cout << "  ✓ Historical hit counts reproduced (unanchored page search; false consensus was unmeasured).\n";
 
     std::cout << "\n--------------------------------------------------------------------------------\n";
-    std::cout << "2. TESTING PRODUCTION C++ ROUTER ON CLASS A (MODERN / CLEAN: RAJAN + CHAKRABARTI)\n";
+    std::cout << "2. C++ ROUTER PARTITIONING ON CLASS A (HISTORICAL UNANCHORED INPUTS)\n";
     std::cout << "--------------------------------------------------------------------------------\n";
     auto classAResult = DualEngineEnsembleRouter::ProcessDocument(
         "batch-class-a",
@@ -254,7 +256,7 @@ int main() {
     assert(classAResult.automated_ingestion_permitted == true);
     assert(classAResult.facts_auto_accepted == 92);
     assert(classAResult.facts_routed_to_verification_queue == 12);
-    std::cout << "  ✓ Class A Router correctly auto-accepts 92 consensus facts (88.5%) and routes all 12 errors/disagreements to queue.\n";
+    std::cout << "  ✓ Class A Router partitioned 92 consensus pairs and 12 queue items (Note: Class A auto-accept is paused in production).\n";
 
     std::cout << "\n--------------------------------------------------------------------------------\n";
     std::cout << "3. TESTING PRODUCTION C++ ROUTER ON CLASS B (DEGRADED LETTERPRESS: SANKALIA)\n";
@@ -278,7 +280,8 @@ int main() {
     std::cout << "  ✓ Class B Hard Gating verified: ZERO facts auto-accepted; 100% routed to manual review.\n";
 
     std::cout << "\n================================================================================\n";
-    std::cout << "  END-TO-END C++ ROUTER VALIDATION: PASSED WITH ZERO DISCREPANCIES              \n";
+    std::cout << "  C++ ROUTER ROUTING-COUNT REPRODUCTION CHECK COMPLETED                         \n";
+    std::cout << "  (Routing counts verified; false consensus unmeasured here; auto-accept paused)\n";
     std::cout << "================================================================================\n";
 
     return 0;

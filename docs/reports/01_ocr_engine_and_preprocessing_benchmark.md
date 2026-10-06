@@ -23,7 +23,8 @@ Across a blind, hand-labeled ground truth dataset of **50 scan pages and 166 qua
    - Tesseract 5.4: **62.90%** exact match (39 / 62)
    - Disagreements / Errors: 29 out of 62 facts failed one or both engines.
    - **Verdict:** Tier 3 Triggered. Automated extraction hard-gated; Class B requires human-in-the-loop verification.
-4. **The False Consensus Finding:** Across **47 real errors** across both document classes, there was **0% false consensus** (zero instances where both engines made the identical wrong transcription). Cross-engine agreement guarantees zero silent corruptions in this corpus.
+4. **The False Consensus Finding:** Across **47 real errors** across both document classes, there was **0% false consensus** (zero instances where both engines made the identical wrong transcription). Cross-engine agreement guarantees zero silent corruptions in this corpus.  
+   *(ERRATUM 2026-10-06): The 0/47 figure was an unmeasured artifact of the evaluation script, which assumed dual failures never agreed. True optical false consensus at located positions is 0.00% (0/80 [0.00%, 4.58%]; 0/72 in Class A [0.00%, 5.07%]), but naive candidate agreement admits 25.0% errors from dropped units and neighbor displacement; Class A auto-accept is paused.*
 
 ---
 
@@ -87,6 +88,8 @@ Binarization algorithms operate on luminance gradients. When ink from the revers
 ---
 
 ## 5. The Zero False Consensus Safety Guarantee
+
+> **ERRATUM (2026-10-06):** The formula and 0/47 calculation below were not directly measured during the Phase 0 run; `evaluate_benchmark_v2.js` unconditionally treated all dual-engine misses as disagreements without comparing what each engine actually transcribed. Direct empirical measurement under span anchoring (`docs/specs/03_anchored_scorer_rules.md`) confirms that raw optical character false consensus is indeed **0.00% (0/80 [0.00%, 4.58%])** where the target was present in the window. However, simple string equality does NOT prevent non-optical errors: 5.0% of agreed facts lose units (`40 miles` $\to$ `40`) and 16.3% bind adjacent numbers. Class A auto-accept is **paused** pending Step 4 attribution and unit validation.
 
 The pivotal safety discovery of this benchmark is the behavior of cross-engine disagreement on corrupted text:
 

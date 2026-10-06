@@ -142,7 +142,7 @@ These are non-negotiable. Breaking any of them invalidates all prior benchmarks.
 
 Step 4 links extracted entity mentions to knowledge graph nodes (finds, strata, trenches, contexts). Before starting Step 4:
 
-- Know the **strict in-scope Class A recall number** (**31.6% pipeline recall**, 6/19, on both engines; 40.0% clean recall, 6/15). Step 4's pre-fill quality is bounded by this.
+- Know the **strict in-scope Class A recall number** (**31.6% pipeline recall**, 6/19, on both engines; 40.0% clean recall, 6/15). Step 4 presents candidates for human verification, with the source crop; extraction capability is bounded by this.
 - Decide the **bare-year scope question**: should bare 4-digit years (e.g., `1784`, `1944`) be extracted? They appear in 111/125 date ground-truth facts. Extracting them requires a negative-context filter for bibliography/publication metadata. This is a product decision, not a precision-tuning decision.
 - Have an independent validation set for the extractor (see "What the extractor still doesn't do" above).
 - **Step 4 Precision Measurement Framework (Pre-Registration):**

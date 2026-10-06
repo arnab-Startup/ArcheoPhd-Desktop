@@ -312,22 +312,16 @@ int main() {
 
         IngestionManager::ProcessClassAFacts(storage, createdSourceId, {f1, f2});
 
-        // Verify consensus fact was committed to knowledge graph
+        // Verify consensus fact was NOT auto-committed (Class A auto-commit paused)
         auto claims = storage.get_claims();
-        assert(claims.size() == 1);
-        assert(claims[0].claim_text == "Chirki Discovery Year: 1963");
-        assert(claims[0].verification_status == "VERIFIED");
+        assert(claims.size() == 0); // Zero claims auto-committed!
 
-        // Verify disagreement was queued in verification items
+        // Verify both consensus and disagreement were queued in verification items
         auto vQueueRes = bridge.call("get_verification_queue", {{"source_id", createdSourceId}});
         assert(vQueueRes.resolved == true);
         assert(vQueueRes.result.is_array());
-        assert(vQueueRes.result.size() == 1);
-        assert(vQueueRes.result[0]["id"] == "vitem_fact_ipc_002");
-        assert(vQueueRes.result[0]["candidate_a"] == "2040 cm");
-        assert(vQueueRes.result[0]["candidate_b"] == "20-40 cm");
-        assert(vQueueRes.result[0]["crop_image_path"] == "crops/fact_ipc_002.png");
-        std::cout << "  ✓ Consensus committed; disagreement routed to verification queue with optical crop link.\n\n";
+        assert(vQueueRes.result.size() == 2);
+        std::cout << "  ✓ Class A auto-commit paused: zero claims auto-committed; both consensus & disagreement queued.\n\n";
     }
 
     // -------------------------------------------------------------------------
@@ -1064,7 +1058,7 @@ int main() {
         assert(okPromo.resolved == true);
         assert(okPromo.result["degradation_class"] == "CLASS_A");
 
-        // C. Insert automated consensus claim (now permitted for Class A)
+        // C. Attempt to insert automated consensus claim via IPC (must be blocked: Class A auto-commit paused)
         json autoClaim = {
             {"claim", {
                 {"id", "claim-hazor-consensus"},
@@ -1075,7 +1069,17 @@ int main() {
             }}
         };
         auto autoClaimRes = bridge.call("put_claim", autoClaim);
-        assert(autoClaimRes.resolved == true);
+        assert(autoClaimRes.resolved == false); // Paused!
+        assert(autoClaimRes.rejected == true);
+
+        // Stage a machine claim in storage to test retroactive purge defense
+        Claim stagedMachineClaim;
+        stagedMachineClaim.id = "claim-hazor-consensus";
+        stagedMachineClaim.source_id = hazorSrcId;
+        stagedMachineClaim.claim_text = "Solomonic 6-chambered gate foundation dated to Stratum X";
+        stagedMachineClaim.origin_type = "scanned_ocr_dual_consensus";
+        stagedMachineClaim.verification_status = "VERIFIED";
+        storage.put_claim(stagedMachineClaim);
 
         // Also add a manual double-entry claim for comparison
         bridge.call("save_manual_transcription", {

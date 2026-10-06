@@ -2,7 +2,8 @@
 
 > **Status:** FROZEN BEFORE EXECUTION  
 > **Date:** October 3, 2026  
-> **Objective:** Evaluate Windows.Media.Ocr vs. Tesseract 5.4 (Docker) on 50 real archaeological scan pages to determine the production extraction architecture.
+> **Objective:** Evaluate Windows.Media.Ocr vs. Tesseract 5.4 (Docker) on 50 real archaeological scan pages to determine the production extraction architecture.  
+> **ERRATUM (October 6, 2026):** In the Phase 0 evaluation of Tier 2, the evaluation script (`evaluate_benchmark_v2.js`) reported 47/47 errors caught (100.0% disagreement recall, Wilson 95% CI: [92.44%, 100.0%]) and "0% false consensus." However, forensic re-evaluation under span anchoring (`docs/specs/03_anchored_scorer_rules.md`) revealed that false consensus on unanchored search was unmeasured. While true optical character false consensus at located positions is 0.00% (0/80 [0.00%, 4.58%]), candidate agreement admits 25.0% errors from dropped units (5.0%) and neighbor token displacements (16.3%). Consequently, Class A auto-accept is **paused in code**, routing all candidate facts to human verification with source optical crops pending Step 4 attribution and unit validation.
 
 ---
 

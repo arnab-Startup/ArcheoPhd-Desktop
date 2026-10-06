@@ -18,8 +18,10 @@ namespace archaeophd {
 // Benchmark Evidence Base:
 // 1. Clean/Modern Scans (Chakrabarti/Rajan): 96.15% dual accuracy (Passes Tier 2).
 // 2. Porous Bleed-Through Scans (Sankalia): 63.93% accuracy (Collapses into Tier 3).
-// 3. Observed False Consensus: 0 events across 47 real errors (95% CI: [0.00%, 7.56%]).
-// 4. Disagreement Recall: 100.0% observed across 47 real errors (95% CI: [92.44%, 100.0%]).
+// 3. Observed False Consensus: 0/47 was an unmeasured Phase 0 evaluation assumption.
+//    Span-anchored measurement (October 2026): 0.00% true optical false consensus (0/80 [0.0%, 4.6%]),
+//    but candidate agreement admits 25.0% errors from dropped units and neighbor displacement.
+// 4. Policy Status: Automated ingestion is paused; consensus acts as confidence hint.
 // -----------------------------------------------------------------------------
 
 enum class DocumentDegradationClass {
@@ -128,7 +130,8 @@ public:
                 // Consensus established
                 fact.status = FactVerificationStatus::AUTO_ACCEPTED_CONSENSUS;
                 fact.resolved_value = normA;
-                // Empirical precision for consensus is 100% observed (95% CI: [96.9%, 100.0%])
+                // Note: Optical character false consensus is 0.0%, but candidate agreement admits 25.0% errors;
+                // auto-commit is paused upstream in IngestionManager pending Step 4 attribution.
                 fact.confidence_score = 0.985;
                 fact.audit_note = "High Confidence Consensus: Windows OCR and Tesseract produced identical value (" + normA + ").";
                 result.facts_auto_accepted++;
