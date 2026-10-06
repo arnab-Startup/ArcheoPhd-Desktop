@@ -46,7 +46,7 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 - **Spec v2.0** sealed at `ccbc5f3`: mention-level extraction, astronomical normalization, never-repair invariant, bare-year exclusion.
 - **Extractor v2** (`engine/extraction/entity_extractor.hpp`, commit `116995d`): handles linear dimensions, ranges, compound dims, depth/elevation, mass, temperatures, locus IDs, strata, trenches, spatial areas, artifact counts, exact/approx/range BCE/CE dates, uncalibrated C-14 BP, author-calibrated dates, and negative-context exclusion (citations, figures, ratios, scales).
 - **Hardcoded literals removed** (`0e54f90`): five synthetic anomaly patterns (`2040 cm`, `Locus 691`, `Sample 1063`, `1846 m`, `locus 1M7`) were excised from the extractor. A static audit test (`tests/test_no_hardcoded_literals.cpp`) guards against their return.
-- **Report 12** (`docs/reports/12_phase2_step3_entity_extraction_benchmark_report.md`) documents all runs, number reconciliation, and the real-OCR capability analysis.
+- **Report 12** (`../docs/desktop/reports/12_phase2_step3_entity_extraction_benchmark_report.md`) documents all runs, number reconciliation, and the real-OCR capability analysis.
 
 ### Real-OCR capability numbers (the only numbers that matter for Step 4 planning)
 
@@ -72,7 +72,7 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 - **Unit Loss is a Safety Deficit (5.0%):** Production `NormalizeNumericFact` preserves units if present, but cannot detect when upstream extraction dropped a unit (`40 miles` $\to$ `40`, `30%` $\to$ `30`). A bare `40` passing into the Knowledge Graph as a distance corrupts queries.
 - **Pipeline Recall of 11/55 is an Empirical Coincidence:** Tesseract (11/55) and Windows OCR (11/55) achieve the identical net hit count through different subsets: they share 7 hits (#7, #23, #38, #69, #100, #112, #113), while Tesseract uniquely captures 4 hits (#9, #14, #68, #96) and Windows OCR uniquely captures 4 different hits (#11, #20, #22, #156).
 - **Clean Denominators Reflect Scorer Limits on Degraded Scans:** Under span anchoring, Class B clean denominators drop from 21 (Tess) and 15 (Win) down to 14 and 10 because 7 and 5 facts were lost to anchor failures on degraded Sankalia pages. In Class A, clean facts drop from 15 to 13 because tabular column layout in `rajan_p110` placed C-14 dates outside the localized clausal window.
-- **Classification Provenance Disclosure:** The classification of the 22 consensus-error facts was performed forensically after viewing candidate extraction outputs and document page texts. Complete windows are preserved in `docs/reports/false_consensus_22_windows.md`.
+- **Classification Provenance Disclosure:** The classification of the 22 consensus-error facts was performed forensically after viewing candidate extraction outputs and document page texts. Complete windows are preserved in `../docs/desktop/reports/false_consensus_22_windows.md`.
 
 **"In-scope"** means: era-marked dates (BC/BCE/AD/CE/BP), measurements, and counts (55 total facts). Across the corpus, 111 of 166 facts (66.9%) are bare 4-digit years (85/104 in Class A, 81.7%; 26/62 in Class B, 41.9%) and are **out-of-scope by design** — adding them without contextual attribution would cause massive false positives on page numbers and bibliography years. **Pipeline recall** measures retrieval out of all 55 in-scope facts, including those mangled or dropped by OCR.
 
@@ -120,8 +120,8 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 | `tests/test_no_hardcoded_literals.cpp` | Audit: asserts no synthetic literals in extractor |
 | `tests/test_real_ocr_eval.cpp` | Real-OCR plausibility evaluation harness |
 | `tests/ocr_benchmark_50/` | 50 Tesseract + 50 Windows OCR scanned pages + ground truth (166 facts) |
-| `docs/reports/12_phase2_step3_entity_extraction_benchmark_report.md` | Full evaluation ledger — read before any extractor change |
-| `docs/reports/README.md` | Index of all phase reports |
+| `../docs/desktop/reports/12_phase2_step3_entity_extraction_benchmark_report.md` | Full evaluation ledger — read before any extractor change |
+| `../docs/desktop/reports/README.md` | Index of all phase reports |
 
 ---
 
@@ -185,18 +185,18 @@ g++ -std=c++20 -O2 -Iengine -Iinclude tests/test_real_ocr_eval.cpp -o tests/test
 
 | Report | Subject | Verdict |
 |---|---|:---:|
-| [01](docs/reports/01_ocr_engine_and_preprocessing_benchmark.md) | OCR engine benchmark, 50 pages, 166 facts | Done |
-| [02](docs/reports/02_dual_engine_routing_and_verification.md) | Dual-engine routing & verification state machine | Done |
-| [03](docs/reports/03_vlm_degraded_scan_feasibility_investigation.md) | VLM feasibility on Class B letterpress — rejected | Done |
-| [04](docs/reports/04_phase1_ingestion_and_adversarial_gating_test_report.md) | Ingestion & adversarial gating (11 tests, 100%) | Done |
-| [05](docs/reports/05_phase1_step2_ipc_webview2_bridge_test_report.md) | IPC WebView2 bridge (18 tests, 100%) | Done |
-| [06](docs/reports/06_phase1_step3_native_ui_integration_report.md) | Native UI integration (24 tests, 100%) | Done |
-| [07](docs/reports/07_phase1_step4_vector_persistence_and_gguf_retrieval_report.md) | Vector persistence, GGUF embedding, Recall@5 85% | Done |
-| [08](docs/reports/08_phase1_step5_hybrid_retrieval_and_bm25_fusion_report.md) | BM25 hybrid retrieval, Recall@5 95%, MRR 0.85 | Done |
-| [09](docs/reports/09_phase1_final_signoff_report.md) | Phase 1 signoff, 72 assertions, 100% pass | Done |
-| [10](docs/reports/10_phase2_step1_and_step2_harris_matrix_and_graph_report.md) | Harris matrix DAG, KG store (25 tests, 100%) | Done |
-| [11](docs/reports/11_phase2_step3_entity_extraction_benchmark_report.md) | Entity extraction Dev Set 1 — **SUPERSEDED** by Report 12 | Superseded |
-| [**12**](docs/reports/12_phase2_step3_entity_extraction_benchmark_report.md) | **Entity extraction full ledger — reconciled** | **Active** |
+| [01](../docs/desktop/reports/01_ocr_engine_and_preprocessing_benchmark.md) | OCR engine benchmark, 50 pages, 166 facts | Done |
+| [02](../docs/desktop/reports/02_dual_engine_routing_and_verification.md) | Dual-engine routing & verification state machine | Done |
+| [03](../docs/desktop/reports/03_vlm_degraded_scan_feasibility_investigation.md) | VLM feasibility on Class B letterpress — rejected | Done |
+| [04](../docs/desktop/reports/04_phase1_ingestion_and_adversarial_gating_test_report.md) | Ingestion & adversarial gating (11 tests, 100%) | Done |
+| [05](../docs/desktop/reports/05_phase1_step2_ipc_webview2_bridge_test_report.md) | IPC WebView2 bridge (18 tests, 100%) | Done |
+| [06](../docs/desktop/reports/06_phase1_step3_native_ui_integration_report.md) | Native UI integration (24 tests, 100%) | Done |
+| [07](../docs/desktop/reports/07_phase1_step4_vector_persistence_and_gguf_retrieval_report.md) | Vector persistence, GGUF embedding, Recall@5 85% | Done |
+| [08](../docs/desktop/reports/08_phase1_step5_hybrid_retrieval_and_bm25_fusion_report.md) | BM25 hybrid retrieval, Recall@5 95%, MRR 0.85 | Done |
+| [09](../docs/desktop/reports/09_phase1_final_signoff_report.md) | Phase 1 signoff, 72 assertions, 100% pass | Done |
+| [10](../docs/desktop/reports/10_phase2_step1_and_step2_harris_matrix_and_graph_report.md) | Harris matrix DAG, KG store (25 tests, 100%) | Done |
+| [11](../docs/desktop/reports/11_phase2_step3_entity_extraction_benchmark_report.md) | Entity extraction Dev Set 1 — **SUPERSEDED** by Report 12 | Superseded |
+| [**12**](../docs/desktop/reports/12_phase2_step3_entity_extraction_benchmark_report.md) | **Entity extraction full ledger — reconciled** | **Active** |
 
 ---
 
