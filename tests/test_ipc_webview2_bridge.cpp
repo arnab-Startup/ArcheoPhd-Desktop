@@ -1194,45 +1194,72 @@ int main() {
         bool directPutClassBOk = storage.put_claim(badClassBClaim);
         assert(directPutClassBOk == false); // Blocked by Class B hard gate!
 
-        // 7. Call verify_claim_grounding on an existing consensus-tagged claim:
-        // Client attempts to supply origin_type: "manual_transcription".
-        // The endpoint must successfully update text, mark VERIFIED, and commit,
-        // but must NOT allow the client to alter origin_type (provenance remains immutable).
-        Claim consensusClaim;
-        consensusClaim.id = "consensus_audit_claim_001";
-        consensusClaim.source_id = "src_consensus_test";
-        consensusClaim.origin_type = "scanned_ocr_dual_consensus";
-        consensusClaim.verification_status = "VERIFIED";
-        consensusClaim.claim_text = "Original consensus text";
-        bool seedOk = storage.put_claim(consensusClaim);
-        assert(seedOk == true);
+        // 7. verify_claim_grounding Provenance Integrity:
+        // (a) Confirm-unchanged on consensus claim: origin_type MUST remain "scanned_ocr_dual_consensus".
+        Claim consensusConfirmClaim;
+        consensusConfirmClaim.id = "consensus_confirm_claim_001";
+        consensusConfirmClaim.source_id = "src_consensus_test";
+        consensusConfirmClaim.origin_type = "scanned_ocr_dual_consensus";
+        consensusConfirmClaim.verification_status = "VERIFIED";
+        consensusConfirmClaim.claim_text = "Verbatim consensus text";
+        bool seedOk1 = storage.put_claim(consensusConfirmClaim);
+        assert(seedOk1 == true);
 
-        auto verifyConsensusRes = bridge.call("verify_claim_grounding", {
-            {"claim_id", "consensus_audit_claim_001"},
-            {"corrected_text", "Human-corrected consensus finding"},
-            {"action", "correct"},
-            {"origin_type", "manual_transcription"} // Client attempting to tamper with origin_type
+        auto confirmRes = bridge.call("verify_claim_grounding", {
+            {"claim_id", "consensus_confirm_claim_001"},
+            {"corrected_text", "Verbatim consensus text"}, // Unchanged text
+            {"action", "confirm"}
         });
-        assert(verifyConsensusRes.resolved == true);
-        assert(verifyConsensusRes.result["success"] == true);
+        assert(confirmRes.resolved == true);
+        assert(confirmRes.result["success"] == true);
 
-        // Verify storage provenance is preserved and NOT overwritten by client payload:
-        auto updatedClaims = storage.get_claims();
-        bool foundConsensus = false;
-        for (const auto& c : updatedClaims) {
-            if (c.id == "consensus_audit_claim_001") {
-                foundConsensus = true;
-                assert(c.claim_text == "Human-corrected consensus finding");
+        bool foundConfirmedConsensus = false;
+        for (const auto& c : storage.get_claims()) {
+            if (c.id == "consensus_confirm_claim_001") {
+                foundConfirmedConsensus = true;
+                assert(c.claim_text == "Verbatim consensus text");
                 assert(c.verification_status == "VERIFIED");
-                assert(c.origin_type == "scanned_ocr_dual_consensus"); // Provenance intact!
+                assert(c.origin_type == "scanned_ocr_dual_consensus"); // Preserved because text was not altered!
             }
         }
-        assert(foundConsensus == true);
+        assert(foundConfirmedConsensus == true);
+
+        // (b) Edit on consensus claim: text modified by human MUST transition origin_type to "manual_transcription".
+        Claim consensusEditClaim;
+        consensusEditClaim.id = "consensus_edit_claim_002";
+        consensusEditClaim.source_id = "src_consensus_test";
+        consensusEditClaim.origin_type = "scanned_ocr_dual_consensus";
+        consensusEditClaim.verification_status = "VERIFIED";
+        consensusEditClaim.claim_text = "Machine consensus candidate 40";
+        bool seedOk2 = storage.put_claim(consensusEditClaim);
+        assert(seedOk2 == true);
+
+        auto editRes = bridge.call("verify_claim_grounding", {
+            {"claim_id", "consensus_edit_claim_002"},
+            {"corrected_text", "Human-corrected finding (40 miles)"}, // Modified text
+            {"action", "correct"}
+        });
+        assert(editRes.resolved == true);
+        assert(editRes.result["success"] == true);
+
+        bool foundEditedClaim = false;
+        for (const auto& c : storage.get_claims()) {
+            if (c.id == "consensus_edit_claim_002") {
+                foundEditedClaim = true;
+                assert(c.claim_text == "Human-corrected finding (40 miles)");
+                assert(c.verification_status == "VERIFIED");
+                assert(c.status == "Verified");
+                assert(c.origin_type == "manual_transcription"); // Successfully transitioned!
+                assert(c.origin_type != "scanned_ocr_dual_consensus"); // CANNOT remain tagged machine consensus!
+            }
+        }
+        assert(foundEditedClaim == true);
 
         std::cout << "  ✓ verify_claim_grounding non-existent claim rejected; no upsert permitted.\n";
         std::cout << "  ✓ put_claim IPC rejects arbitrary/spoofed origin types.\n";
         std::cout << "  ✓ Storage put_claim programmatically enforces consensus pause and Class B hard gate.\n";
-        std::cout << "  ✓ verify_claim_grounding on consensus claim updates text but preserves immutable origin_type.\n\n";
+        std::cout << "  ✓ Confirming consensus claim unchanged preserves 'scanned_ocr_dual_consensus' provenance.\n";
+        std::cout << "  ✓ Editing consensus claim text transitions provenance to 'manual_transcription' (cannot remain consensus).\n\n";
     }
 
     // Clean up temporary files

@@ -277,8 +277,11 @@ public:
                 bool found = false;
                 for (auto& c : claims) {
                     if (c.id == claimId) {
-                        if (act == "correct" && !correctedText.empty()) {
+                        bool textModified = (act == "correct" && !correctedText.empty() && correctedText != c.claim_text);
+                        if (textModified) {
                             c.claim_text = correctedText;
+                            c.origin_type = "manual_transcription";
+                            c.status = "Verified";
                         }
                         c.verification_status = "VERIFIED";
                         c.anomaly_flag = false;
@@ -288,7 +291,9 @@ public:
                         break;
                     }
                 }
-                storage_->save_state();
+                if (found) {
+                    storage_->save_state();
+                }
                 res["result"] = {{"success", found}};
             } else if (action == "get_evidence") {
                 auto evidence = storage_->get_evidence(projectId);
