@@ -11,6 +11,11 @@
 #include "analysis/hybrid_search.hpp"
 #include "analysis/contradictions.hpp"
 #include "analysis/thesis_audit.hpp"
+#include "analysis/chronology.hpp"
+#include "analysis/spatial_engine.hpp"
+#include "analysis/graph_engine.hpp"
+#include "analysis/export_engine.hpp"
+#include "analysis/analytics_engine.hpp"
 #include "core/system_inspector.hpp"
 #include "validation/benchmark_seed.hpp"
 #include "storage/data_root.hpp"
@@ -234,6 +239,118 @@ public:
                     return res.dump();
                 }
                 res["result"] = thesisAuditor_->run_audit(projectId);
+            } else if (action == "get_chronology_timeline") {
+                NativeChronologyEngine chrono(*storage_);
+                res["result"] = chrono.get_timeline_data(projectId);
+            } else if (action == "calibrate_radiocarbon") {
+                double bpAge = payload.value("bp_age", 3000.0);
+                double bpSigma = payload.value("bp_sigma", 40.0);
+                auto cal = NativeChronologyEngine::calibrate_c14(bpAge, bpSigma);
+                res["result"] = {
+                    {"bp_age", cal.bp_age},
+                    {"bp_sigma", cal.bp_sigma},
+                    {"cal_start", cal.cal_start},
+                    {"cal_end", cal.cal_end},
+                    {"cal_display_start", cal.cal_display_start},
+                    {"cal_display_end", cal.cal_display_end},
+                    {"formula", cal.formula}
+                };
+            } else if (action == "get_spatial_geojson") {
+                NativeSpatialEngine spatial(*storage_);
+                res["result"] = spatial.to_geojson_feature_collection(projectId);
+            } else if (action == "query_sites_radius") {
+                double lat = payload.value("latitude", 0.0);
+                double lon = payload.value("longitude", 0.0);
+                double radius = payload.value("radius_km", 50.0);
+                NativeSpatialEngine spatial(*storage_);
+                auto matches = spatial.get_sites_within_radius(lat, lon, radius, projectId);
+                json arr = json::array();
+                for (const auto& m : matches) {
+                    arr.push_back({
+                        {"site", m.site},
+                        {"distance_km", m.distance_km},
+                        {"bearing_degrees", m.bearing_degrees},
+                        {"compass_direction", m.compass_direction},
+                        {"elevation_diff_meters", m.elevation_diff_meters}
+                    });
+                }
+                res["result"] = arr;
+            } else if (action == "get_site_neighbors") {
+                std::string siteId = payload.value("site_id", "");
+                int k = payload.value("k", 5);
+                NativeSpatialEngine spatial(*storage_);
+                auto matches = spatial.compute_nearest_neighbors(siteId, k, projectId);
+                json arr = json::array();
+                for (const auto& m : matches) {
+                    arr.push_back({
+                        {"site", m.site},
+                        {"distance_km", m.distance_km},
+                        {"bearing_degrees", m.bearing_degrees},
+                        {"compass_direction", m.compass_direction},
+                        {"elevation_diff_meters", m.elevation_diff_meters}
+                    });
+                }
+                res["result"] = arr;
+            } else if (action == "get_spatial_clusters") {
+                double eps = payload.value("epsilon_km", 35.0);
+                int minPts = payload.value("min_pts", 1);
+                NativeSpatialEngine spatial(*storage_);
+                auto clusters = spatial.compute_spatial_clusters(eps, minPts, projectId);
+                json arr = json::array();
+                for (const auto& c : clusters) {
+                    arr.push_back({
+                        {"cluster_id", c.cluster_id},
+                        {"label", c.label},
+                        {"centroid_latitude", c.centroid_latitude},
+                        {"centroid_longitude", c.centroid_longitude},
+                        {"min_latitude", c.min_latitude},
+                        {"max_latitude", c.max_latitude},
+                        {"min_longitude", c.min_longitude},
+                        {"max_longitude", c.max_longitude},
+                        {"site_ids", c.site_ids},
+                        {"site_names", c.site_names},
+                        {"site_count", c.site_count}
+                    });
+                }
+                res["result"] = arr;
+            } else if (action == "get_knowledge_graph_full") {
+                NativeGraphEngine graph(*storage_);
+                res["result"] = graph.get_full_graph_data(projectId);
+            } else if (action == "trace_evidence_path") {
+                std::string srcId = payload.value("source_id", "");
+                std::string tgtId = payload.value("target_id", "");
+                bool directed = payload.value("directed", false);
+                NativeGraphEngine graph(*storage_);
+                auto path = graph.trace_shortest_path(srcId, tgtId, projectId, directed);
+                res["result"] = {
+                    {"found", path.found},
+                    {"length", path.length},
+                    {"node_ids", path.node_ids},
+                    {"node_types", path.node_types},
+                    {"node_labels", path.node_labels},
+                    {"edge_types", path.edge_types}
+                };
+            } else if (action == "get_node_neighbors") {
+                std::string nodeId = payload.value("node_id", "");
+                int hops = payload.value("hops", 1);
+                NativeGraphEngine graph(*storage_);
+                res["result"] = graph.get_k_hop_subgraph(nodeId, hops, projectId);
+            } else if (action == "export_thesis_dossier") {
+                std::string targetDir = payload.value("target_dir", "");
+                NativeExportEngine exporter(*storage_, thesisAuditor_, contradictions_);
+                if (!targetDir.empty()) {
+                    res["result"] = exporter.export_all(targetDir, projectId);
+                } else {
+                    res["result"] = {
+                        {"bibtex", exporter.generate_bibtex(projectId)},
+                        {"markdown_dossier", exporter.generate_markdown_dossier(projectId)},
+                        {"html_dossier", exporter.generate_html_dossier(projectId)},
+                        {"json_archive", exporter.generate_json_archive(projectId)}
+                    };
+                }
+            } else if (action == "get_dashboard_analytics") {
+                NativeAnalyticsEngine analytics(*storage_, thesisAuditor_, contradictions_);
+                res["result"] = analytics.get_full_dashboard_analytics(projectId);
             } else if (action == "get_sites") {
                 auto sites = storage_->get_sites(projectId);
                 json arr = json::array();

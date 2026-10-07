@@ -5,6 +5,7 @@
 #include <map>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include "models.hpp"
@@ -278,7 +279,7 @@ public:
 #endif
     }
 
-    std::string read_compressed_chunk(const std::string& chunk_id) {
+    std::string read_compressed_chunk(const std::string& chunk_id) const {
 #ifdef HAS_ZSTD
         std::string filepath = chunks_dir() + "/" + chunk_id + ".zst";
         if (!fs_compat::exists(filepath)) return "";
@@ -324,6 +325,13 @@ public:
                 res.push_back(kv.second);
         }
         return res;
+    }
+
+    std::optional<Site> get_site(const std::string& id) const {
+        NativeGuard lock(mutex_);
+        auto it = sites_.find(id);
+        if (it != sites_.end()) return it->second;
+        return std::nullopt;
     }
 
     std::vector<Stratum> get_strata(const std::string& project_id = "") const {

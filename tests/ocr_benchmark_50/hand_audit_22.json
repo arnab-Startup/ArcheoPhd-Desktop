@@ -1,12 +1,12 @@
 {
   "37": {
-    "cat": "wrong token picked by scorer",
+    "cat": "BIBLIO_CITATION_REJECTION",
     "gt_present_tess": true,
     "gt_present_win": true,
     "highlight_tess": "Continental Daily Mail, Paris, 14.6.[1947]",
     "highlight_win": "66. [1947] ••ney• brain surgery 10.000 years ago",
     "picked": "10,000",
-    "analysis": "Clausal context binds newspaper report date to 1947 (CE); prehistoric count 10,000 is suppressed."
+    "analysis": "Footnote 66 bibliography citation (Continental Daily Mail, 14.6.1947). Generator must suppress citation date 1947 and count 10,000 under Rule 2 (status: REJECTED_NON_FINDING)."
   },
   "51": {
     "cat": "unit or symbol dropped",
@@ -108,13 +108,13 @@
     "analysis": "Both engines transcribed 'appeared only in 1839' verbatim. Generator binds guidebook release slot to 1839; separates museum opening 1819."
   },
   "124": {
-    "cat": "wrong token picked by scorer",
+    "cat": "bibliographic citation rejection",
     "gt_present_tess": true,
     "gt_present_win": true,
     "highlight_tess": "Origin of Species published in 1859 and Herbert Spencer’s ([1820-1903]) evolutionary approach",
     "highlight_win": "Origin of Species published in 1859 and Herbert Spencer's ( [1820-1903]) evolutionary approach",
     "picked": "1859",
-    "analysis": "Both engines transcribed '(1820-1903)' verbatim. Generator binds Spencer lifespan slot to compound range 1820-1903; separates book date 1859."
+    "analysis": "Both engines transcribed '(1820-1903)' verbatim. Scholar lifespan is biographical metadata suppressed under Rule 2.1."
   },
   "135": {
     "cat": "wrong token picked by scorer",

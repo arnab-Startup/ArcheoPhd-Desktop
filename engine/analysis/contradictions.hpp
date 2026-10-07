@@ -8,12 +8,14 @@
 #include <algorithm>
 #include "models.hpp"
 #include "storage.hpp"
+#include "llm_engine.hpp"
 
 namespace archaeophd {
 
 class NativeContradictionEngine {
 private:
     const NativeStorage& storage_;
+    LlmEngine* llm_engine_ = nullptr;
 
     // -------------------------------------------------------------
     // Tarjan's Algorithm for Stratigraphic Cycle Detection (Type 3)
@@ -62,8 +64,12 @@ private:
     }
 
 public:
-    explicit NativeContradictionEngine(const NativeStorage& storage)
-        : storage_(storage) {}
+    explicit NativeContradictionEngine(const NativeStorage& storage, LlmEngine* llm_engine = nullptr)
+        : storage_(storage), llm_engine_(llm_engine) {}
+
+    void set_llm_engine(LlmEngine* llm_engine) {
+        llm_engine_ = llm_engine;
+    }
 
     std::vector<Contradiction> run_all(const std::string& project_id = "default") const {
         std::vector<Contradiction> all;
@@ -78,6 +84,9 @@ public:
 
         auto t2 = detect_type_2_interpretive(project_id);
         all.insert(all.end(), t2.begin(), t2.end());
+
+        auto t2_sem = detect_type_2_semantic(project_id);
+        all.insert(all.end(), t2_sem.begin(), t2_sem.end());
 
         auto t4 = detect_type_4_cross_site(project_id);
         all.insert(all.end(), t4.begin(), t4.end());
@@ -349,6 +358,81 @@ public:
                 ct.resolution_guidance = "Possible conflict — please review. The assertion of 'simultaneous' is undermined by chronological spread; reframe as 'staggered regional destabilization 1230–1150 BCE'.";
                 ct.is_confirmed = false; // Review-only guardrail
                 conflicts.push_back(std::move(ct));
+            }
+        }
+
+        return conflicts;
+    }
+
+    // -------------------------------------------------------------
+    // Type 2: Semantic Claim Contradiction via Qwen 2.5 7B
+    // -------------------------------------------------------------
+    std::vector<Contradiction> detect_type_2_semantic(const std::string& project_id) const {
+        std::vector<Contradiction> conflicts;
+        if (!llm_engine_ || !llm_engine_->is_loaded()) return conflicts;
+
+        auto claims = storage_.get_claims(project_id);
+        if (claims.size() < 2) return conflicts;
+
+        std::map<std::string, std::vector<Claim>> entity_claims;
+        for (const auto& c : claims) {
+            for (const auto& sid : c.site_ids) entity_claims["site:" + sid].push_back(c);
+            for (const auto& stid : c.strata_ids) entity_claims["stratum:" + stid].push_back(c);
+        }
+
+        std::set<std::pair<std::string, std::string>> evaluated_pairs;
+
+        for (const auto& kv : entity_claims) {
+            const auto& c_list = kv.second;
+            if (c_list.size() < 2) continue;
+
+            for (size_t i = 0; i < c_list.size(); ++i) {
+                for (size_t j = i + 1; j < c_list.size(); ++j) {
+                    const auto& c1 = c_list[i];
+                    const auto& c2 = c_list[j];
+                    if (c1.id == c2.id) continue;
+
+                    std::pair<std::string, std::string> pair_key = {std::min(c1.id, c2.id), std::max(c1.id, c2.id)};
+                    if (evaluated_pairs.count(pair_key)) continue;
+                    evaluated_pairs.insert(pair_key);
+
+                    std::string raw_analysis = llm_engine_->analyze_contradiction(c1.claim_text, c2.claim_text);
+                    if (raw_analysis.empty()) continue;
+
+                    try {
+                        size_t brace_open = raw_analysis.find('{');
+                        size_t brace_close = raw_analysis.rfind('}');
+                        if (brace_open != std::string::npos && brace_close != std::string::npos && brace_close > brace_open) {
+                            auto j_resp = json::parse(raw_analysis.substr(brace_open, brace_close - brace_open + 1));
+                            std::string rel = j_resp.value("relation", "");
+                            std::string reason = j_resp.value("reason", "");
+                            std::string rel_upper = rel;
+                            std::transform(rel_upper.begin(), rel_upper.end(), rel_upper.begin(), ::toupper);
+
+                            if (rel_upper.find("CONTRADICT") != std::string::npos) {
+                                Contradiction c;
+                                c.id = "sem-" + c1.id + "-" + c2.id;
+                                c.project_id = project_id;
+                                c.type = "Type 2: Interpretive (Semantic)";
+                                c.severity = "HIGH";
+                                c.title = "Semantic Claim Contradiction Detected";
+                                c.entity_name = kv.first;
+                                c.source_a = c1.scholar_name.empty() ? "Source A" : c1.scholar_name;
+                                c.claim_a = c1.claim_text;
+                                c.source_b = c2.scholar_name.empty() ? "Source B" : c2.scholar_name;
+                                c.claim_b = c2.claim_text;
+                                c.details = {
+                                    {"relation", rel},
+                                    {"ai_reasoning", reason},
+                                    {"shared_context", kv.first}
+                                };
+                                c.resolution_guidance = "Opposing archaeological claims: evaluate primary site stratigraphic context before citing in dissertation.";
+                                c.is_confirmed = false;
+                                conflicts.push_back(std::move(c));
+                            }
+                        }
+                    } catch (...) {}
+                }
             }
         }
 

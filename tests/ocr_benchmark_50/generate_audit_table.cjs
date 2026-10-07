@@ -22,8 +22,8 @@ const auditIds = Object.keys(audit22).map(Number).sort((a, b) => a - b);
 // Target expectations mapped directly to Step 4 Dev Set
 const expectedOutputs = {
   37: {
-    expected: "`EXTRACT_ATTRIBUTED`: `1947` (CE), subject `newspaper_report_date`",
-    analysis: "Generator binds calendar date 1947 (CE) to newspaper report; prehistoric count 10,000 is suppressed."
+    expected: "`REJECT_NON_FINDING`: no candidate (status: REJECTED_NON_FINDING)",
+    analysis: "Footnote 66 bibliography entry. Generator suppresses citation year 1947 and prehistoric count 10,000 under Rule 2."
   },
   51: {
     expected: "`EXTRACT_ATTRIBUTED`: `6 m`, subject `stratum_depth`",
@@ -70,8 +70,8 @@ const expectedOutputs = {
     analysis: "Generator binds guidebook publication slot to 1839; separates museum opening 1819."
   },
   124: {
-    expected: "`EXTRACT_ATTRIBUTED`: `1820-1903` (CE range), subject `spencer_lifespan`",
-    analysis: "Generator binds Spencer lifespan slot to compound range 1820-1903; separates book date 1859."
+    expected: "`REJECT_NON_FINDING`: no candidate (status: REJECTED_NON_FINDING)",
+    analysis: "Generator suppresses scholar lifespan '(1820-1903)' under Rule 2.1 as biographical metadata and emits no candidate."
   },
   135: {
     expected: "`EXTRACT_ATTRIBUTED`: `1870` (CE), subject `second_treatise_publication`",
@@ -125,16 +125,14 @@ for (const id of auditIds) {
   const candStr = (tess === win) ? tess : `${tess} / ${win}`;
 
   let cat = 'SCORER_TOKEN_DISPLACEMENT';
-  if (audit.cat === 'unit or symbol dropped') {
+  if (id === 37 || id === 144 || id === 124 || audit.cat === 'BIBLIO_CITATION_REJECTION') {
+    cat = 'BIBLIO_CITATION_REJECTION';
+  } else if (audit.cat === 'unit or symbol dropped') {
     cat = 'UNIT_LOST';
   } else if (audit.cat === 'GT absent from window') {
     cat = 'AGREED_WRONG_CANDIDATE_GT_ABSENT';
   } else if (audit.cat === 'partial read') {
-    if (id === 144) {
-      cat = 'BIBLIO_CITATION_REJECTION';
-    } else {
-      cat = 'PARTIAL_RANGE_TRUNCATION';
-    }
+    cat = 'PARTIAL_RANGE_TRUNCATION';
   }
 
   if (id === 148 || id === 154) {

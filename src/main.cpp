@@ -23,6 +23,7 @@
 #include "storage/storage.hpp"
 #include "analysis/vector_index.hpp"
 #include "analysis/contradictions.hpp"
+#include "analysis/llm_engine.hpp"
 #include "analysis/thesis_audit.hpp"
 #include "core/system_inspector.hpp"
 #include "validation/benchmark_seed.hpp"
@@ -65,6 +66,21 @@ inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
     }
     if (archaeophd::fs_compat::exists(modelPath)) {
         archaeophd::EmbeddingEngine::instance().load_model(modelPath, 4);
+    }
+
+    // Initialize local Qwen 2.5 7B LLM engine if present
+    std::string llmPath = dataRoot + "\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+    if (!archaeophd::fs_compat::exists(llmPath)) {
+        if (archaeophd::fs_compat::exists("models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+            llmPath = "models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+        } else if (archaeophd::fs_compat::exists("..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+            llmPath = "..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+        }
+    }
+    if (archaeophd::fs_compat::exists(llmPath)) {
+        if (archaeophd::LlmEngine::instance().initialize(llmPath)) {
+            g_contradictions->set_llm_engine(&archaeophd::LlmEngine::instance());
+        }
     }
 
     if (g_storage->count_sites() == 0) {
