@@ -34,6 +34,19 @@
 
 using json = nlohmann::json;
 
+inline void LogDebug(const std::string& msg) {
+    std::ofstream f("live_debug.log", std::ios::app);
+    if (f.is_open()) {
+        f << msg << std::endl;
+        f.flush();
+    }
+    std::ofstream f2("release/live_debug.log", std::ios::app);
+    if (f2.is_open()) {
+        f2 << msg << std::endl;
+        f2.flush();
+    }
+}
+
 // Native Engine Singletons
 static std::unique_ptr<archaeophd::NativeStorage> g_storage;
 static std::unique_ptr<archaeophd::NativeContradictionEngine> g_contradictions;
@@ -42,54 +55,62 @@ static std::string g_currentDataRoot;
 
 inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
     if (dataRoot.empty()) return false;
-    std::string libDir = dataRoot + "\\libraries\\default";
-    std::string legacyDir = dataRoot + "\\data";
-    std::string actualStorageDir = libDir;
-    if (!archaeophd::fs_compat::exists(libDir) && archaeophd::fs_compat::exists(legacyDir)) {
-        actualStorageDir = legacyDir;
-    } else {
-        archaeophd::fs_compat::create_directories(actualStorageDir);
-    }
-
-    g_storage = std::unique_ptr<archaeophd::NativeStorage>(new archaeophd::NativeStorage(actualStorageDir));
-    g_contradictions = std::unique_ptr<archaeophd::NativeContradictionEngine>(new archaeophd::NativeContradictionEngine(*g_storage));
-    g_thesisAuditor = std::unique_ptr<archaeophd::NativeThesisAuditor>(new archaeophd::NativeThesisAuditor(*g_storage, *g_contradictions));
-
-    // Initialize nomic embedding model if present in data root, current dir, or parent dir
-    std::string modelPath = dataRoot + "\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
-    if (!archaeophd::fs_compat::exists(modelPath)) {
-        if (archaeophd::fs_compat::exists("desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
-            modelPath = "desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
-        } else if (archaeophd::fs_compat::exists("models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
-            modelPath = "models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
-        } else if (archaeophd::fs_compat::exists("..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
-            modelPath = "..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+    try {
+        std::string libDir = dataRoot + "\\libraries\\default";
+        std::string legacyDir = dataRoot + "\\data";
+        std::string actualStorageDir = libDir;
+        if (!archaeophd::fs_compat::exists(libDir) && archaeophd::fs_compat::exists(legacyDir)) {
+            actualStorageDir = legacyDir;
+        } else {
+            archaeophd::fs_compat::create_directories(actualStorageDir);
         }
-    }
-    if (archaeophd::fs_compat::exists(modelPath)) {
-        archaeophd::EmbeddingEngine::instance().load_model(modelPath, 4);
-    }
 
-    // Initialize local Qwen 2.5 7B LLM engine if present
-    std::string llmPath = dataRoot + "\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
-    if (!archaeophd::fs_compat::exists(llmPath)) {
-        if (archaeophd::fs_compat::exists("desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
-            llmPath = "desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
-        } else if (archaeophd::fs_compat::exists("models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
-            llmPath = "models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
-        } else if (archaeophd::fs_compat::exists("..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
-            llmPath = "..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
-        }
-    }
-    if (archaeophd::fs_compat::exists(llmPath)) {
-        if (archaeophd::LlmEngine::instance().initialize(llmPath)) {
-            g_contradictions->set_llm_engine(&archaeophd::LlmEngine::instance());
-        }
-    }
+        g_storage = std::unique_ptr<archaeophd::NativeStorage>(new archaeophd::NativeStorage(actualStorageDir));
+        g_contradictions = std::unique_ptr<archaeophd::NativeContradictionEngine>(new archaeophd::NativeContradictionEngine(*g_storage));
+        g_thesisAuditor = std::unique_ptr<archaeophd::NativeThesisAuditor>(new archaeophd::NativeThesisAuditor(*g_storage, *g_contradictions));
 
-    // Clean release: Do not seed static benchmark test data into user research space
-    g_currentDataRoot = dataRoot;
-    return true;
+        // Initialize nomic embedding model if present in data root, current dir, or parent dir
+        std::string modelPath = dataRoot + "\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+        if (!archaeophd::fs_compat::exists(modelPath)) {
+            if (archaeophd::fs_compat::exists("desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+                modelPath = "desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+            } else if (archaeophd::fs_compat::exists("models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+                modelPath = "models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+            } else if (archaeophd::fs_compat::exists("..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+                modelPath = "..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+            }
+        }
+        if (archaeophd::fs_compat::exists(modelPath)) {
+            archaeophd::EmbeddingEngine::instance().load_model(modelPath, 4);
+        }
+
+        // Initialize local Qwen 2.5 7B LLM engine if present
+        std::string llmPath = dataRoot + "\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+        if (!archaeophd::fs_compat::exists(llmPath)) {
+            if (archaeophd::fs_compat::exists("desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+                llmPath = "desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+            } else if (archaeophd::fs_compat::exists("models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+                llmPath = "models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+            } else if (archaeophd::fs_compat::exists("..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+                llmPath = "..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+            }
+        }
+        if (archaeophd::fs_compat::exists(llmPath)) {
+            if (archaeophd::LlmEngine::instance().initialize(llmPath)) {
+                g_contradictions->set_llm_engine(&archaeophd::LlmEngine::instance());
+            }
+        }
+
+        // Clean release: Do not seed static benchmark test data into user research space
+        g_currentDataRoot = dataRoot;
+        return true;
+    } catch (const std::exception& ex) {
+        LogDebug(std::string("[ENGINE_INIT_ERROR] ") + ex.what());
+        return false;
+    } catch (...) {
+        LogDebug("[ENGINE_INIT_ERROR] Unknown error initializing native storage");
+        return false;
+    }
 }
 
 // Typedef for the loader export
@@ -121,18 +142,7 @@ static CreateCoreWebView2EnvironmentWithOptionsFn g_pfnCreateEnv = nullptr;
 static ICoreWebView2EnvironmentOptions* g_envOptions = nullptr;
 static std::wstring g_targetUrl = L"";
 
-inline void LogDebug(const std::string& msg) {
-    std::ofstream f("live_debug.log", std::ios::app);
-    if (f.is_open()) {
-        f << msg << std::endl;
-        f.flush();
-    }
-    std::ofstream f2("release/live_debug.log", std::ios::app);
-    if (f2.is_open()) {
-        f2 << msg << std::endl;
-        f2.flush();
-    }
-}
+// LogDebug moved earlier
 
 // Forward declarations
 class ControllerCompletedHandler;
@@ -1494,7 +1504,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     // Initialize Native C++ Offline Engine if Data Root was previously configured and accessible
     auto rootStatus = archaeophd::DataRootManager::GetStatus();
     if (rootStatus.configured && !rootStatus.is_missing) {
-        InitNativeEngineWithDataRoot(rootStatus.data_root);
+        if (!InitNativeEngineWithDataRoot(rootStatus.data_root)) {
+            LogDebug("[WINMAIN] Configured data root was inaccessible. Prompting user to select accessible data root.");
+            rootStatus.configured = false;
+        }
     } else if (g_runLiveUiTests) {
         InitNativeEngineWithDataRoot("test_ipc_bridge_data");
     }

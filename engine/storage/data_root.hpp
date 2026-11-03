@@ -269,6 +269,9 @@ public:
         if (status.configured) {
             std::wstring wideRoot = Utf8ToWide(status.data_root);
             status.is_missing = IsPathMissing(wideRoot);
+            if (!IsDirWritable(wideRoot)) {
+                status.is_missing = true;
+            }
             status.cloud_service = DetectCloudSyncService(wideRoot);
             status.models_dir = status.data_root + "\\models";
             status.libraries_dir = status.data_root + "\\libraries";
