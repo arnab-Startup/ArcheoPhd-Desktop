@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <thread>
 
 // Include local EventToken.h and WebView2.h
 #include <EventToken.h>
@@ -96,9 +97,18 @@ inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
             }
         }
         if (archaeophd::fs_compat::exists(llmPath)) {
-            if (archaeophd::LlmEngine::instance().initialize(llmPath)) {
-                g_contradictions->set_llm_engine(&archaeophd::LlmEngine::instance());
-            }
+            LogDebug("[LLM] Dispatching asynchronous LLM load for: " + llmPath);
+            std::thread([llmPath]() {
+                LogDebug("[LLM] Background model load started: " + llmPath);
+                if (archaeophd::LlmEngine::instance().initialize(llmPath)) {
+                    if (g_contradictions) {
+                        g_contradictions->set_llm_engine(&archaeophd::LlmEngine::instance());
+                    }
+                    LogDebug("[LLM] Background model load completed successfully.");
+                } else {
+                    LogDebug("[LLM] Background model load failed or skipped.");
+                }
+            }).detach();
         }
 
         // Clean release: Do not seed static benchmark test data into user research space
@@ -207,24 +217,21 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
     std::wstring appPayloadDir = baseDir + L"\\app";
     std::wstring targetDist = appPayloadDir + L"\\dist";
     std::wstring targetLoader = appPayloadDir + L"\\WebView2Loader.dll";
+    std::wstring stampFile = appPayloadDir + L"\\build_signature.txt";
+    static const std::string currentSignature = std::string("ARCHAEOPHD_BUILD_") + __DATE__ + "_" + __TIME__;
 
-    // Check if previously extracted files are still fresh compared to this executable
+    // Check if previously extracted files match current binary signature
     bool alreadyExtracted = (GetFileAttributesW((targetDist + L"\\index.html").c_str()) != INVALID_FILE_ATTRIBUTES &&
                              GetFileAttributesW((targetDist + L"\\ingestion-workflow.js").c_str()) != INVALID_FILE_ATTRIBUTES &&
                              GetFileAttributesW(targetLoader.c_str()) != INVALID_FILE_ATTRIBUTES);
     if (alreadyExtracted) {
-        HANDLE hExe = CreateFileW(exePathBuffer, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
-        FILETIME ftExe = {0}, ftExtracted = {0};
-        if (hExe != INVALID_HANDLE_VALUE) {
-            GetFileTime(hExe, nullptr, nullptr, &ftExe);
-            CloseHandle(hExe);
+        std::ifstream sigIn(archaeophd::DataRootManager::WideToUtf8(stampFile));
+        std::string existingSig;
+        if (sigIn.is_open()) {
+            std::getline(sigIn, existingSig);
+            sigIn.close();
         }
-        HANDLE hIndex = CreateFileW((targetDist + L"\\index.html").c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
-        if (hIndex != INVALID_HANDLE_VALUE) {
-            GetFileTime(hIndex, nullptr, nullptr, &ftExtracted);
-            CloseHandle(hIndex);
-        }
-        if (CompareFileTime(&ftExe, &ftExtracted) <= 0) {
+        if (existingSig == currentSignature) {
             outDistFolder = targetDist;
             outLoaderPath = targetLoader;
             return true;
@@ -247,6 +254,13 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
 
     CreateDirectoryW(baseDir.c_str(), nullptr);
     CreateDirectoryW(appPayloadDir.c_str(), nullptr);
+    std::wstring doubleNullTarget = targetDist;
+    doubleNullTarget.push_back(L'\0');
+    SHFILEOPSTRUCTW shfo = { 0 };
+    shfo.wFunc = FO_DELETE;
+    shfo.pFrom = doubleNullTarget.c_str();
+    shfo.fFlags = FOF_NO_UI | FOF_NOCONFIRMATION | FOF_SILENT;
+    SHFileOperationW(&shfo);
 
     wchar_t tempPath[MAX_PATH];
     GetTempPathW(MAX_PATH, tempPath);
@@ -300,6 +314,11 @@ bool EnsureRuntimeExtracted(std::wstring& outDistFolder, std::wstring& outLoader
     }
 
     if (GetFileAttributesW((targetDist + L"\\index.html").c_str()) != INVALID_FILE_ATTRIBUTES) {
+        std::ofstream sigOut(archaeophd::DataRootManager::WideToUtf8(stampFile));
+        if (sigOut.is_open()) {
+            sigOut << currentSignature << std::endl;
+            sigOut.close();
+        }
         outDistFolder = targetDist;
         outLoaderPath = targetLoader;
         return true;
