@@ -590,7 +590,7 @@
             <label class="apd-wf-label">PDF Document File Path</label>
             <div class="apd-wf-input-row">
               <input type="text" id="apd-wf-file-path" class="apd-wf-input apd-wf-input-mono" 
-                placeholder="D:\\Archaeology\\Kenyon_1957_Jericho.pdf" 
+                placeholder="D:\\Research\\Excavation_Report_Vol1.pdf" 
                 value="${initialData.file_path || ''}" />
               <button class="apd-wf-btn apd-wf-btn-secondary" id="apd-wf-browse-btn">
                 📁 Browse...
@@ -601,7 +601,7 @@
           <div class="apd-wf-field">
             <label class="apd-wf-label">Document Title</label>
             <input type="text" id="apd-wf-title" class="apd-wf-input" 
-              placeholder="Excavations at Jericho: Volume I (1952–1958)" 
+              placeholder="Excavation Survey Report: Volume I" 
               value="${initialData.title || ''}" />
           </div>
 
@@ -609,7 +609,7 @@
             <div class="apd-wf-field">
               <label class="apd-wf-label">Primary Author / Excavator</label>
               <input type="text" id="apd-wf-author" class="apd-wf-input" 
-                placeholder="Kathleen M. Kenyon" 
+                placeholder="Primary Author / Researcher" 
                 value="${initialData.author || ''}" />
             </div>
             <div class="apd-wf-field">

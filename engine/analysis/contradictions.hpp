@@ -118,7 +118,7 @@ public:
             const auto& s_id = kv.first;
             const auto& dc_list = kv.second;
             if (dc_list.size() >= 2) {
-                std::string s_name = site_name_map.count(s_id) ? site_name_map[s_id] : "Tell es-Sultan (Jericho)";
+                std::string s_name = site_name_map.count(s_id) ? site_name_map[s_id] : s_id;
                 Contradiction c;
                 c.id = "chrono-" + s_id;
                 c.project_id = project_id;
@@ -126,9 +126,9 @@ public:
                 c.severity = "HIGH";
                 c.title = "Chronological Spread Detected: " + s_name;
                 c.entity_name = s_name;
-                c.source_a = dc_list[0].scholar_name.empty() ? "Kenyon (1978)" : dc_list[0].scholar_name;
+                c.source_a = dc_list[0].scholar_name.empty() ? (dc_list[0].source_id.empty() ? "Authority A" : dc_list[0].source_id) : dc_list[0].scholar_name;
                 c.claim_a = dc_list[0].claim_text;
-                c.source_b = dc_list[1].scholar_name.empty() ? "Wood (1990)" : dc_list[1].scholar_name;
+                c.source_b = dc_list[1].scholar_name.empty() ? (dc_list[1].source_id.empty() ? "Authority B" : dc_list[1].source_id) : dc_list[1].scholar_name;
                 c.claim_b = dc_list[1].claim_text;
                 c.details = {
                     {"conflict_type", "Chronological Spread across multiple authorities"},
@@ -310,10 +310,10 @@ public:
                 c.severity = "MEDIUM";
                 c.title = "Interpretive Divergence on Physical Evidence: " + sup[0].evidence_text.substr(0, 50) + "…";
                 c.entity_name = "Physical Assemblage / Locus #" + ent_id;
-                c.source_a = c_sup.scholar_name.empty() ? "Kenyon (1978)" : c_sup.scholar_name;
-                c.claim_a = c_sup.claim_text.empty() ? "Domestic cooking refuse" : c_sup.claim_text;
-                c.source_b = c_con.scholar_name.empty() ? "Wood (1990)" : c_con.scholar_name;
-                c.claim_b = c_con.claim_text.empty() ? "Siege warfare conflagration" : c_con.claim_text;
+                c.source_a = c_sup.scholar_name.empty() ? (c_sup.source_id.empty() ? "Authority A" : c_sup.source_id) : c_sup.scholar_name;
+                c.claim_a = c_sup.claim_text.empty() ? c_sup.id : c_sup.claim_text;
+                c.source_b = c_con.scholar_name.empty() ? (c_con.source_id.empty() ? "Authority B" : c_con.source_id) : c_con.scholar_name;
+                c.claim_b = c_con.claim_text.empty() ? c_con.id : c_con.claim_text;
                 c.details = {
                     {"supporting_evidence", sup[0].evidence_text},
                     {"refuting_evidence", con[0].evidence_text},

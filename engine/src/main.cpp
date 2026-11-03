@@ -30,11 +30,7 @@ int main() {
     NativeContradictionEngine contradiction_engine(storage);
     NativeThesisAuditor thesis_auditor(storage, contradiction_engine);
 
-    // Seed benchmark corpus on cold boot if empty
-    if (storage.count_sites() == 0) {
-        std::cout << "[ArchaeoPhD Native C++ Engine] Seeding canonical benchmark dataset (Tell es-Sultan)..." << std::endl;
-        seed_benchmark_corpus(storage, "default");
-    }
+    // Clean release: Storage initializes clean without static test data
 
     httplib::Server svr;
 
