@@ -1444,11 +1444,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     if (!wc.hIcon) wc.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
     wc.hIconSm = (HICON)LoadImageW(hInstance, MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
 
-    if (!RegisterClassExW(&wc)) {
+    LogDebug("[WINMAIN] Calling RegisterClassExW...");
+    if (!RegisterClassExW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+        LogDebug("[WINMAIN] RegisterClassExW failed: err=" + std::to_string(GetLastError()));
         MessageBoxW(nullptr, L"Failed to register Win32 window class.", L"ArchaeoPhD Error", MB_ICONERROR);
         CoUninitialize();
         return 1;
     }
+    LogDebug("[WINMAIN] Window class registered/confirmed.");
 
     // 4. Center window on monitor
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
