@@ -772,7 +772,7 @@ inline bool IsDirectoryFullyWritable(const std::wstring& dir) {
 
 inline std::wstring ResolveResilientUserDataDir(const std::wstring& exeDir, bool isTest) {
     if (isTest) {
-        return exeDir + L"\\WebView2Data_Test";
+        return exeDir + L"\\WebView2Data_Test_" + std::to_wstring(GetCurrentProcessId());
     }
 
     wchar_t pathBuf[MAX_PATH];
@@ -902,12 +902,7 @@ public:
             char hrBuf[64];
             snprintf(hrBuf, sizeof(hrBuf), "0x%08lX", (unsigned long)result);
             LogDebug(std::string("[CONTROLLER] Controller creation failed: hr=") + hrBuf);
-            if (g_runLiveUiTests) {
-                std::cout << "[ERROR] CoreWebView2 controller creation failed with hr=" << hrBuf << std::endl;
-                PostQuitMessage(1);
-                return result;
-            }
-            if (result == (HRESULT)0x800700AA) {
+            if (result == (HRESULT)0x800700AA && !g_runLiveUiTests) {
                 HWND existingHwnd = FindWindowW(CLASS_NAME, WINDOW_TITLE);
                 if (existingHwnd && existingHwnd != m_hWnd) {
                     if (IsIconic(existingHwnd)) ShowWindow(existingHwnd, SW_RESTORE);

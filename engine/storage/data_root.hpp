@@ -48,30 +48,6 @@ public:
         return str;
     }
 
-    static inline std::wstring GetLocalAppDataDir() {
-        wchar_t buf[MAX_PATH];
-        if (GetEnvironmentVariableW(L"LOCALAPPDATA", buf, MAX_PATH) > 0) {
-            return std::wstring(buf) + L"\\ArchaeoPhD";
-        }
-        return L"";
-    }
-
-    static inline std::wstring GetSettingsFilePath() {
-        std::wstring dir = GetLocalAppDataDir();
-        if (!dir.empty()) {
-            return dir + L"\\settings.json";
-        }
-        return L"settings.json";
-    }
-
-    static inline std::wstring GetDefaultDataRoot() {
-        std::wstring dir = GetLocalAppDataDir();
-        if (!dir.empty()) {
-            return dir + L"\\data";
-        }
-        return L"data";
-    }
-
     static inline bool CreateDirectoriesRecursive(const std::wstring& path) {
         if (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES) return true;
         std::wstring sub;
@@ -85,6 +61,90 @@ public:
         }
         CreateDirectoryW(path.c_str(), nullptr);
         return (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES);
+    }
+
+    static inline bool IsDirWritable(const std::wstring& dir) {
+        if (dir.empty()) return false;
+        try {
+            if (!CreateDirectoriesRecursive(dir)) return false;
+        } catch (...) {
+            return false;
+        }
+        std::wstring probe = dir + L"\\.apd_probe_" + std::to_wstring(GetCurrentProcessId());
+        HANDLE h = CreateFileW(probe.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (h == INVALID_HANDLE_VALUE) return false;
+        CloseHandle(h);
+        DeleteFileW(probe.c_str());
+        return true;
+    }
+
+    static inline std::wstring GetSettingsDirectory() {
+        wchar_t buf[MAX_PATH];
+        // 1. Try %LOCALAPPDATA%\ArchaeoPhD
+        if (GetEnvironmentVariableW(L"LOCALAPPDATA", buf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(buf) + L"\\ArchaeoPhD";
+            if (IsDirWritable(cand)) return cand;
+        }
+        // 2. Try %APPDATA%\ArchaeoPhD
+        if (GetEnvironmentVariableW(L"APPDATA", buf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(buf) + L"\\ArchaeoPhD";
+            if (IsDirWritable(cand)) return cand;
+        }
+        // 3. Try %USERPROFILE%\.archaeophd
+        if (GetEnvironmentVariableW(L"USERPROFILE", buf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(buf) + L"\\.archaeophd";
+            if (IsDirWritable(cand)) return cand;
+        }
+        // 4. Try current exe directory
+        wchar_t exePath[MAX_PATH];
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        std::wstring exeDir = exePath;
+        size_t lastSlash = exeDir.find_last_of(L"\\/");
+        if (lastSlash != std::wstring::npos) {
+            std::wstring cand = exeDir.substr(0, lastSlash);
+            if (IsDirWritable(cand)) return cand;
+        }
+        return L".";
+    }
+
+    static inline std::wstring GetLocalAppDataDir() {
+        return GetSettingsDirectory();
+    }
+
+    static inline std::wstring GetSettingsFilePath() {
+        std::wstring dir = GetSettingsDirectory();
+        return dir + L"\\settings.json";
+    }
+
+    static inline std::wstring GetDefaultDataRoot() {
+        // Priority 1: D:\ drive (fixed drive, dedicated data volume)
+        UINT dType = GetDriveTypeW(L"D:\\");
+        if (dType == DRIVE_FIXED) {
+            std::wstring cand = L"D:\\ArchaeoPhD-Data";
+            if (IsDirWritable(cand)) return cand;
+        }
+
+        // Priority 2: User profile %USERPROFILE%\ArchaeoPhD-Data
+        wchar_t profBuf[MAX_PATH];
+        if (GetEnvironmentVariableW(L"USERPROFILE", profBuf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(profBuf) + L"\\ArchaeoPhD-Data";
+            if (IsDirWritable(cand)) return cand;
+        }
+
+        // Priority 3: LocalAppData if writable
+        wchar_t buf[MAX_PATH];
+        if (GetEnvironmentVariableW(L"LOCALAPPDATA", buf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(buf) + L"\\ArchaeoPhD\\data";
+            if (IsDirWritable(cand)) return cand;
+        }
+
+        // Priority 4: Roaming AppData if writable
+        if (GetEnvironmentVariableW(L"APPDATA", buf, MAX_PATH) > 0) {
+            std::wstring cand = std::wstring(buf) + L"\\ArchaeoPhD\\data";
+            if (IsDirWritable(cand)) return cand;
+        }
+
+        return L"C:\\ArchaeoPhD-Data";
     }
 
     static inline std::string DetectCloudSyncService(const std::wstring& pathW) {
@@ -228,10 +288,15 @@ public:
             }
         }
 
-        // Create main Data Root directory
+        // Create main Data Root directory with resilient fallback
         if (!CreateDirectoriesRecursive(widePath)) {
-            outError = "Failed to create directory: " + pathUtf8;
-            return false;
+            std::wstring safeFallback = GetDefaultDataRoot();
+            if (widePath != safeFallback && CreateDirectoriesRecursive(safeFallback)) {
+                widePath = safeFallback;
+            } else {
+                outError = "Failed to create directory: " + pathUtf8 + ". Please click 'Browse...' and select an accessible directory such as D:\\ArchaeoPhD-Data or your Documents folder.";
+                return false;
+            }
         }
 
         // Create standard hierarchy:

@@ -9,7 +9,8 @@ cd /d "%~dp0"
 REM Terminate any running instance of ArchaeoPhD.exe to avoid file lock
 powershell -NoProfile -Command "Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue | Stop-Process -Force" >nul 2>&1
 if exist "release\ArchaeoPhD.old.exe" del /f /q "release\ArchaeoPhD.old.exe" >nul 2>&1
-if exist "release\ArchaeoPhD.exe" move /y "release\ArchaeoPhD.exe" "release\ArchaeoPhD.old.exe" >nul 2>&1
+if exist "release\ArchaeoPhD.exe" move /y "release\ArchaeoPhD.exe" "release\ArchaeoPhD_%RANDOM%.old.exe" >nul 2>&1
+del /f /q "release\*.old.exe" >nul 2>&1
 
 REM Prefer modern 64-bit C++20 toolchain (WinLibs / GCC 16)
 if exist "%LOCALAPPDATA%\Microsoft\WinGet\Packages\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\mingw64\bin" (
