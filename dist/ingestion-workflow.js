@@ -500,7 +500,7 @@
       /* Floating Research Quick-Action Dock */
       .apd-wf-dock {
         position: fixed;
-        bottom: 24px;
+        bottom: 34px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 99990;
@@ -510,9 +510,9 @@
         gap: 6px;
         background: hsl(var(--card, 40 33% 99%));
         border: 1px solid hsl(var(--border, 36 16% 87%));
-        padding: 6px 10px;
-        border-radius: 999px;
-        box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.22), 0 0 0 1px hsl(var(--border, 36 16% 87%) / 0.5);
+        padding: 4px 8px;
+        border-radius: 8px;
+        box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.16), 0 0 0 1px hsl(var(--border, 36 16% 87%) / 0.5);
         font-family: var(--font-body, "Inter", sans-serif);
       }
       .apd-wf-dock-btn {

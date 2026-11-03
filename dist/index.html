@@ -368,6 +368,102 @@
 
     <link rel="stylesheet" crossorigin href="/assets/index-CeTrMfRQ.css">
 
+      <style id="apd-native-workstation-style">
+      /* Native Desktop Workstation Ergonomics */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      /* Allow selection only within actual reading and text editor content */
+      input, textarea, [contenteditable="true"], .selectable, pre, code, .prose, article, p {
+        user-select: text;
+        -webkit-user-select: text;
+        cursor: text;
+      }
+
+      /* Workstation Scrollbars (subtle, thin) */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(140, 130, 115, 0.35) transparent;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(140, 130, 115, 0.3);
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(140, 130, 115, 0.55);
+      }
+
+      /* Reserve bottom 26px for native status bar */
+      #root {
+        height: calc(100vh - 26px);
+        overflow-y: auto;
+      }
+
+      /* Persistent Native Workstation Status Bar */
+      #apd-desktop-statusbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 26px;
+        background: hsl(var(--card, 38 28% 97%));
+        border-top: 1px solid hsl(var(--border, 36 16% 87%));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        font-family: var(--font-mono, "SFMono-Regular", Consolas, Menlo, monospace);
+        font-size: 11px;
+        color: hsl(var(--muted-foreground, 30 8% 46%));
+        z-index: 99999;
+        box-sizing: border-box;
+        letter-spacing: 0.02em;
+        user-select: none;
+      }
+      .apd-sb-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .apd-sb-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .apd-sb-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .apd-sb-dot.online {
+        background: #10b981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
+      }
+      .apd-sb-dot.secure {
+        background: #3b82f6;
+        box-shadow: 0 0 6px rgba(59, 130, 246, 0.45);
+      }
+      .apd-sb-sep {
+        opacity: 0.35;
+        font-weight: 300;
+      }
+    </style>
   </head>
 
   <body>

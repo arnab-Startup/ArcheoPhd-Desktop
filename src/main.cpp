@@ -983,13 +983,16 @@ public:
         GetClientRect(m_hWnd, &bounds);
         g_controller->put_Bounds(bounds);
 
-        // Configure Settings
+        // Configure Settings for Native Desktop Workstation Experience
         ICoreWebView2Settings* settings = nullptr;
         if (SUCCEEDED(g_webview->get_Settings(&settings)) && settings) {
             settings->put_IsScriptEnabled(TRUE);
             settings->put_AreDefaultScriptDialogsEnabled(TRUE);
             settings->put_IsWebMessageEnabled(TRUE);
-            settings->put_AreDevToolsEnabled(TRUE);
+            settings->put_IsStatusBarEnabled(FALSE);            // Disables browser link hover URL popup
+            settings->put_AreDefaultContextMenusEnabled(FALSE);  // Disables browser right-click menu
+            settings->put_IsZoomControlEnabled(FALSE);           // Disables browser web zooming
+            settings->put_AreDevToolsEnabled(g_runLiveUiTests ? TRUE : FALSE);
             settings->Release();
         }
 
@@ -1387,7 +1390,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     }
 
     // 1. Initialize COM
+    LogDebug("[WINMAIN] Initializing COM...");
     HRESULT hrCo = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    LogDebug("[WINMAIN] COM initialized: hr=" + std::to_string(hrCo));
     if (FAILED(hrCo)) {
         MessageBoxW(nullptr, L"Failed to initialize COM apartment.", L"ArchaeoPhD Error", MB_ICONERROR);
         return 1;
@@ -1395,7 +1400,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
 
     // 1b. Single-Instance Window Guard: If an ArchaeoPhD window already exists, bring it to front
     if (!g_runLiveUiTests) {
+        LogDebug("[WINMAIN] Checking for existing window...");
         HWND existingHwnd = FindWindowW(CLASS_NAME, WINDOW_TITLE);
+        LogDebug("[WINMAIN] FindWindow returned: " + std::to_string((uintptr_t)existingHwnd));
         if (existingHwnd) {
             LogDebug("[WINMAIN] Found existing ArchaeoPhD window. Bringing to foreground.");
             if (IsIconic(existingHwnd)) ShowWindow(existingHwnd, SW_RESTORE);
@@ -1406,7 +1413,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     }
 
     // Auto-register in Windows Start Menu if not already present
+    LogDebug("[WINMAIN] Registering Start Menu shortcut...");
     EnsureStartMenuShortcutRegistered();
+    LogDebug("[WINMAIN] Setting DPI awareness...");
 
     // 2. Enable Per-Monitor DPI Awareness V2 if available
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
