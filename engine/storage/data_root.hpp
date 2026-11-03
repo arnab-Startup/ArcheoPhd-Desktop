@@ -90,6 +90,12 @@ public:
             std::wstring cand = std::wstring(buf) + L"\\ArchaeoPhD";
             if (IsDirWritable(cand)) return cand;
         }
+        // 3. Try Documents directory %USERPROFILE%\Documents\ArchaeoPhD\.settings
+        wchar_t docBuf[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, docBuf))) {
+            std::wstring cand = std::wstring(docBuf) + L"\\ArchaeoPhD\\.settings";
+            if (IsDirWritable(cand)) return cand;
+        }
         // 3. Try %USERPROFILE%\.archaeophd
         if (GetEnvironmentVariableW(L"USERPROFILE", buf, MAX_PATH) > 0) {
             std::wstring cand = std::wstring(buf) + L"\\.archaeophd";
@@ -121,6 +127,13 @@ public:
         UINT dType = GetDriveTypeW(L"D:\\");
         if (dType == DRIVE_FIXED) {
             std::wstring cand = L"D:\\ArchaeoPhD-Data";
+            if (IsDirWritable(cand)) return cand;
+        }
+
+        // Priority 2: User Documents %USERPROFILE%\Documents\ArchaeoPhD-Data
+        wchar_t docBuf[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, docBuf))) {
+            std::wstring cand = std::wstring(docBuf) + L"\\ArchaeoPhD-Data";
             if (IsDirWritable(cand)) return cand;
         }
 

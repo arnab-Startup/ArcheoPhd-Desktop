@@ -321,7 +321,7 @@
 
           <div style="font-size: 12px; color: hsl(var(--muted-foreground, 30 8% 42%)); line-height: 1.5; display:flex; align-items:center; gap:8px;">
             <span>${APD_ICONS.lock}</span>
-            <span>Your selection is saved locally to <code>%LOCALAPPDATA%\\ArchaeoPhD\\settings.json</code>. Zero telemetry or research data leaves your PC.</span>
+            <span>Your selection is saved locally in your user profile settings. Zero telemetry or research data leaves your PC.</span>
           </div>
         </div>
         <div class="apd-footer">
