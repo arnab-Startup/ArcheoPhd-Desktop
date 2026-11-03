@@ -1393,17 +1393,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
         return 1;
     }
 
-    // 1b. Single-Instance Mutex Guard: Prevent multi-instance WebView2 UserDataDir locking collisions
-    HANDLE hSingleInstanceMutex = CreateMutexW(nullptr, TRUE, L"Local\\ArchaeoPhD_SingleInstance_Mutex");
-    if (hSingleInstanceMutex && GetLastError() == ERROR_ALREADY_EXISTS && !g_runLiveUiTests) {
+    // 1b. Single-Instance Window Guard: If an ArchaeoPhD window already exists, bring it to front
+    if (!g_runLiveUiTests) {
         HWND existingHwnd = FindWindowW(CLASS_NAME, WINDOW_TITLE);
         if (existingHwnd) {
+            LogDebug("[WINMAIN] Found existing ArchaeoPhD window. Bringing to foreground.");
             if (IsIconic(existingHwnd)) ShowWindow(existingHwnd, SW_RESTORE);
             SetForegroundWindow(existingHwnd);
+            CoUninitialize();
+            return 0;
         }
-        CloseHandle(hSingleInstanceMutex);
-        CoUninitialize();
-        return 0;
     }
 
     // Auto-register in Windows Start Menu if not already present
