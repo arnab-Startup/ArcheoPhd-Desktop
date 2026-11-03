@@ -501,8 +501,10 @@
       .apd-wf-dock {
         position: fixed;
         bottom: 24px;
-        right: 24px;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 99990;
+        white-space: nowrap;
         display: flex;
         align-items: center;
         gap: 6px;
