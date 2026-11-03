@@ -1485,31 +1485,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     CleanStaleWebView2Locks(userDataDir);
 
     // Strict Cleanup Invariant: Purge legacy benchmark state from AppData on startup
-    wchar_t localAppData[MAX_PATH];
-    if (GetEnvironmentVariableW(L"LOCALAPPDATA", localAppData, MAX_PATH) > 0) {
-        std::wstring legacyState1 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\libraries\\default\\relational_state.json";
-        std::wstring legacyState2 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\relational_state.json";
-        for (const auto& path : {legacyState1, legacyState2}) {
-            std::ifstream testFile(archaeophd::DataRootManager::WideToUtf8(path));
-            if (testFile.is_open()) {
-                std::string s((std::istreambuf_iterator<char>(testFile)), std::istreambuf_iterator<char>());
-                testFile.close();
-                if (s.find("Tell es-Sultan") != std::string::npos || s.find("Southern Levant") != std::string::npos || s.find("site-jericho") != std::string::npos) {
-                    DeleteFileW(path.c_str());
+    try {
+        wchar_t localAppData[MAX_PATH];
+        if (GetEnvironmentVariableW(L"LOCALAPPDATA", localAppData, MAX_PATH) > 0) {
+            std::wstring legacyState1 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\libraries\\default\\relational_state.json";
+            std::wstring legacyState2 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\relational_state.json";
+            for (const auto& path : {legacyState1, legacyState2}) {
+                std::ifstream testFile(archaeophd::DataRootManager::WideToUtf8(path));
+                if (testFile.is_open()) {
+                    std::string s((std::istreambuf_iterator<char>(testFile)), std::istreambuf_iterator<char>());
+                    testFile.close();
+                    if (s.find("Tell es-Sultan") != std::string::npos || s.find("Southern Levant") != std::string::npos || s.find("site-jericho") != std::string::npos) {
+                        DeleteFileW(path.c_str());
+                    }
                 }
             }
         }
-    }
+    } catch (...) {}
 
     // Initialize Native C++ Offline Engine if Data Root was previously configured and accessible
-    auto rootStatus = archaeophd::DataRootManager::GetStatus();
-    if (rootStatus.configured && !rootStatus.is_missing) {
-        if (!InitNativeEngineWithDataRoot(rootStatus.data_root)) {
-            LogDebug("[WINMAIN] Configured data root was inaccessible. Prompting user to select accessible data root.");
-            rootStatus.configured = false;
+    try {
+        auto rootStatus = archaeophd::DataRootManager::GetStatus();
+        if (rootStatus.configured && !rootStatus.is_missing) {
+            if (!InitNativeEngineWithDataRoot(rootStatus.data_root)) {
+                LogDebug("[WINMAIN] Configured data root was inaccessible. Prompting user to select accessible data root.");
+                rootStatus.configured = false;
+            }
+        } else if (g_runLiveUiTests) {
+            InitNativeEngineWithDataRoot("test_ipc_bridge_data");
         }
-    } else if (g_runLiveUiTests) {
-        InitNativeEngineWithDataRoot("test_ipc_bridge_data");
+    } catch (const std::exception& e) {
+        LogDebug(std::string("[WINMAIN] Exception in GetStatus: ") + e.what());
+    } catch (...) {
+        LogDebug("[WINMAIN] Unknown exception in GetStatus");
     }
     if (g_runLiveUiTests && g_storage) {
         archaeophd::VerificationItem v_chirki;
