@@ -7,7 +7,7 @@ echo ============================================================
 cd /d "%~dp0"
 
 REM Terminate any running instance of ArchaeoPhD.exe to avoid file lock
-taskkill /F /IM ArchaeoPhD.exe >nul 2>&1
+powershell -NoProfile -Command "Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue | Stop-Process -Force" >nul 2>&1
 
 REM Prefer modern 64-bit C++20 toolchain (WinLibs / GCC 16)
 if exist "%LOCALAPPDATA%\Microsoft\WinGet\Packages\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\mingw64\bin" (

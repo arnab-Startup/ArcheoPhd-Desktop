@@ -16,6 +16,8 @@ test_live_sample.pdf
 
 # Local user data / WebView2 cache
 WebView2Data/
+WebView2Data_Test/
+test_ipc_bridge_data/
 data/
 engine/data/
 .cache/
