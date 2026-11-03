@@ -118,7 +118,7 @@ public:
         std::regex re_page_xref(R"(\b(?:page|pp\.|p\.|sheet)\s+(\d+(?:-\d+)?)\b)", std::regex::icase);
 
         // Rule 2: Bibliographic Citations & Press Imprints
-        // (a) Author-Date: e.g. "Wheeler (1956:81)", "Kenyon (1957: 42)"
+        // (a) Author-Date: e.g. "Author (1956:81)", "Scholar (1957: 42)"
         std::regex re_author_date_cite(R"(\b[A-Z][a-z]+(?:\s+and\s+[A-Z][a-z]+)?\s*\(\s*(\d{4}(?::\s*\d+)?)\s*\))");
         // (b) Journal Volume: e.g. "7 (1785): 323-32"
         std::regex re_journal_vol_cite(R"(\b\d+\s*\(\s*(\d{4})\s*\)\s*:\s*\d+(?:-\d+)?\b)");

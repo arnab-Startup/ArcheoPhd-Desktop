@@ -85,7 +85,7 @@ public:
         // Build exclusion spans for bibliographic citations, catalog numbers, etc.
         std::vector<std::pair<size_t, size_t>> exclusion_spans;
 
-        // Citation pattern: e.g. "(1981: 142)" or "Kenyon (1981: 142)"
+        // Citation pattern: e.g. "(1981: 142)" or "Author (1981: 142)"
         std::regex re_citation(R"(\([A-Za-z\s]*,?\s*(\d{4})\s*:\s*(\d+)\))");
         for (std::sregex_iterator it(text.begin(), text.end(), re_citation), end; it != end; ++it) {
             exclusion_spans.push_back({it->position(), it->position() + it->length()});
