@@ -58,7 +58,9 @@ inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
     // Initialize nomic embedding model if present in data root, current dir, or parent dir
     std::string modelPath = dataRoot + "\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
     if (!archaeophd::fs_compat::exists(modelPath)) {
-        if (archaeophd::fs_compat::exists("models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+        if (archaeophd::fs_compat::exists("desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
+            modelPath = "desktop\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+        } else if (archaeophd::fs_compat::exists("models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
             modelPath = "models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
         } else if (archaeophd::fs_compat::exists("..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf")) {
             modelPath = "..\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
@@ -71,7 +73,9 @@ inline bool InitNativeEngineWithDataRoot(const std::string& dataRoot) {
     // Initialize local Qwen 2.5 7B LLM engine if present
     std::string llmPath = dataRoot + "\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
     if (!archaeophd::fs_compat::exists(llmPath)) {
-        if (archaeophd::fs_compat::exists("models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+        if (archaeophd::fs_compat::exists("desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
+            llmPath = "desktop\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+        } else if (archaeophd::fs_compat::exists("models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
             llmPath = "models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
         } else if (archaeophd::fs_compat::exists("..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf")) {
             llmPath = "..\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
@@ -113,6 +117,9 @@ ICoreWebView2* g_webview = nullptr;
 static std::wstring g_appDistFolder;
 static bool g_runLiveUiTests = false;
 static std::wstring g_extraBrowserArgs = L"";
+static CreateCoreWebView2EnvironmentWithOptionsFn g_pfnCreateEnv = nullptr;
+static ICoreWebView2EnvironmentOptions* g_envOptions = nullptr;
+static std::wstring g_targetUrl = L"";
 
 inline void LogDebug(const std::string& msg) {
     std::ofstream f("live_debug.log", std::ios::app);
@@ -720,6 +727,141 @@ public:
     }
 };
 
+inline void CleanStaleWebView2Locks(const std::wstring& userDataDir) {
+    std::wstring eb = userDataDir + L"\\EBWebView";
+    DeleteFileW((eb + L"\\SingletonLock").c_str());
+    DeleteFileW((eb + L"\\SingletonCookie").c_str());
+    DeleteFileW((eb + L"\\SingletonSocket").c_str());
+    DeleteFileW((eb + L"\\lockfile").c_str());
+}
+
+inline bool IsDirectoryFullyWritable(const std::wstring& dir) {
+    if (dir.empty()) return false;
+    try {
+        archaeophd::fs_compat::create_directories(archaeophd::DataRootManager::WideToUtf8(dir));
+    } catch (...) {
+        return false;
+    }
+    DWORD attribs = GetFileAttributesW(dir.c_str());
+    if (attribs == INVALID_FILE_ATTRIBUTES || !(attribs & FILE_ATTRIBUTE_DIRECTORY)) {
+        return false;
+    }
+    // Check if EBWebView lock file exists and is locked exclusively by another process
+    std::wstring lockPath = dir + L"\\EBWebView\\lockfile";
+    if (GetFileAttributesW(lockPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
+        HANDLE hLock = CreateFileW(lockPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (hLock == INVALID_HANDLE_VALUE) {
+            DWORD err = GetLastError();
+            if (err == ERROR_SHARING_VIOLATION || err == ERROR_LOCK_VIOLATION || err == ERROR_ACCESS_DENIED) {
+                return false;
+            }
+        } else {
+            CloseHandle(hLock);
+        }
+    }
+    // Test write and delete
+    std::wstring probeFile = dir + L"\\.apd_wv2_probe_" + std::to_wstring(GetCurrentProcessId());
+    HANDLE hProbe = CreateFileW(probeFile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hProbe == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+    CloseHandle(hProbe);
+    DeleteFileW(probeFile.c_str());
+    return true;
+}
+
+inline std::wstring ResolveResilientUserDataDir(const std::wstring& exeDir, bool isTest) {
+    if (isTest) {
+        return exeDir + L"\\WebView2Data_Test";
+    }
+
+    wchar_t pathBuf[MAX_PATH];
+
+    // Priority 1: %LOCALAPPDATA%\ArchaeoPhD\WebView2Data
+    if (GetEnvironmentVariableW(L"LOCALAPPDATA", pathBuf, MAX_PATH) > 0) {
+        std::wstring candidate = std::wstring(pathBuf) + L"\\ArchaeoPhD\\WebView2Data";
+        if (IsDirectoryFullyWritable(candidate)) {
+            LogDebug("[WINMAIN] Selected resilient user data dir (Priority 1: LOCALAPPDATA): " + archaeophd::DataRootManager::WideToUtf8(candidate));
+            return candidate;
+        }
+    }
+
+    // Priority 2: %APPDATA%\ArchaeoPhD\WebView2Data
+    if (GetEnvironmentVariableW(L"APPDATA", pathBuf, MAX_PATH) > 0) {
+        std::wstring candidate = std::wstring(pathBuf) + L"\\ArchaeoPhD\\WebView2Data";
+        if (IsDirectoryFullyWritable(candidate)) {
+            LogDebug("[WINMAIN] Selected resilient user data dir (Priority 2: APPDATA): " + archaeophd::DataRootManager::WideToUtf8(candidate));
+            return candidate;
+        }
+    }
+
+    // Priority 3: %TEMP%\ArchaeoPhD\WebView2Data
+    if (GetTempPathW(MAX_PATH, pathBuf) > 0) {
+        std::wstring candidate = std::wstring(pathBuf) + L"ArchaeoPhD\\WebView2Data";
+        if (IsDirectoryFullyWritable(candidate)) {
+            LogDebug("[WINMAIN] Selected resilient user data dir (Priority 3: TEMP): " + archaeophd::DataRootManager::WideToUtf8(candidate));
+            return candidate;
+        }
+    }
+
+    // Priority 4: exeDir\WebView2Data (portable mode)
+    std::wstring portableCandidate = exeDir + L"\\WebView2Data";
+    if (IsDirectoryFullyWritable(portableCandidate)) {
+        LogDebug("[WINMAIN] Selected resilient user data dir (Priority 4: PORTABLE): " + archaeophd::DataRootManager::WideToUtf8(portableCandidate));
+        return portableCandidate;
+    }
+
+    // Ultimate fallback: isolated PID directory in Temp
+    if (GetTempPathW(MAX_PATH, pathBuf) > 0) {
+        std::wstring candidate = std::wstring(pathBuf) + L"ArchaeoPhD_WV2_" + std::to_wstring(GetCurrentProcessId());
+        try { archaeophd::fs_compat::create_directories(archaeophd::DataRootManager::WideToUtf8(candidate)); } catch (...) {}
+        LogDebug("[WINMAIN] Selected resilient user data dir (Priority 5: PID TEMP): " + archaeophd::DataRootManager::WideToUtf8(candidate));
+        return candidate;
+    }
+
+    return exeDir + L"\\WebView2Data";
+}
+
+
+class ControllerCompletedHandler;
+
+// -----------------------------------------------------------------------------
+// Environment Creation Handler
+// -----------------------------------------------------------------------------
+class EnvironmentCompletedHandler : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler {
+    LONG m_refCount;
+    HWND m_hWnd;
+    std::wstring m_targetUrl;
+    bool m_isFallback;
+
+public:
+    EnvironmentCompletedHandler(HWND hWnd, const std::wstring& targetUrl, bool isFallback = false)
+        : m_refCount(1), m_hWnd(hWnd), m_targetUrl(targetUrl), m_isFallback(isFallback) {}
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) override {
+        if (!ppvObject) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) {
+            *ppvObject = static_cast<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppvObject = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() override {
+        return InterlockedIncrement(&m_refCount);
+    }
+
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG count = InterlockedDecrement(&m_refCount);
+        if (count == 0) delete this;
+        return count;
+    }
+
+    HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Environment* env) override;
+};
+
 // -----------------------------------------------------------------------------
 // Controller Creation Handler
 // -----------------------------------------------------------------------------
@@ -727,10 +869,11 @@ class ControllerCompletedHandler : public ICoreWebView2CreateCoreWebView2Control
     LONG m_refCount;
     HWND m_hWnd;
     std::wstring m_targetUrl;
+    bool m_isFallback;
 
 public:
-    ControllerCompletedHandler(HWND hWnd, const std::wstring& targetUrl)
-        : m_refCount(1), m_hWnd(hWnd), m_targetUrl(targetUrl) {}
+    ControllerCompletedHandler(HWND hWnd, const std::wstring& targetUrl, bool isFallback = false)
+        : m_refCount(1), m_hWnd(hWnd), m_targetUrl(targetUrl), m_isFallback(isFallback) {}
 
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) override {
         if (!ppvObject) return E_POINTER;
@@ -756,9 +899,11 @@ public:
     HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Controller* controller) override {
         LogDebug(std::string("[CONTROLLER] Controller callback: hr=") + std::to_string(result) + " controller=" + (controller ? "NON-NULL" : "NULL"));
         if (FAILED(result) || !controller) {
-            LogDebug("[CONTROLLER] Controller creation failed: hr=" + std::to_string(result));
+            char hrBuf[64];
+            snprintf(hrBuf, sizeof(hrBuf), "0x%08lX", (unsigned long)result);
+            LogDebug(std::string("[CONTROLLER] Controller creation failed: hr=") + hrBuf);
             if (g_runLiveUiTests) {
-                std::cout << "[ERROR] CoreWebView2 controller creation failed with hr=" << result << std::endl;
+                std::cout << "[ERROR] CoreWebView2 controller creation failed with hr=" << hrBuf << std::endl;
                 PostQuitMessage(1);
                 return result;
             }
@@ -771,7 +916,32 @@ public:
                     return S_OK;
                 }
             }
-            MessageBoxW(m_hWnd, L"Failed to create CoreWebView2 controller.\nPlease verify another ArchaeoPhD process is not running.", L"ArchaeoPhD Error", MB_ICONERROR);
+            if (!m_isFallback && g_pfnCreateEnv) {
+                LogDebug("[CONTROLLER] Initial controller failed (" + std::string(hrBuf) + "). Triggering automatic recovery with isolated temp directory...");
+                wchar_t tempPath[MAX_PATH];
+                if (GetTempPathW(MAX_PATH, tempPath) > 0) {
+                    std::wstring fallbackDir = std::wstring(tempPath) + L"ArchaeoPhD_WV2_CtrlFB_" + std::to_wstring(GetCurrentProcessId());
+                    try { archaeophd::fs_compat::create_directories(archaeophd::DataRootManager::WideToUtf8(fallbackDir)); } catch (...) {}
+                    CleanStaleWebView2Locks(fallbackDir);
+                    HRESULT hrFallback = g_pfnCreateEnv(
+                        nullptr,
+                        fallbackDir.c_str(),
+                        g_envOptions,
+                        new EnvironmentCompletedHandler(m_hWnd, m_targetUrl, /*isFallback=*/true)
+                    );
+                    if (SUCCEEDED(hrFallback)) {
+                        LogDebug("[CONTROLLER] Fallback environment dispatched successfully.");
+                        return S_OK;
+                    }
+                }
+            }
+            std::wstring errMsg = L"Failed to create CoreWebView2 controller (" + std::wstring(hrBuf, hrBuf + strlen(hrBuf)) + L").\n";
+            if (result == (HRESULT)0x800700AA) {
+                errMsg += L"Please ensure another instance of ArchaeoPhD is not currently active.";
+            } else {
+                errMsg += L"Please verify Microsoft Edge WebView2 Runtime is intact and permissions allow write access.";
+            }
+            MessageBoxW(m_hWnd, errMsg.c_str(), L"ArchaeoPhD Error", MB_ICONERROR);
             return result;
         }
 
@@ -1024,57 +1194,42 @@ public:
 };
 
 // -----------------------------------------------------------------------------
-// Environment Creation Handler
+// EnvironmentCompletedHandler::Invoke Implementation
 // -----------------------------------------------------------------------------
-class EnvironmentCompletedHandler : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler {
-    LONG m_refCount;
-    HWND m_hWnd;
-    std::wstring m_targetUrl;
-
-public:
-    EnvironmentCompletedHandler(HWND hWnd, const std::wstring& targetUrl)
-        : m_refCount(1), m_hWnd(hWnd), m_targetUrl(targetUrl) {}
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) override {
-        if (!ppvObject) return E_POINTER;
-        if (riid == IID_IUnknown || riid == IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) {
-            *ppvObject = static_cast<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*>(this);
-            AddRef();
-            return S_OK;
-        }
-        *ppvObject = nullptr;
-        return E_NOINTERFACE;
-    }
-
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_refCount);
-    }
-
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG count = InterlockedDecrement(&m_refCount);
-        if (count == 0) delete this;
-        return count;
-    }
-
-    HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Environment* env) override {
-        LogDebug(std::string("[ENV] Environment callback: hr=") + std::to_string(result) + " env=" + (env ? "NON-NULL" : "NULL"));
-        if (FAILED(result) || !env) {
-            LogDebug("[ENV] Environment creation failed: hr=" + std::to_string(result));
-            if (g_runLiveUiTests) {
-                std::cout << "[ERROR] CoreWebView2 environment creation failed with hr=" << result << std::endl;
-                PostQuitMessage(1);
-                return result;
-            }
-            MessageBoxW(m_hWnd, 
-                L"Failed to initialize Microsoft Edge WebView2 Environment.\n"
-                L"Please ensure the WebView2 Runtime is installed (standard on Windows 10/11).",
-                L"ArchaeoPhD Error", MB_ICONERROR);
+HRESULT STDMETHODCALLTYPE EnvironmentCompletedHandler::Invoke(HRESULT result, ICoreWebView2Environment* env) {
+    char hrBuf[64];
+    snprintf(hrBuf, sizeof(hrBuf), "0x%08lX", (unsigned long)result);
+    LogDebug(std::string("[ENV] Environment callback: hr=") + hrBuf + " env=" + (env ? "NON-NULL" : "NULL"));
+    if (FAILED(result) || !env) {
+        LogDebug(std::string("[ENV] Environment creation failed: hr=") + hrBuf);
+        if (g_runLiveUiTests) {
+            std::cout << "[ERROR] CoreWebView2 environment creation failed with hr=" << hrBuf << std::endl;
+            PostQuitMessage(1);
             return result;
         }
-
-        return env->CreateCoreWebView2Controller(m_hWnd, new ControllerCompletedHandler(m_hWnd, m_targetUrl));
+        if (!m_isFallback && g_pfnCreateEnv) {
+            wchar_t tempPath[MAX_PATH];
+            if (GetTempPathW(MAX_PATH, tempPath) > 0) {
+                std::wstring fallbackDir = std::wstring(tempPath) + L"ArchaeoPhD_WV2_EnvFB_" + std::to_wstring(GetCurrentProcessId());
+                try { archaeophd::fs_compat::create_directories(archaeophd::DataRootManager::WideToUtf8(fallbackDir)); } catch (...) {}
+                LogDebug("[ENV] Attempting environment fallback with dir=" + archaeophd::DataRootManager::WideToUtf8(fallbackDir));
+                HRESULT hrFallback = g_pfnCreateEnv(
+                    nullptr,
+                    fallbackDir.c_str(),
+                    g_envOptions,
+                    new EnvironmentCompletedHandler(m_hWnd, m_targetUrl, /*isFallback=*/true)
+                );
+                if (SUCCEEDED(hrFallback)) return S_OK;
+            }
+        }
+        std::wstring errMsg = L"Failed to initialize Microsoft Edge WebView2 Environment (" + std::wstring(hrBuf, hrBuf + strlen(hrBuf)) + L").\n"
+                              L"Please ensure the WebView2 Runtime is installed (standard on Windows 10/11).";
+        MessageBoxW(m_hWnd, errMsg.c_str(), L"ArchaeoPhD Error", MB_ICONERROR);
+        return result;
     }
-};
+
+    return env->CreateCoreWebView2Controller(m_hWnd, new ControllerCompletedHandler(m_hWnd, m_targetUrl, m_isFallback));
+}
 
 // -----------------------------------------------------------------------------
 // Window Procedure
@@ -1144,14 +1299,6 @@ inline void EnsureStartMenuShortcutRegistered() {
 }
 
 // -----------------------------------------------------------------------------
-inline void CleanStaleWebView2Locks(const std::wstring& userDataDir) {
-    std::wstring eb = userDataDir + L"\\EBWebView";
-    DeleteFileW((eb + L"\\SingletonLock").c_str());
-    DeleteFileW((eb + L"\\SingletonCookie").c_str());
-    DeleteFileW((eb + L"\\SingletonSocket").c_str());
-    DeleteFileW((eb + L"\\lockfile").c_str());
-}
-
 // WinMain Entry Point
 // -----------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int nCmdShow) {
@@ -1328,29 +1475,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
 
     std::wstring targetUrl = PathToFileUri(finalHtmlPath);
 
-    // 7. Setup User Data Directory for WebView2 cache/storage
-    wchar_t localAppData[MAX_PATH];
-    std::wstring userDataDir;
-    bool canUseLocalAppData = false;
-    if (GetEnvironmentVariableW(L"LOCALAPPDATA", localAppData, MAX_PATH) > 0 && !g_runLiveUiTests) {
-        std::wstring candidate = std::wstring(localAppData) + L"\\ArchaeoPhD";
-        CreateDirectoryW(candidate.c_str(), nullptr);
-        std::wstring testFile = candidate + L"\\.write_test";
-        HANDLE hTest = CreateFileW(testFile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-        if (hTest != INVALID_HANDLE_VALUE) {
-            CloseHandle(hTest);
-            DeleteFileW(testFile.c_str());
-            canUseLocalAppData = true;
-            userDataDir = candidate + L"\\WebView2Data";
-        }
-    }
-    if (!canUseLocalAppData) {
-        userDataDir = exeDir + (g_runLiveUiTests ? L"\\WebView2Data_Test" : L"\\WebView2Data");
-    }
-    CreateDirectoryW(userDataDir.c_str(), nullptr);
+    // 7. Setup User Data Directory for WebView2 cache/storage with multi-tier resilience
+    std::wstring userDataDir = ResolveResilientUserDataDir(exeDir, g_runLiveUiTests);
     CleanStaleWebView2Locks(userDataDir);
 
     // Strict Cleanup Invariant: Purge legacy benchmark state from AppData on startup
+    wchar_t localAppData[MAX_PATH];
     if (GetEnvironmentVariableW(L"LOCALAPPDATA", localAppData, MAX_PATH) > 0) {
         std::wstring legacyState1 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\libraries\\default\\relational_state.json";
         std::wstring legacyState2 = std::wstring(localAppData) + L"\\ArchaeoPhD\\data\\relational_state.json";
@@ -1440,6 +1570,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     if (!g_extraBrowserArgs.empty()) {
         envOptions = new CustomEnvironmentOptions(g_extraBrowserArgs);
     }
+
+    g_pfnCreateEnv = pfnCreateEnv;
+    g_envOptions = envOptions;
+    g_targetUrl = targetUrl;
 
     LogDebug("[WINMAIN] Calling pfnCreateEnv with userDataDir=" + std::string(userDataDir.begin(), userDataDir.end()));
     HRESULT hr = pfnCreateEnv(

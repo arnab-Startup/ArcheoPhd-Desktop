@@ -11,6 +11,31 @@
  */
 (function() {
   'use strict';
+  // ArchaeoPhD Modern SVG Icon Library (Executive Offline Aesthetic)
+  var APD_ICONS = {
+    landmark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="2" y2="6"/><polyline points="2 6 12 2 22 6"/><line x1="4" x2="4" y1="18" y2="22"/><line x1="8" x2="8" y1="18" y2="22"/><line x1="16" x2="16" y1="18" y2="22"/><line x1="20" x2="20" y1="18" y2="22"/><path d="M4 18h16"/><path d="M4 6h16"/></svg>',
+    warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+    folder: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>',
+    folderOpen: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>',
+    ingest: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>',
+    gear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><polyline points="20 6 9 17 4 12"/></svg>',
+    checkCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+    clipboard: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
+    verify: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>',
+    transcribe: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+    scale: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
+    x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
+    refresh: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>',
+    lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    brain: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/></svg>',
+    library: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
+    hardDrive: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>'
+  };
+
 
   // Inject Scoped Styles for Ingestion, Classification, Verification Queue, and Manual Transcription
   function injectStyles() {
@@ -19,6 +44,7 @@
     style.id = 'apd-workflow-styles';
     style.textContent = `
       /* Root Backdrop */
+      .apd-icon { display: inline-block; vertical-align: -2px; stroke: currentColor; flex-shrink: 0; }
       .apd-wf-backdrop {
         position: fixed;
         inset: 0;
@@ -567,7 +593,7 @@
         <div class="apd-wf-header">
           <div class="apd-wf-header-left">
             <div class="apd-wf-badge apd-wf-badge-terracotta">
-              <span>🏛️</span> ArchaeoPhD Ingestion Engine
+              <span>${APD_ICONS.landmark}</span> ArchaeoPhD Ingestion Engine
             </div>
             <h1 class="apd-wf-title">Gated Document Ingestion</h1>
             <p class="apd-wf-subtitle">
@@ -579,7 +605,7 @@
 
         <div class="apd-wf-body" id="apd-wf-ingest-body">
           <div class="apd-wf-box apd-wf-box-amber">
-            <span class="apd-wf-box-icon">⚠️</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.warning}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">Default-Safe Gating Active</div>
               All newly ingested literature defaults strictly to <strong>Class B (Degraded Letterpress)</strong> under an amber <code>UNVERIFIED_ROUGH_SCAN</code> status. Automated entity extraction is locked until physical offset quality is confirmed.
@@ -593,7 +619,7 @@
                 placeholder="D:\\Research\\Excavation_Report_Vol1.pdf" 
                 value="${initialData.file_path || ''}" />
               <button class="apd-wf-btn apd-wf-btn-secondary" id="apd-wf-browse-btn">
-                📁 Browse...
+                ${APD_ICONS.folder} Browse...
               </button>
             </div>
           </div>
@@ -626,7 +652,7 @@
         <div class="apd-wf-footer" id="apd-wf-ingest-footer">
           <button class="apd-wf-btn apd-wf-btn-outline" id="apd-wf-cancel">Cancel</button>
           <button class="apd-wf-btn apd-wf-btn-primary" id="apd-wf-submit-ingest">
-            <span>📥</span> Ingest & Gate Document
+            <span>${APD_ICONS.ingest}</span> Ingest & Gate Document
           </button>
         </div>
       </div>
@@ -679,7 +705,7 @@
       var statusArea = document.getElementById('apd-wf-ingest-status-area');
       statusArea.innerHTML = `
         <div class="apd-wf-box apd-wf-box-muted">
-          <span class="apd-wf-box-icon">⚙️</span>
+          <span class="apd-wf-box-icon">${APD_ICONS.gear}</span>
           <div class="apd-wf-box-content">
             Verifying cryptographic integrity, applying lossless gzip compression, and registering source in native database...
           </div>
@@ -700,7 +726,7 @@
 
         statusArea.innerHTML = `
           <div class="apd-wf-box apd-wf-box-emerald">
-            <span class="apd-wf-box-icon">✓</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.check}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">Document Successfully Ingested & Losslessly Archived</div>
               Source ID: <code>${result.source_id}</code>
@@ -709,8 +735,8 @@
 
           <div style="background:hsl(var(--muted, 38 20% 94%) / 0.5); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:var(--radius, 8px); padding:14px 16px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-weight:600;">🛡️ SHA-256 Lossless Hash:</span>
-              <button class="apd-wf-btn apd-wf-btn-outline" style="padding:2px 8px; font-size:11px;" id="apd-wf-copy-hash">📋 Copy</button>
+              <span style="font-weight:600;">${APD_ICONS.shield} SHA-256 Lossless Hash:</span>
+              <button class="apd-wf-btn apd-wf-btn-outline" style="padding:2px 8px; font-size:11px;" id="apd-wf-copy-hash">${APD_ICONS.copy} Copy</button>
             </div>
             <div style="font-family:var(--font-mono, monospace); word-break:break-all; color:hsl(var(--primary, 18 58% 28%)); background:hsl(var(--card, 40 33% 99%)); padding:8px 10px; border-radius:4px; border:1px solid hsl(var(--border, 36 16% 87%));">
               ${result.sha256}
@@ -736,7 +762,7 @@
         document.getElementById('apd-wf-copy-hash').addEventListener('click', function() {
           navigator.clipboard.writeText(result.sha256);
           this.textContent = 'Copied!';
-          setTimeout(function() { document.getElementById('apd-wf-copy-hash').textContent = '📋 Copy'; }, 2000);
+          setTimeout(function() { document.getElementById('apd-wf-copy-hash').innerHTML = APD_ICONS.copy + ' Copy'; }, 2000);
         });
 
         // Footer update with action buttons
@@ -744,10 +770,10 @@
         footer.innerHTML = `
           <button class="apd-wf-btn apd-wf-btn-outline" id="apd-wf-done-btn">Done</button>
           <button class="apd-wf-btn apd-wf-btn-secondary" id="apd-wf-go-transcribe">
-            ✍️ Open Manual Transcription
+            ${APD_ICONS.transcribe} Open Manual Transcription
           </button>
           <button class="apd-wf-btn apd-wf-btn-primary" id="apd-wf-go-classify">
-            ⚖️ Review & Classify Source
+            ${APD_ICONS.scale} Review & Classify Source
           </button>
         `;
 
@@ -761,10 +787,10 @@
       })
       .catch(function(err) {
         btn.disabled = false;
-        btn.innerHTML = '<span>📥</span> Ingest & Gate Document';
+        btn.innerHTML = '<span>${APD_ICONS.ingest}</span> Ingest & Gate Document';
         statusArea.innerHTML = `
           <div class="apd-wf-box apd-wf-box-crimson">
-            <span class="apd-wf-box-icon">✕</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.x}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">Ingestion Failed</div>
               ${err.message || err}
@@ -791,7 +817,7 @@
         <div class="apd-wf-header">
           <div class="apd-wf-header-left">
             <div class="apd-wf-badge apd-wf-badge-terracotta">
-              <span>⚖️</span> Source Quality Gating
+              <span>${APD_ICONS.scale}</span> Source Quality Gating
             </div>
             <h1 class="apd-wf-title">Document Degradation Classification</h1>
             <p class="apd-wf-subtitle" id="apd-wf-class-source-subtitle">
@@ -848,7 +874,7 @@
 
           <!-- Retroactive Purge Warning for Existing Class A -->
           <div id="apd-wf-reflag-purge-warning" style="display:none;" class="apd-wf-box apd-wf-box-crimson">
-            <span class="apd-wf-box-icon">⚠️</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.warning}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">Retroactive Claim Purge Protection</div>
               Reflagging this document to <strong>Class B</strong> will retroactively purge all automated consensus claims associated with it. Only human manual double-entry claims will be preserved.
@@ -861,7 +887,7 @@
         <div class="apd-wf-footer">
           <button class="apd-wf-btn apd-wf-btn-outline" id="apd-wf-cancel">Cancel</button>
           <button class="apd-wf-btn apd-wf-btn-danger" id="apd-wf-reflag-btn" style="display:none;">
-            <span>🔄</span> Reflag to Class B & Purge Automated Claims
+            <span>${APD_ICONS.refresh}</span> Reflag to Class B & Purge Automated Claims
           </button>
           <button class="apd-wf-btn apd-wf-btn-primary" id="apd-wf-save-class-btn">
             Save Classification
@@ -947,7 +973,7 @@
       .then(function(res) {
         statusDiv.innerHTML = `
           <div class="apd-wf-box apd-wf-box-emerald">
-            <span class="apd-wf-box-icon">✓</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.check}</span>
             <div class="apd-wf-box-content">
               Classification saved as <strong>${res.degradation_class}</strong>.
             </div>
@@ -958,7 +984,7 @@
       .catch(function(err) {
         statusDiv.innerHTML = `
           <div class="apd-wf-box apd-wf-box-crimson">
-            <span class="apd-wf-box-icon">✕</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.x}</span>
             <div class="apd-wf-box-content">
               Classification Rejected: ${err.message || err}
             </div>
@@ -977,7 +1003,7 @@
         .then(function(res) {
           statusDiv.innerHTML = `
             <div class="apd-wf-box apd-wf-box-emerald">
-              <span class="apd-wf-box-icon">✓</span>
+              <span class="apd-wf-box-icon">${APD_ICONS.check}</span>
               <div class="apd-wf-box-content">
                 Source successfully demoted to <strong>CLASS_B</strong>. Automated claims purged and text quarantined.
               </div>
@@ -988,7 +1014,7 @@
         .catch(function(err) {
           statusDiv.innerHTML = `
             <div class="apd-wf-box apd-wf-box-crimson">
-              <span class="apd-wf-box-icon">✕</span>
+              <span class="apd-wf-box-icon">${APD_ICONS.x}</span>
               <div class="apd-wf-box-content">
                 Reflagging failed: ${err.message || err}
               </div>
@@ -1014,7 +1040,7 @@
         <div class="apd-wf-header">
           <div class="apd-wf-header-left">
             <div class="apd-wf-badge apd-wf-badge-terracotta">
-              <span>📋</span> Human Discrepancy Queue
+              <span>${APD_ICONS.clipboard}</span> Human Discrepancy Queue
             </div>
             <h1 class="apd-wf-title">Anti-Anchoring Discrepancy Verification</h1>
             <p class="apd-wf-subtitle">
@@ -1032,7 +1058,7 @@
 
         <div class="apd-wf-footer">
           <button class="apd-wf-btn apd-wf-btn-outline" id="apd-wf-refresh-queue">
-            🔄 Refresh Queue
+            ${APD_ICONS.refresh} Refresh Queue
           </button>
           <button class="apd-wf-btn apd-wf-btn-secondary" id="apd-wf-close-footer">
             Close
@@ -1055,7 +1081,7 @@
           if (!items || items.length === 0) {
             body.innerHTML = `
               <div class="apd-wf-box apd-wf-box-emerald">
-                <span class="apd-wf-box-icon">✓</span>
+                <span class="apd-wf-box-icon">${APD_ICONS.check}</span>
                 <div class="apd-wf-box-content">
                   <div class="apd-wf-box-title">Verification Queue Empty</div>
                   No unresolved discrepancies in the knowledge graph. All quantitative claims are grounded with consensus or manual transcription.
@@ -1074,7 +1100,7 @@
         .catch(function(err) {
           body.innerHTML = `
             <div class="apd-wf-box apd-wf-box-crimson">
-              <span class="apd-wf-box-icon">✕</span>
+              <span class="apd-wf-box-icon">${APD_ICONS.x}</span>
               <div class="apd-wf-box-content">
                 Failed to load verification queue: ${err.message || err}
               </div>
@@ -1099,14 +1125,14 @@
       if (hasCrop) {
         cropHtml = `
           <div class="apd-wf-crop-box" id="crop-box-${item.id}">
-            <div class="apd-wf-crop-label">🔍 Physical Scan Crop (Direct Evidence)</div>
+            <div class="apd-wf-crop-label">${APD_ICONS.search} Physical Scan Crop (Direct Evidence)</div>
             <img src="${cleanCropSrc}" class="apd-wf-crop-img" id="crop-img-${item.id}" alt="Optical Scan Crop" />
           </div>
         `;
       } else {
         cropHtml = `
           <div class="apd-wf-box apd-wf-box-amber" id="crop-box-${item.id}">
-            <span class="apd-wf-box-icon">🔒</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.lock}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">ANTI-ANCHORING LOCKOUT ACTIVE</div>
               Visual optical crop is missing for this discrepancy item. In accordance with ArchaeoPhD epistemic invariants, candidate resolution is strictly locked without visual evidence to prevent cognitive anchoring. You may only reject this item.
@@ -1164,10 +1190,10 @@
         <!-- Action Row (Candidate resolution initially locked until crop verified rendered) -->
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
           <button class="apd-wf-btn apd-wf-btn-danger" id="btn-reject-${item.id}" ${isResolved ? 'disabled' : ''}>
-            ✕ Reject Item
+            ${APD_ICONS.x} Reject Item
           </button>
           <button class="apd-wf-btn apd-wf-btn-secondary" id="btn-override-${item.id}" disabled>
-            ✍️ Manual Override...
+            ${APD_ICONS.transcribe} Manual Override...
           </button>
           <button class="apd-wf-btn apd-wf-btn-outline" id="btn-choose-b-${item.id}" disabled>
             Accept Candidate B
@@ -1198,7 +1224,7 @@
         if (box && reason) {
           box.className = 'apd-wf-box apd-wf-box-amber';
           box.innerHTML = `
-            <span class="apd-wf-box-icon">🔒</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.lock}</span>
             <div class="apd-wf-box-content">
               <div class="apd-wf-box-title">ANTI-ANCHORING LOCKOUT ACTIVE</div>
               ${reason}
@@ -1292,7 +1318,7 @@
         <div class="apd-wf-header">
           <div class="apd-wf-header-left">
             <div class="apd-wf-badge apd-wf-badge-amber">
-              <span>✍️</span> Class B Manual Double-Entry
+              <span>${APD_ICONS.transcribe}</span> Class B Manual Double-Entry
             </div>
             <h1 class="apd-wf-title">Archival Scan Transcription</h1>
             <p class="apd-wf-subtitle" id="apd-wf-trans-subtitle">
@@ -1340,7 +1366,7 @@
             <div class="apd-wf-body" style="padding:20px 24px;">
               <!-- Zero Pre-Fill Banner -->
               <div class="apd-wf-box apd-wf-box-amber">
-                <span class="apd-wf-box-icon">🛡️</span>
+                <span class="apd-wf-box-icon">${APD_ICONS.shield}</span>
                 <div class="apd-wf-box-content">
                   <div class="apd-wf-box-title">Zero Pre-Fill Epistemic Invariant</div>
                   In accordance with scientific rigor, machine OCR guesses are <strong>prohibited</strong> from pre-populating fields. Transcribe facts directly from the physical scan on the left.
@@ -1365,7 +1391,7 @@
             <div class="apd-wf-footer" style="margin-top:auto;">
               <button class="apd-wf-btn apd-wf-btn-outline" id="apd-wf-trans-cancel">Cancel</button>
               <button class="apd-wf-btn apd-wf-btn-primary" id="apd-wf-trans-commit">
-                <span>✓</span> Commit Verified Transcription
+                <span>${APD_ICONS.check}</span> Commit Verified Transcription
               </button>
             </div>
           </div>
@@ -1393,7 +1419,7 @@
           <option value="artifact" ${type === 'artifact' ? 'selected' : ''}>Artifact</option>
           <option value="date" ${type === 'date' ? 'selected' : ''}>Date / Period</option>
         </select>
-        <button class="apd-wf-btn apd-wf-btn-outline" style="padding:6px; color:#e11d48;" title="Remove row">✕</button>
+        <button class="apd-wf-btn apd-wf-btn-outline" style="padding:6px; color:#e11d48;" title="Remove row">${APD_ICONS.x}</button>
       `;
 
       row.querySelector('button').addEventListener('click', function() {
@@ -1478,7 +1504,7 @@
       .then(function(res) {
         statusDiv.innerHTML = `
           <div class="apd-wf-box apd-wf-box-emerald">
-            <span class="apd-wf-box-icon">✓</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.check}</span>
             <div class="apd-wf-box-content">
               <strong>${facts.length} Verified Claims Committed</strong><br />
               Page ${curPage} claims are now grounded with <code>origin_type: "manual_transcription"</code>.
@@ -1490,7 +1516,7 @@
       .catch(function(err) {
         statusDiv.innerHTML = `
           <div class="apd-wf-box apd-wf-box-crimson">
-            <span class="apd-wf-box-icon">✕</span>
+            <span class="apd-wf-box-icon">${APD_ICONS.x}</span>
             <div class="apd-wf-box-content">
               Failed to save transcription: ${err.message || err}
             </div>
@@ -1515,13 +1541,13 @@
 
     dock.innerHTML = `
       <button class="apd-wf-dock-btn" id="apd-dock-ingest" title="Ingest & Gate PDF Document">
-        <span>📥</span> Ingest
+        <span>${APD_ICONS.ingest}</span> Ingest
       </button>
       <button class="apd-wf-dock-btn" id="apd-dock-queue" title="Verification Queue">
-        <span>📋</span> Verify <span class="apd-wf-dock-badge" id="apd-dock-queue-count" style="display:none;">0</span>
+        <span>${APD_ICONS.verify}</span> Verify <span class="apd-wf-dock-badge" id="apd-dock-queue-count" style="display:none;">0</span>
       </button>
       <button class="apd-wf-dock-btn" id="apd-dock-transcribe" title="Manual Transcription View">
-        <span>✍️</span> Transcribe
+        <span>${APD_ICONS.transcribe}</span> Transcribe
       </button>
     `;
 
@@ -1589,10 +1615,10 @@
       bar.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
       bar.innerHTML = `
         <button class="apd-wf-btn apd-wf-btn-outline" style="padding:3px 8px; font-size:11px;" title="Classify Degradation">
-          ⚖️ Classify
+          ${APD_ICONS.scale} Classify
         </button>
         <button class="apd-wf-btn apd-wf-btn-outline" style="padding:3px 8px; font-size:11px;" title="Manual Double-Entry">
-          ✍️ Transcribe
+          ${APD_ICONS.transcribe} Transcribe
         </button>
       `;
 
