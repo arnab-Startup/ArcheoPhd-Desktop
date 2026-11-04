@@ -309,6 +309,14 @@
             </div>
           </div>
 
+          
+          <div id="apd-init-error" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 12px; margin-bottom: 12px; gap: 10px; align-items: flex-start;">
+            <div style="color: #ef4444; flex-shrink: 0; margin-top: 1px;">${APD_ICONS.warning}</div>
+            <div>
+              <div style="font-weight: 600; font-size: 13px; color: #b91c1c;">Storage Initialization Notice</div>
+              <div id="apd-init-error-msg" style="font-size: 12px; color: #7f1d1d; margin-top: 2px; line-height: 1.4;"></div>
+            </div>
+          </div>
           <div id="apd-cloud-alert" style="display: ${cloudWarning ? 'flex' : 'none'};" class="apd-warning-box">
             <div class="apd-warning-icon">${APD_ICONS.warning}</div>
             <div>
@@ -365,7 +373,7 @@
       callNative('browse_folder', { initial_path: inputEl.value.trim() })
         .then(function(res) {
           browseBtn.disabled = false;
-          browseBtn.innerHTML = '${APD_ICONS.folder} Browse...';
+          browseBtn.innerHTML = APD_ICONS.folder + ' Browse...';
           if (res && !res.cancelled && res.path) {
             inputEl.value = res.path;
             if (res.cloud_service) {
@@ -378,7 +386,7 @@
         })
         .catch(function(err) {
           browseBtn.disabled = false;
-          browseBtn.innerHTML = '${APD_ICONS.folder} Browse...';
+          browseBtn.innerHTML = APD_ICONS.folder + ' Browse...';
         });
     });
 
@@ -469,13 +477,13 @@
             }, 300);
           } else {
             btn.disabled = false;
-            btn.innerHTML = '${APD_ICONS.refresh} Retry Connection';
+            btn.innerHTML = APD_ICONS.refresh + ' Retry Connection';
             alert('Drive or path is still unavailable. Please reconnect the drive or select a different folder.');
           }
         })
         .catch(function(err) {
           btn.disabled = false;
-          btn.innerHTML = '${APD_ICONS.refresh} Retry Connection';
+          btn.innerHTML = APD_ICONS.refresh + ' Retry Connection';
         });
     });
 
@@ -552,6 +560,10 @@
     callNative('get_data_root_status')
       .then(function(status) {
         currentStatus = status;
+        var rootSpan = document.getElementById('apd-sb-dataroot');
+        if (rootSpan && status.data_root) {
+          rootSpan.textContent = 'Data Root: ' + status.data_root;
+        }
         if (!status.configured) {
           showFirstLaunchModal(status);
         } else if (status.is_missing) {

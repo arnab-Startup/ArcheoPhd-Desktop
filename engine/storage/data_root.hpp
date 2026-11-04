@@ -6,6 +6,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
+#include <shobjidl.h>
 #include <shlwapi.h>
 #include <commdlg.h>
 #include <string>
@@ -49,18 +50,32 @@ public:
     }
 
     static inline bool CreateDirectoriesRecursive(const std::wstring& path) {
+        if (path.empty()) return false;
         if (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES) return true;
-        std::wstring sub;
-        for (size_t i = 0; i < path.length(); ++i) {
-            sub += path[i];
-            if (path[i] == L'\\' || path[i] == L'/') {
-                if (sub.length() > 3) {
-                    CreateDirectoryW(sub.c_str(), nullptr);
-                }
-            }
+
+        // 1. First attempt: Official Win32 Shell API for recursive folder creation
+        int res = SHCreateDirectoryExW(nullptr, path.c_str(), nullptr);
+        if (res == ERROR_SUCCESS || res == ERROR_ALREADY_EXISTS || res == ERROR_FILE_EXISTS) {
+            return true;
         }
-        CreateDirectoryW(path.c_str(), nullptr);
-        return (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES);
+
+        // 2. Clean up trailing slashes
+        std::wstring clean = path;
+        while (!clean.empty() && (clean.back() == L'\\' || clean.back() == L'/')) {
+            clean.pop_back();
+        }
+        if (clean.empty()) return false;
+
+        // 3. Fallback: robust step-by-step directory creation without trailing slashes
+        std::wstring sub;
+        for (size_t i = 0; i < clean.length(); ++i) {
+            if ((clean[i] == L'\\' || clean[i] == L'/') && sub.length() > 2) {
+                CreateDirectoryW(sub.c_str(), nullptr);
+            }
+            sub += clean[i];
+        }
+        CreateDirectoryW(clean.c_str(), nullptr);
+        return (GetFileAttributesW(clean.c_str()) != INVALID_FILE_ATTRIBUTES);
     }
 
     static inline bool IsDirWritable(const std::wstring& dir) {
@@ -375,26 +390,67 @@ public:
     }
 
     static inline bool BrowseForFolder(HWND hWndOwner, const std::string& initialPathUtf8, std::string& outSelectedPath) {
-        std::wstring initialWide = Utf8ToWide(initialPathUtf8);
+        HRESULT hrInit = OleInitialize(NULL);
+        bool found = false;
 
-        BROWSEINFOW bi = { 0 };
-        bi.hwndOwner = hWndOwner;
-        bi.lpszTitle = L"Select ArchaeoPhD Research Data Root Folder (e.g. D:\\ArchaeoPhD-Data or External SSD):";
-        bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
-        bi.lpfn = BrowseCallbackProc;
-        bi.lParam = (LPARAM)initialWide.c_str();
-
-        LPITEMIDLIST pidl = SHBrowseForFolderW(&bi);
-        if (pidl) {
-            wchar_t path[MAX_PATH];
-            if (SHGetPathFromIDListW(pidl, path)) {
-                outSelectedPath = WideToUtf8(path);
-                CoTaskMemFree(pidl);
-                return true;
+        IFileOpenDialog* pfd = nullptr;
+        HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+        if (SUCCEEDED(hr) && pfd) {
+            DWORD dwOptions = 0;
+            if (SUCCEEDED(pfd->GetOptions(&dwOptions))) {
+                pfd->SetOptions(dwOptions | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST);
             }
-            CoTaskMemFree(pidl);
+            pfd->SetTitle(L"Select ArchaeoPhD Research Data Root Folder");
+
+            if (!initialPathUtf8.empty()) {
+                std::wstring initWide = Utf8ToWide(initialPathUtf8);
+                IShellItem* psiFolder = nullptr;
+                if (SUCCEEDED(SHCreateItemFromParsingName(initWide.c_str(), NULL, IID_PPV_ARGS(&psiFolder))) && psiFolder) {
+                    pfd->SetFolder(psiFolder);
+                    psiFolder->Release();
+                }
+            }
+
+            if (SUCCEEDED(pfd->Show(hWndOwner))) {
+                IShellItem* psiResult = nullptr;
+                if (SUCCEEDED(pfd->GetResult(&psiResult)) && psiResult) {
+                    PWSTR pszPath = nullptr;
+                    if (SUCCEEDED(psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszPath)) && pszPath) {
+                        outSelectedPath = WideToUtf8(pszPath);
+                        CoTaskMemFree(pszPath);
+                        found = true;
+                    }
+                    psiResult->Release();
+                }
+            }
+            pfd->Release();
         }
-        return false;
+
+        if (!found) {
+            std::wstring initialWide = Utf8ToWide(initialPathUtf8);
+            BROWSEINFOW bi = { 0 };
+            bi.hwndOwner = hWndOwner;
+            bi.lpszTitle = L"Select ArchaeoPhD Research Data Root Folder (e.g. D:\\ArchaeoPhD-Data or External SSD):";
+            bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_USENEWUI;
+            bi.lpfn = BrowseCallbackProc;
+            bi.lParam = (LPARAM)initialWide.c_str();
+
+            LPITEMIDLIST pidl = SHBrowseForFolderW(&bi);
+            if (pidl) {
+                wchar_t path[MAX_PATH];
+                if (SHGetPathFromIDListW(pidl, path)) {
+                    outSelectedPath = WideToUtf8(path);
+                    found = true;
+                }
+                CoTaskMemFree(pidl);
+            }
+        }
+
+        if (SUCCEEDED(hrInit)) {
+            OleUninitialize();
+        }
+
+        return found;
     }
 
     static inline bool BrowseForFile(HWND hWndOwner, const std::string& initialDirUtf8, std::string& outSelectedPath) {

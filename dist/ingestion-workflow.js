@@ -500,7 +500,7 @@
       /* Floating Research Quick-Action Dock */
       .apd-wf-dock {
         position: fixed;
-        bottom: 34px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 99990;
@@ -789,7 +789,7 @@
       })
       .catch(function(err) {
         btn.disabled = false;
-        btn.innerHTML = '<span>${APD_ICONS.ingest}</span> Ingest & Gate Document';
+        btn.innerHTML = '<span>' + APD_ICONS.ingest + '</span> Ingest & Gate Document';
         statusArea.innerHTML = `
           <div class="apd-wf-box apd-wf-box-crimson">
             <span class="apd-wf-box-icon">${APD_ICONS.x}</span>

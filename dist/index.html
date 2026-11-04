@@ -121,12 +121,12 @@
           var p = (req && req.prompt) || '';
           if (window.nativeBridge && typeof window.nativeBridge.call === 'function') {
             try {
-              var res = await window.nativeBridge.call('invoke_llm', { prompt: p, schema: req.response_json_schema });
-              if (res && res.answer) return res;
+              var s = (req && (req.response_json_schema || req.schema)) || null; var res = await window.nativeBridge.call('invoke_llm', { prompt: p, schema: s, response_json_schema: s });
+              if (res !== undefined && res !== null) return typeof res === 'string' ? { answer: res } : res;
             } catch(e) {}
           }
           return {
-            answer: 'Your active research workspace contains no contradictions under current filters. All evidence is internally consistent.',
+            answer: 'Hello! Ask your research question, and I will find contradiction evidence in your workspace.',
             evidence: 'Verified from local workspace.',
             sources: 'Offline Research Workstation',
             uncertainty: 'Grounded in local project data.'
@@ -414,61 +414,14 @@
         overflow-y: auto;
       }
 
-      /* Persistent Native Workstation Status Bar */
-      #apd-desktop-statusbar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 26px;
-        background: hsl(var(--card, 38 28% 97%));
-        border-top: 1px solid hsl(var(--border, 36 16% 87%));
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 14px;
-        font-family: var(--font-mono, "SFMono-Regular", Consolas, Menlo, monospace);
-        font-size: 11px;
-        color: hsl(var(--muted-foreground, 30 8% 46%));
-        z-index: 99999;
-        box-sizing: border-box;
-        letter-spacing: 0.02em;
-        user-select: none;
-      }
-      .apd-sb-section {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .apd-sb-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .apd-sb-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        display: inline-block;
-      }
-      .apd-sb-dot.online {
-        background: #10b981;
-        box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
-      }
-      .apd-sb-dot.secure {
-        background: #3b82f6;
-        box-shadow: 0 0 6px rgba(59, 130, 246, 0.45);
-      }
-      .apd-sb-sep {
-        opacity: 0.35;
-        font-weight: 300;
-      }
-    </style>
+      </style>
   </head>
 
   <body>
 
     <div id="root"></div>
+
+    
 
     <script src="/data-root-dialog.js"></script>
 
