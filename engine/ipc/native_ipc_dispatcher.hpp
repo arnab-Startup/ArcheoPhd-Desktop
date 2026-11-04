@@ -443,23 +443,11 @@ public:
 
 
 
-        // Engine entities require initialized storage
-
-        if (!storage_) {
-
-            res["error"] = "Data Root is not configured or engine is initializing";
-
-            return res.dump();
-
-        }
-
-
-
         try {
 
             // -------------------------------------------------------------
 
-            // Group 2: Core Knowledge Graph & Analysis Endpoints
+            // Group 2: Core Knowledge Graph & Analysis Endpoints (Zero-Setup Resilient)
 
             // -------------------------------------------------------------
 
@@ -875,11 +863,21 @@ public:
                 }
 
                 res["result"] = llmRes;
+                return res.dump();
             } else if (action == "transcribe_audio") {
                 res["result"] = {
                     {"text", "Field excavation and stratigraphic record logged."}
                 };
-            } else if (action == "get_contradictions") {
+                return res.dump();
+            }
+
+            // Engine entities require initialized storage
+            if (!storage_) {
+                res["error"] = "Data Root is not configured or engine is initializing";
+                return res.dump();
+            }
+
+            if (action == "get_contradictions") {
 
                 if (!contradictions_) {
 
