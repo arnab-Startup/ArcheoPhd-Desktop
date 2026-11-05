@@ -9,6 +9,21 @@
           if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html' || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/demo') {
             try { window.history.replaceState(null, '', '/dashboard'); } catch(e){}
           }
+          var rawMsgs = localStorage.getItem('archaeophd_local_messages');
+          if (rawMsgs) {
+            try {
+              var parsedM = JSON.parse(rawMsgs);
+              if (Array.isArray(parsedM)) {
+                parsedM.sort(function(a, b) {
+                  var ta = new Date(a.created_date || a.timestamp || 0).getTime() || parseInt((a.id || '').replace(/\D/g, '') || 0);
+                  var tb = new Date(b.created_date || b.timestamp || 0).getTime() || parseInt((b.id || '').replace(/\D/g, '') || 0);
+                  if (ta !== tb) return ta - tb;
+                  return a.role === 'user' ? -1 : 1;
+                });
+                localStorage.setItem('archaeophd_local_messages', JSON.stringify(parsedM));
+              }
+            } catch(e){}
+          }
           var projStr = localStorage.getItem('archaeophd_local_projects');
           if (projStr) {
             try {
@@ -143,9 +158,12 @@
                   return x.project_id === query.project_id || x.project_id === 'default';
                 });
               }
-              if (sort === 'created_date') {
+              if (entityKey === 'messages' || sort === 'created_date') {
                 items.sort(function(a, b) {
-                  return (a.created_date || a.id || '').localeCompare(b.created_date || b.id || '');
+                  var ta = new Date(a.created_date || a.timestamp || 0).getTime() || parseInt((a.id || '').replace(/\D/g, '') || 0);
+                  var tb = new Date(b.created_date || b.timestamp || 0).getTime() || parseInt((b.id || '').replace(/\D/g, '') || 0);
+                  if (ta !== tb) return ta - tb;
+                  return a.role === 'user' ? -1 : 1;
                 });
               }
               return limit ? items.slice(0, limit) : items;
