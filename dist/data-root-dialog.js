@@ -11,30 +11,24 @@
 (function() {
   'use strict';
   // ArchaeoPhD Modern SVG Icon Library (Executive Offline Aesthetic)
-  var APD_ICONS = {
-    landmark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="2" y2="6"/><polyline points="2 6 12 2 22 6"/><line x1="4" x2="4" y1="18" y2="22"/><line x1="8" x2="8" y1="18" y2="22"/><line x1="16" x2="16" y1="18" y2="22"/><line x1="20" x2="20" y1="18" y2="22"/><path d="M4 18h16"/><path d="M4 6h16"/></svg>',
-    warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
-    folder: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>',
-    folderOpen: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>',
-    ingest: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>',
-    gear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
-    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><polyline points="20 6 9 17 4 12"/></svg>',
-    checkCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-    shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-    copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
-    clipboard: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
-    verify: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>',
-    transcribe: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
-    scale: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
-    x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
-    refresh: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
-    search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>',
-    lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
-    brain: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/></svg>',
-    library: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
-    hardDrive: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>'
+    var APD_ICONS = {
+    landmark: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="2" y2="6"/><polyline points="2 6 12 2 22 6"/><line x1="4" x2="4" y1="18" y2="22"/><line x1="8" x2="8" y1="18" y2="22"/><line x1="16" x2="16" y1="18" y2="22"/><line x1="20" x2="20" y1="18" y2="22"/><path d="M4 18h16"/><path d="M4 6h16"/></svg>',
+    warning: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+    folder: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
+    folderOpen: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>',
+    gear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><polyline points="20 6 9 17 4 12"/></svg>',
+    checkCircle: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    shield: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+    x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
+    refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    hardDrive: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>',
+    sparkles: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
+    database: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>',
+    fileText: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="apd-icon"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>'
   };
-
 
   var currentStatus = null;
 
@@ -230,11 +224,12 @@
       .apd-settings-card {
         background: hsl(var(--card, 40 33% 99%));
         border: 1px solid hsl(var(--border, 36 16% 87%));
-        border-radius: calc(var(--radius, 10px) + 2px);
+        border-radius: 12px;
         padding: 20px 24px;
         margin-top: 24px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
         color: hsl(var(--card-foreground, 30 10% 12%));
+        font-family: var(--font-body, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       }
     `;
     document.head.appendChild(style);
@@ -288,12 +283,26 @@
           </p>
         </div>
         <div class="apd-body">
-          <div class="apd-structure-box">
-            <div><span class="hl">${APD_ICONS.folderOpen} [Chosen Root]/</span></div>
-            <div>&nbsp;&nbsp;├── <span class="hl">${APD_ICONS.brain} models/</span> (Embeddings &amp; Local LLMs)</div>
-            <div>&nbsp;&nbsp;├── <span class="hl">${APD_ICONS.library} libraries/</span> (Excavation datasets, vector indexes)</div>
-            <div>&nbsp;&nbsp;├── <span class="hl">${APD_ICONS.clipboard} logs/</span> (Air-gapped operation records)</div>
-            <div>&nbsp;&nbsp;└── <span class="hl">${APD_ICONS.gear} config.json</span> (Workstation configuration)</div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px;">
+            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.sparkles}</span> models/
+              </div>
+              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Offline Neural Weights</div>
+            </div>
+            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.database}</span> libraries/
+              </div>
+              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Vector Indexes &amp; PDFs</div>
+            </div>
+            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.fileText}</span> logs/
+              </div>
+              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Local Audit Telemetry</div>
+            </div>
+          </div>
           </div>
 
           <div>
@@ -512,33 +521,63 @@
     card.className = 'apd-settings-card';
 
     var cloudBadge = currentStatus.cloud_service
-      ? `<span style="color: hsl(38 92% 45%); background: hsl(38 92% 45% / 0.12); border: 1px solid hsl(38 92% 45% / 0.3); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;">${APD_ICONS.warning} Cloud Synced (${currentStatus.cloud_service})</span>`
-      : `<span style="color: hsl(150 60% 40%); background: hsl(150 60% 40% / 0.12); border: 1px solid hsl(150 60% 40% / 0.3); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;">${APD_ICONS.lock} 100% Offline (Local Drive)</span>`;
+      ? `<span style="display:inline-flex; align-items:center; gap:6px; color: hsl(38 92% 45%); background: hsl(38 92% 45% / 0.1); border: 1px solid hsl(38 92% 45% / 0.25); padding: 4px 10px; border-radius: 9999px; font-size: 11.5px; font-weight: 500;">${APD_ICONS.warning} Cloud Synced (${currentStatus.cloud_service})</span>`
+      : `<span style="display:inline-flex; align-items:center; gap:6px; color: hsl(150 60% 35%); background: hsl(150 60% 40% / 0.08); border: 1px solid hsl(150 60% 40% / 0.2); padding: 4px 10px; border-radius: 9999px; font-size: 11.5px; font-weight: 500;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span> 100% Offline (Local Drive)</span>`;
 
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:16px;">
         <div>
-          <h3 style="margin:0 0 4px 0; font-family: var(--font-heading, 'Fraunces', serif); font-size:16px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%)); display:flex; align-items:center; gap:8px;">
-            <span>${APD_ICONS.hardDrive}</span> Workstation Storage &amp; Data Root
-          </h3>
-          <p style="margin:0; font-size:12.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">
-            Location where local AI models, native vector indexes, and research libraries are stored.
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="color:hsl(var(--primary, 18 58% 28%)); display:flex; align-items:center;">${APD_ICONS.hardDrive}</span>
+            <h3 style="margin:0; font-family:var(--font-body, 'Inter', -apple-system, sans-serif); font-size:14px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%)); letter-spacing:-0.01em;">
+              Workstation Storage &amp; Research Data Root
+            </h3>
+          </div>
+          <p style="margin:0; font-size:13px; color:hsl(var(--muted-foreground, 30 8% 42%)); line-height:1.4;">
+            Local filesystem location for neural AI model weights (GGUF), high-density vector indexes, and research libraries.
           </p>
         </div>
-        <div>${cloudBadge}</div>
+        <div style="flex-shrink:0;">${cloudBadge}</div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; background:hsl(var(--muted, 38 20% 94%) / 0.4); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:var(--radius, 8px); padding:10px 14px; margin-bottom:12px;">
-        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:12.5px; color:hsl(var(--primary, 18 58% 28%)); font-weight:600; word-break:break-all;">${currentStatus.data_root}</code>
-        <button id="apd-settings-change-btn" type="button" class="apd-btn apd-btn-secondary" style="padding:6px 14px; font-size:12px;">
-          ${APD_ICONS.folder} Relocate...
+      <div style="display:flex; align-items:center; gap:10px; background:hsl(var(--muted, 38 20% 94%)/0.45); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:8px 12px; margin-bottom:12px;">
+        <span style="color:hsl(var(--muted-foreground, 30 8% 42%)); display:flex; align-items:center;">${APD_ICONS.folder}</span>
+        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:12.5px; font-weight:500; color:hsl(var(--foreground, 30 10% 12%)); word-break:break-all; user-select:text;">${currentStatus.data_root}</code>
+        <button id="apd-settings-change-btn" type="button" class="apd-btn apd-btn-secondary" style="padding:6px 14px; font-size:12px; font-weight:500; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+          ${APD_ICONS.folderOpen} Relocate...
         </button>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:11px; font-family:var(--font-mono, monospace); color:hsl(var(--muted-foreground, 30 8% 42%));">
-        <div style="background:hsl(var(--muted, 38 20% 94%) / 0.5); padding:8px 10px; border-radius:var(--radius, 6px); border:1px solid hsl(var(--border, 36 16% 87%));">${APD_ICONS.brain} ${currentStatus.models_dir || 'models/'}</div>
-        <div style="background:hsl(var(--muted, 38 20% 94%) / 0.5); padding:8px 10px; border-radius:var(--radius, 6px); border:1px solid hsl(var(--border, 36 16% 87%));">${APD_ICONS.library} ${currentStatus.libraries_dir || 'libraries/'}</div>
-        <div style="background:hsl(var(--muted, 38 20% 94%) / 0.5); padding:8px 10px; border-radius:var(--radius, 6px); border:1px solid hsl(var(--border, 36 16% 87%));">${APD_ICONS.clipboard} ${currentStatus.logs_dir || 'logs/'}</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.sparkles}</span> AI Models
+            </span>
+            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">models/</span>
+          </div>
+          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">4.8 GB • Qwen2.5 &amp; Nomic</span>
+        </div>
+
+        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.database}</span> Vector Index
+            </span>
+            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">libraries/</span>
+          </div>
+          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">Embedded research sources</span>
+        </div>
+
+        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
+              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.fileText}</span> Diagnostics
+            </span>
+            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">logs/</span>
+          </div>
+          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">Local diagnostic telemetry</span>
+        </div>
       </div>
     `;
 
