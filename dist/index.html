@@ -104,6 +104,88 @@
         loginViaEmailPassword: async function() { return true; },
         register: async function() { return true; }
       };
+            window.__B44_DB__.entities = new Proxy({}, {
+        get: function(target, entityName) {
+          var keyMap = {
+            Project: 'projects',
+            Claim: 'claims',
+            Evidence: 'evidence',
+            Source: 'sources',
+            Note: 'notes',
+            ChatMessage: 'messages'
+          };
+          var entityKey = keyMap[entityName] || (entityName.toLowerCase() + 's');
+          var storageKey = 'archaeophd_local_' + entityKey;
+          
+          function getAll() {
+            try {
+              var raw = localStorage.getItem(storageKey);
+              return raw ? JSON.parse(raw) : [];
+            } catch(e) { return []; }
+          }
+          
+          function saveAll(items) {
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(items));
+            } catch(e) {}
+          }
+
+          return {
+            list: async function(opts, limit) {
+              var items = getAll();
+              return limit ? items.slice(0, limit) : items;
+            },
+            filter: async function(query, sort, limit) {
+              var items = getAll();
+              query = query || {};
+              if (query.project_id) {
+                items = items.filter(function(x) {
+                  return x.project_id === query.project_id || x.project_id === 'default';
+                });
+              }
+              if (sort === 'created_date') {
+                items.sort(function(a, b) {
+                  return (a.created_date || a.id || '').localeCompare(b.created_date || b.id || '');
+                });
+              }
+              return limit ? items.slice(0, limit) : items;
+            },
+            get: async function(id) {
+              var items = getAll();
+              return items.find(function(x) { return x.id === id; }) || null;
+            },
+            create: async function(data) {
+              var items = getAll();
+              var record = Object.assign({
+                id: data.id || ('local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6)),
+                created_date: new Date().toISOString()
+              }, data);
+              items.push(record);
+              saveAll(items);
+              return record;
+            },
+            update: async function(id, patch) {
+              var items = getAll();
+              var updated = null;
+              items = items.map(function(x) {
+                if (x.id === id) {
+                  updated = Object.assign({}, x, patch);
+                  return updated;
+                }
+                return x;
+              });
+              saveAll(items);
+              return updated || Object.assign({ id: id }, patch);
+            },
+            delete: async function(id) {
+              var items = getAll();
+              items = items.filter(function(x) { return x.id !== id; });
+              saveAll(items);
+              return true;
+            }
+          };
+        }
+      });
       window.__B44_DB__.integrations = window.__B44_DB__.integrations || {};
       window.__B44_DB__.integrations.Core = {
         UploadFile: async function(req) { return { file_url: 'local://audio', file_path: 'local://audio' }; },
