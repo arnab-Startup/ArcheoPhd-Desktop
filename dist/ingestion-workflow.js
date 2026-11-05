@@ -1534,71 +1534,8 @@
   // FLOATING RESEARCH QUICK-ACTION DOCK
   // ---------------------------------------------------------------------------
   function injectFloatingDock() {
-    if (document.getElementById('apd-wf-floating-dock')) return;
-    injectStyles();
-
-    var dock = document.createElement('div');
-    dock.id = 'apd-wf-floating-dock';
-    dock.className = 'apd-wf-dock';
-
-    dock.innerHTML = `
-      <button class="apd-wf-dock-btn" id="apd-dock-ingest" title="Ingest & Gate PDF Document">
-        <span>${APD_ICONS.ingest}</span> Ingest
-      </button>
-      <button class="apd-wf-dock-btn" id="apd-dock-queue" title="Verification Queue">
-        <span>${APD_ICONS.verify}</span> Verify <span class="apd-wf-dock-badge" id="apd-dock-queue-count" style="display:none;">0</span>
-      </button>
-      <button class="apd-wf-dock-btn" id="apd-dock-transcribe" title="Manual Transcription View">
-        <span>${APD_ICONS.transcribe}</span> Transcribe
-      </button>
-    `;
-
-    document.body.appendChild(dock);
-
-    document.getElementById('apd-dock-ingest').addEventListener('click', function() {
-      showIngestionModal();
-    });
-    document.getElementById('apd-dock-queue').addEventListener('click', function() {
-      showVerificationQueueModal();
-    });
-    document.getElementById('apd-dock-transcribe').addEventListener('click', function() {
-      // Pick first source or ask
-      callNative('get_sources')
-        .then(function(sources) {
-          if (sources && sources.length > 0) {
-            showManualTranscriptionModal(sources[0].id, 1);
-          } else {
-            showIngestionModal();
-          }
-        })
-        .catch(function() {
-          showManualTranscriptionModal('src-default', 1);
-        });
-    });
-
-    // Check pending verification queue count periodically
-    function updateQueueBadge() {
-      callNative('get_verification_queue')
-        .then(function(items) {
-          var count = 0;
-          if (items && items.length) {
-            items.forEach(function(it) { if (it.status === 'PENDING') count++; });
-          }
-          var badge = document.getElementById('apd-dock-queue-count');
-          if (badge) {
-            if (count > 0) {
-              badge.textContent = count;
-              badge.style.display = 'inline-block';
-            } else {
-              badge.style.display = 'none';
-            }
-          }
-        })
-        .catch(function() {});
-    }
-
-    setTimeout(updateQueueBadge, 1500);
-    setInterval(updateQueueBadge, 30000);
+    var existing = document.getElementById('apd-wf-floating-dock');
+    if (existing) existing.remove();
   }
 
   // ---------------------------------------------------------------------------
