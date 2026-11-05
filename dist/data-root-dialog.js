@@ -283,25 +283,6 @@
           </p>
         </div>
         <div class="apd-body">
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px;">
-            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.sparkles}</span> models/
-              </div>
-              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Offline Neural Weights</div>
-            </div>
-            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.database}</span> libraries/
-              </div>
-              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Vector Indexes &amp; PDFs</div>
-            </div>
-            <div style="background:hsl(var(--muted, 38 20% 94%)/0.35); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:3px;">
-              <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-                <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.fileText}</span> logs/
-              </div>
-              <div style="font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Local Audit Telemetry</div>
-            </div>
           </div>
           </div>
 
@@ -501,7 +482,7 @@
     });
   }
 
-  // Inject Data Root Card cleanly into the /settings page (Native Desktop App UX)
+  // Inject Data Root Card cleanly into the /settings page (Docker Desktop / Clean Workstation UX)
   function injectSettingsCard() {
     if (!currentStatus || !currentStatus.configured || currentStatus.is_missing) return;
     if (document.getElementById('apd-settings-card')) return;
@@ -525,59 +506,27 @@
       : `<span style="display:inline-flex; align-items:center; gap:6px; color: hsl(150 60% 35%); background: hsl(150 60% 40% / 0.08); border: 1px solid hsl(150 60% 40% / 0.2); padding: 4px 10px; border-radius: 9999px; font-size: 11.5px; font-weight: 500;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span> 100% Offline (Local Drive)</span>`;
 
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px;">
         <div>
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
             <span style="color:hsl(var(--primary, 18 58% 28%)); display:flex; align-items:center;">${APD_ICONS.hardDrive}</span>
             <h3 style="margin:0; font-family:var(--font-body, 'Inter', -apple-system, sans-serif); font-size:14px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%)); letter-spacing:-0.01em;">
-              Workstation Storage &amp; Research Data Root
+              Workstation Storage Location
             </h3>
           </div>
           <p style="margin:0; font-size:13px; color:hsl(var(--muted-foreground, 30 8% 42%)); line-height:1.4;">
-            Local filesystem location for neural AI model weights (GGUF), high-density vector indexes, and research libraries.
+            Local filesystem location for offline AI neural weights (4.8 GB) and research database.
           </p>
         </div>
         <div style="flex-shrink:0;">${cloudBadge}</div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; background:hsl(var(--muted, 38 20% 94%)/0.45); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:8px 12px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:10px; background:hsl(var(--muted, 38 20% 94%)/0.45); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 14px;">
         <span style="color:hsl(var(--muted-foreground, 30 8% 42%)); display:flex; align-items:center;">${APD_ICONS.folder}</span>
-        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:12.5px; font-weight:500; color:hsl(var(--foreground, 30 10% 12%)); word-break:break-all; user-select:text;">${currentStatus.data_root}</code>
+        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:13px; font-weight:500; color:hsl(var(--foreground, 30 10% 12%)); word-break:break-all; user-select:text;">${currentStatus.data_root}</code>
         <button id="apd-settings-change-btn" type="button" class="apd-btn apd-btn-secondary" style="padding:6px 14px; font-size:12px; font-weight:500; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">
           ${APD_ICONS.folderOpen} Relocate...
         </button>
-      </div>
-
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.sparkles}</span> AI Models
-            </span>
-            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">models/</span>
-          </div>
-          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">4.8 GB • Qwen2.5 &amp; Nomic</span>
-        </div>
-
-        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.database}</span> Vector Index
-            </span>
-            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">libraries/</span>
-          </div>
-          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">Embedded research sources</span>
-        </div>
-
-        <div style="background:hsl(var(--muted, 38 20% 94%)/0.3); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:4px;">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%));">
-              <span style="color:hsl(var(--primary, 18 58% 28%));">${APD_ICONS.fileText}</span> Diagnostics
-            </span>
-            <span style="font-family:var(--font-mono, monospace); font-size:10px; color:hsl(var(--muted-foreground, 30 8% 42%)); background:hsl(var(--muted, 38 20% 94%)/0.8); padding:2px 6px; border-radius:4px;">logs/</span>
-          </div>
-          <span style="font-size:11.5px; color:hsl(var(--muted-foreground, 30 8% 42%));">Local diagnostic telemetry</span>
-        </div>
       </div>
     `;
 
