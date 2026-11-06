@@ -672,35 +672,66 @@ public:
                         if (isEvidenceMode) {
                             json contrArr = json::array();
                             for (const auto& pt : conflictPoints) contrArr.push_back(pt);
-                            llmRes["supporting"] = json::array({"Stratigraphic continuity confirmed between Period II and Period III at Hastinapura.", "Both Wheeler and Begley confirm presence of Mediterranean amphorae sherds in maritime warehouse contexts."});
+                            llmRes["supporting"] = json::array();
                             llmRes["contradicting"] = contrArr;
-                            llmRes["uncertain"] = json::array({"Disputed boundary of early maritime trade horizon pending high-precision AMS series."});
-                            llmRes["missing"] = json::array({"Direct stratigraphic cross-trench correlation between northern and southern sectors."});
-                        } else {
-                            std::string ans = "The following disagreements and contradictions exist across sources in your library:\n\n";
-                            for (size_t i = 0; i < conflictPoints.size(); ++i) {
-                                ans += std::to_string(i + 1) + ". " + conflictPoints[i] + "\n\n";
+                            llmRes["uncertain"] = json::array();
+                            if (conflictPoints.empty()) {
+                                llmRes["missing"] = json::array({"No contradictions detected in active project records."});
+                            } else {
+                                llmRes["missing"] = json::array();
                             }
-                            llmRes["answer"] = ans;
-                            llmRes["evidence"] = "Trench IV layer 4 ceramic seriation vs Trench VII pre-structural deposit AMS assays; stratigraphic cycle detection in excavation logs.";
-                            llmRes["sources"] = "Wheeler (1946); Begley (1983); Lal (1955)";
-                            llmRes["uncertainty"] = "Stratigraphic correlation across disjoint excavation seasons remains contested without new micro-stratigraphic sampling.";
+                        } else {
+                            if (conflictPoints.empty()) {
+                                llmRes["answer"] = "No contradictions or contested claims found in your active research library.";
+                                llmRes["evidence"] = "Zero conflicting assertions recorded across active claims and stratigraphic units.";
+                                llmRes["sources"] = "Active Project Library";
+                                llmRes["uncertainty"] = "All active claims are currently uncontested.";
+                            } else {
+                                std::string ans = "The following disagreements and contradictions exist across sources in your library:\n\n";
+                                for (size_t i = 0; i < conflictPoints.size(); ++i) {
+                                    ans += std::to_string(i + 1) + ". " + conflictPoints[i] + "\n\n";
+                                }
+                                llmRes["answer"] = ans;
+                                llmRes["evidence"] = "Contested assertions identified from active project records.";
+                                llmRes["sources"] = "Claims Register (Active Project)";
+                                llmRes["uncertainty"] = "Stratigraphic correlation across disjoint excavation seasons remains contested.";
+                            }
                         }
                     } else if (isLackingEvidenceQuery) {
+                        std::vector<std::string> lackingClaims;
+                        for (const auto& clm : promptClaims) {
+                            if (clm.find("lacks") != std::string::npos || clm.find("unverified") != std::string::npos || clm.find("Under Review") != std::string::npos) {
+                                lackingClaims.push_back(clm);
+                            }
+                        }
+
                         if (isEvidenceMode) {
+                            json lackArr = json::array();
+                            for (const auto& lc : lackingClaims) lackArr.push_back(lc);
                             llmRes["supporting"] = json::array();
                             llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Claims marked with status: Contested or Under Review."});
-                            llmRes["missing"] = json::array({
-                                "Claim #clm_prestructural: Pre-structural stratum absolute dating lacks direct radiocarbon samples.",
-                                "Claim #clm_coarse_ware: Ceramic provenance for Trench IX coarse red ware lacks petrographic thin-section analysis.",
-                                "Claim #clm_flood_abandonment: Direct stratigraphic evidence linking the flood horizon to total site abandonment is currently missing."
-                            });
+                            llmRes["uncertain"] = json::array();
+                            if (lackingClaims.empty()) {
+                                llmRes["missing"] = json::array({"No claims lacking evidence found in active project library."});
+                            } else {
+                                llmRes["missing"] = lackArr;
+                            }
                         } else {
-                            llmRes["answer"] = "The following claims in your research library currently lack supporting evidence records:\n1. Pre-structural stratum absolute dating (lacks direct radiocarbon samples).\n2. Ceramic provenance for Trench IX coarse red ware (lacks petrographic analysis).\n3. Stratigraphic correlation linking the flood horizon to total site abandonment.";
-                            llmRes["evidence"] = "Knowledge graph audit: 3 unverified claims identified with 0 linked primary excavation citations.";
-                            llmRes["sources"] = "Claims Register (Active Project)";
-                            llmRes["uncertainty"] = "Requires field verification or additional monograph ingestion.";
+                            if (lackingClaims.empty()) {
+                                llmRes["answer"] = "No claims lacking evidence were found in your active project. All registered claims have linked citations or empirical evidence.";
+                                llmRes["evidence"] = "Active claims register audit: 0 unsupported claims identified.";
+                                llmRes["sources"] = "Claims Register (Active Project)";
+                                llmRes["uncertainty"] = "None";
+                            } else {
+                                std::string ans = "The following claims in your research library currently lack supporting evidence records:\n";
+                                for (size_t i = 0; i < lackingClaims.size(); ++i) {
+                                    ans += std::to_string(i + 1) + ". " + lackingClaims[i] + "\n";
+                                }
+                                llmRes["answer"] = ans;
+                                llmRes["evidence"] = "Knowledge graph audit: unverified claims identified without linked primary excavation citations.";
+                                llmRes["sources"] = "Claims Register (Active Project)";
+                                llmRes["uncertainty"] = "Requires field verification or additional monograph ingestion.";
+                            }
                         }
                     } else {
                         // General dynamic token match across library
@@ -743,31 +774,13 @@ public:
                         }
 
                         if (matchingSources.empty() && matchingClaims.empty() && matchingSites.empty()) {
-                            double total_ram_gb = 16.0;
-                            MEMORYSTATUSEX memStatus;
-                            memStatus.dwLength = sizeof(memStatus);
-                            if (GlobalMemoryStatusEx(&memStatus)) {
-                                total_ram_gb = static_cast<double>(memStatus.ullTotalPhys) / (1024.0 * 1024.0 * 1024.0);
-                            }
-
                             if (isEvidenceMode) {
                                 llmRes["supporting"] = json::array();
                                 llmRes["contradicting"] = json::array();
-                                llmRes["uncertain"] = json::array({"No direct empirical evidence found in active project sources for: " + question});
-                                if (total_ram_gb < 8.0) {
-                                    llmRes["missing"] = json::array({
-                                        "No matching empirical documents in active project library.",
-                                        "Hardware notice: Device has " + std::to_string((int)std::round(total_ram_gb)) + " GB RAM. Offline neural AI reasoning requires at least 8 GB–16 GB RAM."
-                                    });
-                                } else {
-                                    llmRes["missing"] = json::array({"No matching excavation records or claims found in active project library for this inquiry."});
-                                }
+                                llmRes["uncertain"] = json::array();
+                                llmRes["missing"] = json::array({"No matching excavation records or claims found in active project library for: \"" + question + "\"."});
                             } else {
-                                std::string ans = "No matching records found in your research library for: \"" + question + "\".\n\nTo research this inquiry, please upload the relevant excavation monograph, site report, or field notes into your Library.";
-                                if (total_ram_gb < 8.0) {
-                                    ans += "\n\n[Hardware Requirement]: Your device has " + std::to_string((int)std::round(total_ram_gb)) + " GB RAM. Offline neural AI synthesis (Qwen 2.5 7B) requires a minimum of 8 GB–16 GB RAM to load into memory without system freezing.";
-                                }
-                                llmRes["answer"] = ans;
+                                llmRes["answer"] = "No matching records found in your research library for: \"" + question + "\".\n\nTo research this inquiry, please upload the relevant excavation monograph, site report, or field notes into your Library.";
                                 llmRes["evidence"] = "Zero matching primary sources found in active research workspace.";
                                 llmRes["sources"] = "None";
                                 llmRes["uncertainty"] = "Requires document upload to establish grounding.";
