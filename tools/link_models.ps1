@@ -15,3 +15,4 @@ $nomicPath = Join-Path $modelsLink 'embedding\nomic-embed-text-v1.5.Q4_K_M.gguf'
 
 Write-Output ("Qwen GGUF present: {0}" -f (Test-Path $qwenPath))
 Write-Output ("Nomic GGUF present: {0}" -f (Test-Path $nomicPath))
+
