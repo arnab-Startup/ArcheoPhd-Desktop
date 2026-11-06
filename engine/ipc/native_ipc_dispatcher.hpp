@@ -526,22 +526,7 @@ public:
                             disagreements.push_back(item);
                         }
                     }
-                    if (disagreements.empty()) {
-                        disagreements.push_back({
-                            {"topic", "Chronology / Dating"},
-                            {"source_a", "Wheeler, R.E.M. (1946) - Arikamedu: An Indo-Roman Trading Station"},
-                            {"source_b", "Begley, V. (1983) - Arikamedu Reconsidered"},
-                            {"claim_a", "Proposes Arretine ceramic horizon dates strictly between 20-50 CE."},
-                            {"claim_b", "Demonstrates pre-Arretine stratigraphic phase with amphorae dating to 2nd century BCE."}
-                        });
-                        disagreements.push_back({
-                            {"topic", "Stratigraphy / Period II Dating"},
-                            {"source_a", "Lal, B.B. (1955) - Excavations at Hastinapura"},
-                            {"source_b", "Radiocarbon Dating Laboratory Calibration Sequence"},
-                            {"claim_a", "Dates Painted Grey Ware (PGW) Period II between 1100 BCE and 800 BCE based on ceramic seriation."},
-                            {"claim_b", "Calibrated AMS radiocarbon sequences place Period II between 900 BCE and 500 BCE."}
-                        });
-                    }
+// No fake fallback: if disagreements is empty, return empty array []
                     json llmRes = json::object();
                     llmRes["disagreements"] = disagreements;
                     res["result"] = llmRes;
@@ -665,16 +650,7 @@ public:
                                                    lowerQ.find("missing evidence") != std::string::npos || 
                                                    (lowerQ.find("claim") != std::string::npos && lowerQ.find("without") != std::string::npos));
 
-                    bool isNBPWQuery = (lowerQ.find("northern black polished") != std::string::npos || 
-                                        lowerQ.find("nbpw") != std::string::npos || 
-                                        (lowerQ.find("ware") != std::string::npos && lowerQ.find("polished") != std::string::npos));
-
-                    bool isUrbanizationQuery = (lowerQ.find("urban") != std::string::npos || 
-                                                lowerQ.find("300 bce") != std::string::npos || 
-                                                lowerQ.find("after 300") != std::string::npos);
-
-                    bool isDatedSitesQuery = ((lowerQ.find("site") != std::string::npos || lowerQ.find("sites") != std::string::npos) && 
-                                              (lowerQ.find("dated") != std::string::npos || lowerQ.find("between") != std::string::npos || lowerQ.find("300") != std::string::npos || lowerQ.find("100") != std::string::npos));
+// Canned keyword patterns removed per strict zero-fallback policy
 
                     if (isContradictionQuery) {
                         std::vector<std::string> conflictPoints;
@@ -691,10 +667,7 @@ public:
                                 conflictPoints.push_back(clm);
                             }
                         }
-                        if (conflictPoints.empty()) {
-                            conflictPoints.push_back("Wheeler (1946) vs Begley (1983): Wheeler dates Arikamedu Arretine ware to 20-50 CE, whereas Begley's re-examination demonstrates pre-Arretine occupation from the 2nd century BCE.");
-                            conflictPoints.push_back("Lal (1955) vs AMS C14 calibration: Lal dates Hastinapura Period II (PGW) to 1100-800 BCE, whereas calibrated AMS dates indicate 900-500 BCE.");
-                        }
+// No fake fallback: if no conflict points in active project, keep empty
 
                         if (isEvidenceMode) {
                             json contrArr = json::array();
@@ -728,55 +701,6 @@ public:
                             llmRes["evidence"] = "Knowledge graph audit: 3 unverified claims identified with 0 linked primary excavation citations.";
                             llmRes["sources"] = "Claims Register (Active Project)";
                             llmRes["uncertainty"] = "Requires field verification or additional monograph ingestion.";
-                        }
-                    } else if (isNBPWQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Lal, B.B. (1955): Identifies NBPW in Hastinapura Period III stratified directly above the flood deposit.",
-                                "Monograph records: High-gloss black slip ceramic sherds associated with punch-marked silver currency.",
-                                "Regional survey: Documents NBPW distribution along major northern trade routes (Uttarapatha)."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Early origin date (700 BCE vs 500 BCE) across central vs eastern Gangetic sites."});
-                            llmRes["missing"] = json::array({"Thermoluminescence dating on fine black slip sherds."});
-                        } else {
-                            llmRes["answer"] = "The following sources in your research library discuss Northern Black Polished Ware (NBPW):\n1. Lal, B.B. (1955) - 'Excavations at Hastinapura and other Explorations in the Upper Ganga and Sutlej Basins 1950-52' (documents NBPW transition from PGW in Period III).\n2. Wheeler, R.E.M. (1946) - 'Arikamedu: An Indo-Roman Trading Station' (identifies deluxe black slip wares and trade links).\n3. Excavation monographs and regional site surveys in your active project library.";
-                            llmRes["evidence"] = "Stratified NBPW deluxe ceramic sherds from Hastinapura Period III; fine metallic luster ware associations.";
-                            llmRes["sources"] = "Lal (1955); Wheeler (1946)";
-                            llmRes["uncertainty"] = "Regional onset dates of NBPW range from 700 BCE in eastern Gangetic sites to 400 BCE in southern outliers.";
-                        }
-                    } else if (isUrbanizationQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Monumental Architecture: First widespread appearance of burnt-brick residential structures and public buildings (Lal 1955, Period III).",
-                                "Economic Specialization: Abundant punch-marked silver and copper coinage indicating standardized monetized exchange.",
-                                "Sanitation Infrastructure: Dense networks of terracotta ring-wells and brick soakage drains.",
-                                "Civic Defenses: Construction of massive mud-brick defensive ramparts and moats."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Rural demographic density during early urban transition."});
-                            llmRes["missing"] = json::array({"Epigraphic administrative records prior to the 3rd century BCE Maurya period."});
-                        } else {
-                            llmRes["answer"] = "Evidence in your library supporting increasing urbanization after 300 BCE includes:\n1. Monumental burnt-brick architecture replacing wattle-and-daub construction.\n2. Widespread circulation of punch-marked silver and copper coinage.\n3. Advanced urban sanitation including terracotta ring wells and soak-pits.\n4. Fortified ramparts and organized civic grid layouts across Gangetic and Deccan sites.";
-                            llmRes["evidence"] = "Hastinapura Period III structural levels; ring-well clusters; stratified punch-marked coin hoards.";
-                            llmRes["sources"] = "Lal (1955); Active Research Library";
-                            llmRes["uncertainty"] = "Pace of urbanization differs markedly between riverine arterial centers and peripheral upland sites.";
-                        }
-                    } else if (isDatedSitesQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Arikamedu: Early Historic port phase with Mediterranean amphorae, dated c. 200 BCE - 100 CE.",
-                                "Hastinapura: Period III early historic transition with burnt-brick structures and punch-marked coins (c. 6th - 3rd century BCE).",
-                                "Sringaverapura: Period IV settlement and hydraulic complex dated c. 200 BCE - 100 CE."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Exact century of transition between NBPW terminal levels and Early Historic red wares."});
-                            llmRes["missing"] = json::array({"Paleo-environmental pollen cores for late 1st-millennium BCE climate correlation."});
-                        } else {
-                            llmRes["answer"] = "The following sites in your research library have stratigraphic phases dated between 300 BCE and 100 CE:\n1. Arikamedu (Puducherry, India) - Early Historic port and trading station (c. 200 BCE - 200 CE).\n2. Hastinapura (Uttar Pradesh, India) - Period III Early Historic occupation (c. 6th century BCE - 3rd century BCE).\n3. Sringaverapura (Uttar Pradesh, India) - Early Historic tank and settlement horizon (c. 200 BCE - 200 CE).";
-                            llmRes["evidence"] = "Ceramic horizons (NBPW to Red Polished Ware), Arretine imports, and calibrated radiocarbon series.";
-                            llmRes["sources"] = "Excavation records and site catalog in active library.";
-                            llmRes["uncertainty"] = "Transitional phase dates calibrated at 68% vs 95.4% confidence intervals.";
                         }
                     } else {
                         // General dynamic token match across library
@@ -819,17 +743,34 @@ public:
                         }
 
                         if (matchingSources.empty() && matchingClaims.empty() && matchingSites.empty()) {
-                            // Invariant from GROUNDING_RULES
+                            double total_ram_gb = 16.0;
+                            MEMORYSTATUSEX memStatus;
+                            memStatus.dwLength = sizeof(memStatus);
+                            if (GlobalMemoryStatusEx(&memStatus)) {
+                                total_ram_gb = static_cast<double>(memStatus.ullTotalPhys) / (1024.0 * 1024.0 * 1024.0);
+                            }
+
                             if (isEvidenceMode) {
                                 llmRes["supporting"] = json::array();
                                 llmRes["contradicting"] = json::array();
-                                llmRes["uncertain"] = json::array();
-                                llmRes["missing"] = json::array({"Insufficient evidence in your research library for '" + question + "'."});
+                                llmRes["uncertain"] = json::array({"No direct empirical evidence found in active project sources for: " + question});
+                                if (total_ram_gb < 8.0) {
+                                    llmRes["missing"] = json::array({
+                                        "No matching empirical documents in active project library.",
+                                        "Hardware notice: Device has " + std::to_string((int)std::round(total_ram_gb)) + " GB RAM. Offline neural AI reasoning requires at least 8 GB–16 GB RAM."
+                                    });
+                                } else {
+                                    llmRes["missing"] = json::array({"No matching excavation records or claims found in active project library for this inquiry."});
+                                }
                             } else {
-                                llmRes["answer"] = "Insufficient evidence in your research library.";
-                                llmRes["evidence"] = "Zero matching records in active research library.";
+                                std::string ans = "No matching records found in your research library for: \"" + question + "\".\n\nTo research this inquiry, please upload the relevant excavation monograph, site report, or field notes into your Library.";
+                                if (total_ram_gb < 8.0) {
+                                    ans += "\n\n[Hardware Requirement]: Your device has " + std::to_string((int)std::round(total_ram_gb)) + " GB RAM. Offline neural AI synthesis (Qwen 2.5 7B) requires a minimum of 8 GB–16 GB RAM to load into memory without system freezing.";
+                                }
+                                llmRes["answer"] = ans;
+                                llmRes["evidence"] = "Zero matching primary sources found in active research workspace.";
                                 llmRes["sources"] = "None";
-                                llmRes["uncertainty"] = "Requires additional document ingestion or project seeding.";
+                                llmRes["uncertainty"] = "Requires document upload to establish grounding.";
                             }
                         } else {
                             if (isEvidenceMode) {
