@@ -20,7 +20,7 @@
         background-color: #0b0807;
         background-image: 
           radial-gradient(ellipse at 50% 45%, rgba(16, 11, 9, 0.55) 0%, rgba(12, 8, 7, 0.78) 60%, rgba(8, 6, 5, 0.94) 100%),
-          url('/assets/welcome-clean-bg.jpg');
+          url('/assets/welcome-bg.jpg');
         background-size: cover;
         background-position: center bottom;
         background-repeat: no-repeat;
