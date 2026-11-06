@@ -1,10 +1,9 @@
 // ArchaeoPhD AI - Workstation Welcome Portal
-// High-fidelity implementation matching desktop design specification
+// High-fidelity implementation with clean, text-free background scenery
 
 (function () {
   'use strict';
 
-  // Inject styles for the Welcome Screen
   function injectStyles() {
     if (document.getElementById('apd-welcome-styles')) return;
 
@@ -18,11 +17,10 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        background-color: #0c0908;
+        background-color: #0b0807;
         background-image: 
-          radial-gradient(ellipse at 50% 50%, rgba(16, 11, 9, 0.55) 0%, rgba(12, 9, 8, 0.85) 70%, rgba(9, 7, 6, 0.96) 100%),
-          url('/assets/welcome-backdrop.jpg'),
-          url('/assets/welcome-bg.jpg');
+          radial-gradient(ellipse at 50% 45%, rgba(16, 11, 9, 0.55) 0%, rgba(12, 8, 7, 0.78) 60%, rgba(8, 6, 5, 0.94) 100%),
+          url('/assets/welcome-clean-bg.jpg');
         background-size: cover;
         background-position: center bottom;
         background-repeat: no-repeat;
@@ -41,14 +39,14 @@
         pointer-events: none;
       }
 
-      /* Title bar */
+      /* Top Title Bar */
       .apd-w-topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 28px;
-        background: rgba(12, 9, 8, 0.65);
-        backdrop-filter: blur(10px);
+        padding: 12px 32px;
+        background: rgba(12, 8, 7, 0.65);
+        backdrop-filter: blur(12px);
         border-bottom: 1px solid rgba(212, 163, 89, 0.16);
       }
       .apd-w-brand-pill {
@@ -59,11 +57,9 @@
         letter-spacing: 0.02em;
         color: #f5f0e8;
       }
-      .apd-w-brand-pill img {
+      .apd-w-brand-pill svg {
         width: 22px;
         height: 22px;
-        border-radius: 4px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
       }
       .apd-w-version {
         color: #d4a359;
@@ -80,7 +76,7 @@
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(212, 163, 89, 0.35);
         color: #f5f0e8;
-        padding: 5px 14px;
+        padding: 6px 16px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 500;
@@ -93,9 +89,9 @@
         color: #ffffff;
       }
 
-      /* Center container */
+      /* Center Hero Container */
       .apd-w-center {
-        max-width: 1080px;
+        max-width: 1040px;
         width: 100%;
         margin: 0 auto;
         padding: 16px 24px;
@@ -105,28 +101,23 @@
         text-align: center;
       }
 
-      /* Hero branding */
+      /* Hero Emblem */
       .apd-w-emblem-wrap {
-        width: 72px;
-        height: 72px;
+        width: 68px;
+        height: 68px;
         margin-bottom: 6px;
-        border-radius: 14px;
-        overflow: hidden;
-        filter: drop-shadow(0 6px 20px rgba(163, 51, 32, 0.45));
+        filter: drop-shadow(0 6px 18px rgba(163, 51, 32, 0.5));
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: pointer;
       }
       .apd-w-emblem-wrap:hover {
-        transform: scale(1.06);
+        transform: scale(1.08);
       }
-      .apd-w-emblem-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+
+      /* Brand Titles */
       .apd-w-brand-title {
         font-family: Georgia, "Times New Roman", Garamond, serif;
-        font-size: 32px;
+        font-size: 34px;
         font-weight: 700;
         letter-spacing: 0.02em;
         color: #ffffff;
@@ -141,20 +132,20 @@
         margin-left: 6px;
       }
       .apd-w-tagline {
-        font-size: 10px;
+        font-size: 10.5px;
         font-weight: 600;
         letter-spacing: 0.28em;
         text-transform: uppercase;
         color: #d4a359;
-        margin-top: 4px;
-        margin-bottom: 20px;
+        margin-top: 5px;
+        margin-bottom: 22px;
         opacity: 0.95;
       }
 
       /* Main Heading */
       .apd-w-main-heading {
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 38px;
+        font-size: 40px;
         font-weight: 600;
         color: #ffffff;
         margin: 0 0 10px 0;
@@ -169,24 +160,24 @@
         margin-left: 8px;
       }
       .apd-w-sub-desc {
-        font-size: 14.5px;
+        font-size: 15px;
         line-height: 1.5;
         color: #e5ded4;
         max-width: 640px;
-        margin: 0 0 32px 0;
+        margin: 0 0 34px 0;
         text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
       }
 
-      /* Action cards */
+      /* Four Action Cards */
       .apd-w-cards-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 16px;
         width: 100%;
-        max-width: 960px;
-        margin-bottom: 28px;
+        max-width: 980px;
+        margin-bottom: 30px;
       }
-      @media (max-width: 840px) {
+      @media (max-width: 860px) {
         .apd-w-cards-grid {
           grid-template-columns: repeat(2, 1fr);
         }
@@ -198,7 +189,7 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 22px 16px;
+        padding: 24px 18px;
         border-radius: 14px;
         cursor: pointer;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -210,16 +201,16 @@
 
       /* Standard Glass Card */
       .apd-w-card-glass {
-        background: rgba(24, 18, 16, 0.76);
-        backdrop-filter: blur(12px);
+        background: rgba(22, 16, 14, 0.78);
+        backdrop-filter: blur(14px);
         border: 1px solid rgba(212, 163, 89, 0.24);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
       }
       .apd-w-card-glass:hover {
-        background: rgba(36, 26, 23, 0.90);
+        background: rgba(36, 26, 23, 0.92);
         border-color: rgba(212, 163, 89, 0.7);
         transform: translateY(-3px);
-        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 16px rgba(212, 163, 89, 0.25);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(212, 163, 89, 0.25);
       }
 
       /* Featured Active Card (Explore Demo) */
@@ -236,8 +227,8 @@
       }
 
       .apd-w-card-icon-wrap {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -245,14 +236,14 @@
         color: #fef08a;
       }
       .apd-w-card-title {
-        font-size: 15.5px;
+        font-size: 16px;
         font-weight: 600;
         color: #ffffff;
         margin-bottom: 6px;
         letter-spacing: 0.01em;
       }
       .apd-w-card-desc {
-        font-size: 12px;
+        font-size: 12.5px;
         line-height: 1.4;
         color: #d1c7bc;
         opacity: 0.92;
@@ -264,10 +255,10 @@
       /* Feature Ribbon */
       .apd-w-ribbon-wrap {
         width: 100%;
-        max-width: 960px;
-        margin-bottom: 22px;
+        max-width: 980px;
+        margin-bottom: 24px;
         position: relative;
-        padding-top: 16px;
+        padding-top: 18px;
         border-top: 1px solid rgba(212, 163, 89, 0.28);
       }
       .apd-w-ribbon-node {
@@ -284,7 +275,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
       }
       .apd-w-ribbon-btn {
@@ -292,7 +283,7 @@
         flex-direction: column;
         align-items: center;
         gap: 6px;
-        padding: 8px 12px;
+        padding: 8px 14px;
         border-radius: 8px;
         background: transparent;
         border: none;
@@ -302,7 +293,7 @@
         text-decoration: none;
       }
       .apd-w-ribbon-btn:hover {
-        background: rgba(255, 255, 255, 0.07);
+        background: rgba(255, 255, 255, 0.08);
         color: #fef08a;
         transform: translateY(-2px);
       }
@@ -317,26 +308,26 @@
         color: #fef08a;
       }
       .apd-w-ribbon-btn span {
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 500;
         letter-spacing: 0.02em;
       }
 
-      /* Trust badges */
+      /* Trust Badges Bar */
       .apd-w-trust-bar {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 36px;
+        gap: 40px;
         flex-wrap: wrap;
-        padding: 12px 24px 22px 24px;
+        padding: 14px 24px 26px 24px;
         color: #cfc6b8;
       }
       .apd-w-trust-item {
         display: flex;
         align-items: center;
         gap: 10px;
-        font-size: 12.5px;
+        font-size: 13px;
       }
       .apd-w-trust-item svg {
         width: 18px;
@@ -348,7 +339,7 @@
         color: #f5f0e8;
       }
       .apd-w-trust-sub {
-        font-size: 11px;
+        font-size: 11.5px;
         color: #a89f92;
         margin-left: 3px;
       }
@@ -369,7 +360,11 @@
       <!-- Top Titlebar -->
       <div class="apd-w-topbar">
         <div class="apd-w-brand-pill">
-          <img src="/assets/app-logo.png" alt="ArchaeoPhD Logo" />
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="18" r="8.5" fill="#f59e0b"/>
+            <path d="M50 20 L86 92 L66 92 L50 58 L34 92 L14 92 Z" fill="#9e2a18"/>
+            <path d="M28 66 C42 58 58 58 72 66 L75 72 C59 64 41 64 25 72 Z" fill="#ffffff"/>
+          </svg>
           <span style="font-family: Georgia, serif; font-weight: 600;">ArchaeoPhD <span style="color:#d4a359; font-style:italic;">AI</span></span>
           <span class="apd-w-version">v1.0.0</span>
         </div>
@@ -382,9 +377,35 @@
 
       <!-- Center Hero -->
       <div class="apd-w-center">
-        <!-- Logo Emblem -->
+        <!-- Pure Transparent Vector Emblem -->
         <div class="apd-w-emblem-wrap" id="apd-w-emblem">
-          <img src="/assets/app-logo.png" alt="ArchaeoPhD Emblem" />
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+            <!-- Golden Glow -->
+            <circle cx="50" cy="18" r="14" fill="url(#goldGlow)" opacity="0.35"/>
+            <!-- Sun Disc -->
+            <circle cx="50" cy="18" r="8.5" fill="url(#sunGrad)"/>
+            <!-- Terracotta 'A' Arch -->
+            <path d="M50 20 L86 92 L66 92 L50 58 L34 92 L14 92 Z" fill="url(#terraGrad)"/>
+            <!-- Contour Wave Ribbon -->
+            <path d="M28 66 C42 58 58 58 72 66 L75 72 C59 64 41 64 25 72 Z" fill="#ffffff" opacity="0.95"/>
+            <path d="M32 75 C43 69 57 69 68 75 L70 80 C58 74 44 74 30 80 Z" fill="#ffffff" opacity="0.85"/>
+            <defs>
+              <linearGradient id="terraGrad" x1="14" y1="20" x2="86" y2="92" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#b83820"/>
+                <stop offset="0.5" stop-color="#932b1a"/>
+                <stop offset="1" stop-color="#67190c"/>
+              </linearGradient>
+              <radialGradient id="sunGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(48 16) scale(10)">
+                <stop stop-color="#fef08a"/>
+                <stop offset="0.6" stop-color="#f59e0b"/>
+                <stop offset="1" stop-color="#b45309"/>
+              </radialGradient>
+              <radialGradient id="goldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50 18) scale(14)">
+                <stop stop-color="#fde047"/>
+                <stop offset="1" stop-color="#d97706" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+          </svg>
         </div>
 
         <h2 class="apd-w-brand-title">ArchaeoPhD<span class="gold-ai">AI</span></h2>
@@ -597,43 +618,36 @@
 
   // Attach button click events
   function attachEvents() {
-    // Top bar skip / open workspace
     const btnEnter = document.getElementById('apd-w-enter-workspace');
     if (btnEnter) {
       btnEnter.onclick = () => navigateTo('/dashboard');
     }
 
-    // Emblem click
     const emblem = document.getElementById('apd-w-emblem');
     if (emblem) {
       emblem.onclick = () => navigateTo('/dashboard');
     }
 
-    // Card 1: Explore Demo
     const cardDemo = document.getElementById('apd-card-demo');
     if (cardDemo) {
       cardDemo.onclick = () => navigateTo('/demo');
     }
 
-    // Card 2: Get Started
     const cardStart = document.getElementById('apd-card-start');
     if (cardStart) {
       cardStart.onclick = () => navigateTo('/projects/new');
     }
 
-    // Card 3: Open Workspace
     const cardWorkspace = document.getElementById('apd-card-workspace');
     if (cardWorkspace) {
       cardWorkspace.onclick = () => navigateTo('/dashboard');
     }
 
-    // Card 4: Sign In
     const cardSignin = document.getElementById('apd-card-signin');
     if (cardSignin) {
       cardSignin.onclick = () => navigateTo('/dashboard');
     }
 
-    // Feature ribbon buttons
     const ribbonBtns = document.querySelectorAll('.apd-w-ribbon-btn');
     ribbonBtns.forEach(btn => {
       btn.onclick = () => {
@@ -643,7 +657,6 @@
     });
   }
 
-  // Route observer: check if current route is welcome page
   function checkRoute() {
     const p = window.location.pathname;
     const isWelcome = (p === '/' || p === '/welcome' || p === '/index.html' || p.endsWith('/index.html'));
@@ -655,12 +668,10 @@
     }
   }
 
-  // Setup observer for URL changes and sidebar logo click
   function setupRouteListeners() {
     window.addEventListener('popstate', checkRoute);
     window.addEventListener('pushstate', checkRoute);
 
-    // Intercept sidebar logo click to open welcome page
     document.addEventListener('click', function (e) {
       const logoLink = e.target.closest('a[href="/"], .apd-nav-welcome');
       if (logoLink) {
@@ -670,11 +681,9 @@
       }
     });
 
-    // Check immediately on load
     checkRoute();
   }
 
-  // Initialize once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       createWelcomeScreen();
@@ -685,7 +694,6 @@
     setupRouteListeners();
   }
 
-  // Expose global controller
   window.archaeophdWelcome = {
     show: showWelcome,
     hide: hideWelcome,
