@@ -1077,8 +1077,8 @@ public:
 
         // Inject Native IPC bridge client into window.nativeBridge
         const wchar_t* bridgeScript = 
-            L"if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html' || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/demo') {"
-            L"  try { window.history.replaceState(null, '', '/dashboard'); } catch(e){}"
+            L"if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html') {"
+            L"  try { window.history.replaceState(null, '', '/'); } catch(e){}"
             L"}"
             L"(function() {"
             L"  try {"

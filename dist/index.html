@@ -6,8 +6,8 @@
     <script>
       (function(){
         try {
-          if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html' || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/demo') {
-            try { window.history.replaceState(null, '', '/dashboard'); } catch(e){}
+          if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html') {
+            try { window.history.replaceState(null, '', '/'); } catch(e){}
           }
           var rawMsgs = localStorage.getItem('archaeophd_local_messages');
           if (rawMsgs) {
@@ -526,6 +526,8 @@
     <script src="/data-root-dialog.js"></script>
 
     <script src="/ingestion-workflow.js"></script>
+
+    <script src="/welcome-screen.js"></script>
 
   </body>
 
