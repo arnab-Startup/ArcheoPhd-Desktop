@@ -1,13 +1,32 @@
 $installDir = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'ArchaeoPhD')
-if (Test-Path $installDir) {
-    Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue | Stop-Process -Force
-    Start-Sleep -Milliseconds 300
-    Copy-Item 'desktop\release\ArchaeoPhD.exe' (Join-Path $installDir 'ArchaeoPhD.exe') -Force
-    if (Test-Path (Join-Path $installDir 'app\dist')) {
-        Copy-Item 'desktop\dist\*' (Join-Path $installDir 'app\dist') -Recurse -Force
-    }
-    Remove-Item (Join-Path $installDir 'app\build_signature.txt') -Force -ErrorAction SilentlyContinue
-    Write-Output "Synchronized to installed directory successfully!"
+Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Milliseconds 400
+
+# Copy to root dist
+$rootDist = Join-Path $installDir 'dist'
+if (-not (Test-Path $rootDist)) {
+    New-Item -ItemType Directory -Path $rootDist -Force
+}
+Copy-Item 'desktop\dist\*' $rootDist -Recurse -Force
+Write-Output "Copied to $rootDist"
+
+# Also copy to app\dist if exists
+$appDist = Join-Path $installDir 'app\dist'
+if (Test-Path (Join-Path $installDir 'app')) {
+    Copy-Item 'desktop\dist\*' $appDist -Recurse -Force
+}
+
+# Update EXE
+Copy-Item 'desktop\release\ArchaeoPhD.exe' (Join-Path $installDir 'ArchaeoPhD.exe') -Force
+Write-Output "Copied ArchaeoPhD.exe"
+
+# Launch application with correct working directory
+Start-Process -FilePath (Join-Path $installDir 'ArchaeoPhD.exe') -WorkingDirectory $installDir
+Start-Sleep -Seconds 1
+
+$p = Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue
+if ($p) {
+    Write-Output ("Running ArchaeoPhD PID: {0}" -f $p.Id)
 } else {
-    Write-Output "Install directory does not exist."
+    Write-Output "Process not detected immediately"
 }
