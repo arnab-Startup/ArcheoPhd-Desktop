@@ -237,6 +237,55 @@ public:
 #endif
     }
 
+    // Phase 3 & 4: General Scholarly Synthesis & Conversational Reasoning
+    std::string generate(const std::string& user_prompt, const std::string& system_prompt = "You are ArchaeoPhD AI, an expert archaeological research assistant. Provide concise, grounded, academically rigorous analysis based strictly on archaeological evidence.", int max_tokens = 512) {
+        std::lock_guard<std::mutex> lock(mutex_);
+#ifdef HAS_LLAMA_CPP
+        if (!is_initialized_ || !ctx_) return "";
+
+        std::string prompt = 
+            "<|im_start|>system\n" + system_prompt + "\n<|im_end|>\n"
+            "<|im_start|>user\n" + user_prompt + "\n<|im_end|>\n"
+            "<|im_start|>assistant\n";
+
+        const int n_prompt = -llama_tokenize(vocab_, prompt.c_str(), prompt.size(), NULL, 0, true, true);
+        if (n_prompt <= 0) return "";
+        std::vector<llama_token> tokens(n_prompt);
+        llama_tokenize(vocab_, prompt.c_str(), prompt.size(), tokens.data(), tokens.size(), true, true);
+
+        // Clear existing cache for standalone generation
+        llama_memory_t mem = llama_get_memory(ctx_);
+        llama_memory_clear(mem, true);
+
+        llama_batch_ext* batch = llama_batch_ext_init(ctx_);
+        batch_set_tokens(batch, tokens.data(), n_prompt, 0);
+        llama_process(ctx_, LLAMA_PROCESS_TYPE_DECODE, batch);
+
+        std::string response = "";
+        int cur_pos = n_prompt;
+        for (int step = 0; step < max_tokens; ++step) {
+            llama_token tok = llama_sampler_sample(smpl_, ctx_, -1);
+            if (llama_vocab_is_eog(vocab_, tok)) break;
+
+            char buf[128];
+            int n = llama_token_to_piece(vocab_, tok, buf, sizeof(buf), 0, true);
+            if (n > 0) response.append(buf, n);
+
+            batch_set_tokens(batch, &tok, 1, cur_pos);
+            llama_process(ctx_, LLAMA_PROCESS_TYPE_DECODE, batch);
+            cur_pos++;
+        }
+
+        llama_batch_ext_free(batch);
+        llama_memory_clear(mem, true);
+
+        return response;
+#else
+        (void)user_prompt; (void)system_prompt; (void)max_tokens;
+        return "";
+#endif
+    }
+
     void shutdown() {
         std::lock_guard<std::mutex> lock(mutex_);
 #ifdef HAS_LLAMA_CPP
