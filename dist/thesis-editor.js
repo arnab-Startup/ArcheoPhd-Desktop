@@ -1,17 +1,19 @@
 /**
- * ArchaeoPhD — Academic Thesis Paper Studio & Dissertation Editor
+ * ArchaeoPhD — Google Docs & Microsoft Word-Style Academic Dissertation Studio
  * 
- * Google Docs-grade academic paper writing experience with real-time inline AI:
- * - Authentic A4 Academic Page Canvas with margin guidelines, serif typography, and line-spacing controls.
- * - Full Academic Formatting Toolbar: Headings, Bold, Italic, Underline, Strikethrough, Superscript, Subscript,
- *   Align (Left, Center, Justify), Lists, Blockquotes, Archaeological Data Tables, and Plate/Figure Callouts.
- * - Floating Inline AI Assistant: Pops up on selection with 1-click Academic Polish, Citation Grounding,
- *   Viva Caveat Defense, Expand, and Condense.
- * - Inline "Help Me Write" Copilot (Ctrl+J or inline pill) with grounded dissertation synthesis.
- * - Real-Time Live Writing Inspector: Continuous background proofreading for academic tone, ungrounded claims,
- *   missing citations, and active stratigraphic contradictions with 1-click "Apply Fix".
- * - Multi-Format Export: Academic LaTeX (.tex), Markdown (.md), and Print to PDF.
- * - Zero emojis throughout (strict SVG Lucide-style vector paths).
+ * Authentic academic word processor for archaeology PhD researchers:
+ * - Google Docs ribbon toolbar with grouped icon controls and dividers.
+ * - Multi-font typography: Garamond, Times New Roman, Georgia, Computer Modern, Modern Sans, and Monospace.
+ * - Font size stepper (- 12 pt +) and line-spacing (1.0, 1.15, 1.5, 2.0 double spaced).
+ * - Text color and highlighter pen markers.
+ * - Image & archaeological plate insertion with captions and alignment.
+ * - Interactive horizontal document ruler with inch marks and margin stops.
+ * - Academic tables, footnotes, horizontal dividers, indent/outdent, and clear formatting.
+ * - Floating selection AI toolbar (Polish, Cite, Defend, Condense, Expand).
+ * - Inline "Help Me Write" copilot (Ctrl+J) grounded in project monographs and claims.
+ * - Continuous live writing inspector checking tone, dates, and stratigraphic contradictions.
+ * - Complete export to Academic LaTeX (.tex), Markdown (.md), and Print to PDF.
+ * - Strict zero-emoji design (100% SVG vector paths).
  */
 
 (function () {
@@ -33,7 +35,6 @@
     pen: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
     sparkles: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
     shieldCheck: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
-    shieldAlert: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
     layers: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
     bookmark: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
     copy: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
@@ -43,25 +44,37 @@
     alert: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
     refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
     x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
-    plus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
+    plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
+    minus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></svg>',
     chevronRight: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+    chevronDown: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
     arrowLeft: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
-    quote: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
-    list: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
-    listOrdered: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>',
+    quote: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
+    list: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
+    listOrdered: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>',
     bold: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/><path d="M6 12h9"/></svg>',
     italic: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>',
     underline: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" x2="20" y1="21" y2="21"/></svg>',
     strikethrough: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" x2="20" y1="12" y2="12"/></svg>',
     alignLeft: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/></svg>',
     alignCenter: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="18" x2="6" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>',
+    alignRight: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/></svg>',
     alignJustify: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>',
     table: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>',
     printer: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
     superscript: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 19 6-6"/><path d="m4 13 6 6"/><path d="M20 9h-4c0-1 1-2 2-3s1-1.5 0-2-2 0-2 1"/></svg>',
+    subscript: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 5 6 6"/><path d="m4 11 6-6"/><path d="M20 19h-4c0-1 1-2 2-3s1-1.5 0-2-2 0-2 1"/></svg>',
     undo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>',
     redo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>',
-    fileText: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>'
+    fileText: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>',
+    image: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+    link: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    indent: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8 7 12 3 16"/><line x1="21" x2="11" y1="12" y2="12"/><line x1="21" x2="11" y1="6" y2="6"/><line x1="21" x2="11" y1="18" y2="18"/></svg>',
+    outdent: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 8 3 12 7 16"/><line x1="21" x2="11" y1="12" y2="12"/><line x1="21" x2="11" y1="6" y2="6"/><line x1="21" x2="11" y1="18" y2="18"/></svg>',
+    textColor: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="m6 16 6-12 6 12"/><path d="M8 12h8"/></svg>',
+    highlighter: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
+    clearFormatting: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M5 20h6"/><path d="M13 4 8 20"/><line x1="15" x2="22" y1="15" y2="22"/><line x1="22" x2="15" y1="15" y2="22"/></svg>',
+    horizontalRule: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></svg>'
   };
 
   function injectStyles() {
@@ -74,37 +87,107 @@
         color: hsl(var(--foreground, 30 10% 12%));
       }
       
+      /* Google Docs Ribbon & Toolbar */
+      .apd-gdocs-ribbon {
+        background: hsl(var(--card, 38 28% 97%));
+        border: 1px solid hsl(var(--border, 36 16% 87%));
+        border-radius: 10px;
+        box-shadow: 0 2px 8px -1px rgba(0,0,0,0.06);
+      }
+      .apd-gdocs-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        min-width: 28px;
+        padding: 0 6px;
+        border-radius: 5px;
+        color: hsl(var(--foreground, 30 10% 12%));
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        transition: background 0.12s ease, border-color 0.12s ease;
+      }
+      .apd-gdocs-btn:hover {
+        background: hsl(var(--muted, 36 20% 93%));
+        border-color: hsl(var(--border, 36 16% 87%));
+      }
+      .apd-gdocs-btn:active, .apd-gdocs-btn.active {
+        background: hsl(var(--primary, 24 75% 42%) / 0.15);
+        color: hsl(var(--primary, 24 75% 42%));
+      }
+
+      /* Authentic Document Ruler Bar */
+      .apd-doc-ruler {
+        width: 100%;
+        max-width: 820px;
+        height: 18px;
+        background: hsl(var(--muted, 36 20% 93%) / 0.85);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        display: flex;
+        align-items: flex-end;
+        position: relative;
+        user-select: none;
+        box-sizing: border-box;
+      }
+      .apd-ruler-tick {
+        position: absolute;
+        bottom: 0;
+        height: 6px;
+        border-left: 1px solid rgba(0,0,0,0.3);
+        font-size: 8.5px;
+        line-height: 1;
+        padding-left: 2px;
+        color: rgba(0,0,0,0.6);
+      }
+      .apd-ruler-subtick {
+        position: absolute;
+        bottom: 0;
+        height: 3px;
+        border-left: 1px solid rgba(0,0,0,0.18);
+      }
+      .dark .apd-doc-ruler {
+        background: #232220;
+        border-color: rgba(255,255,255,0.1);
+      }
+      .dark .apd-ruler-tick {
+        border-left-color: rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.6);
+      }
+      
       /* Google Docs-style Academic Page Canvas */
       .apd-te-page-wrapper {
         display: flex;
-        justify-content: center;
-        background: hsl(var(--muted, 36 20% 93%) / 0.5);
-        padding: 24px 16px 48px;
-        min-height: calc(100vh - 210px);
+        flex-direction: column;
+        align-items: center;
+        background: hsl(var(--muted, 36 20% 93%) / 0.45);
+        padding: 20px 16px 64px;
+        min-height: calc(100vh - 220px);
         overflow-y: auto;
       }
       
       .apd-te-page-sheet {
         width: 100%;
         max-width: 820px;
-        min-height: 1060px;
+        min-height: 1080px;
         background: #ffffff;
         color: #1a1a1a;
         box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
         border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 4px;
-        padding: 64px 72px;
+        border-radius: 0 0 4px 4px;
+        padding: 64px 76px;
         outline: none;
         box-sizing: border-box;
         position: relative;
         font-family: "Garamond", "Georgia", "Cambria", "Times New Roman", serif;
-        font-size: 15.5px;
+        font-size: 15px;
         line-height: 1.65;
         letter-spacing: 0.01em;
-        transition: line-height 0.15s ease, font-size 0.15s ease;
+        transition: font-size 0.1s ease;
       }
       
-      /* Dark mode adaptation for academic paper readability */
       .dark .apd-te-page-sheet {
         background: #181715;
         color: #e6e3df;
@@ -112,41 +195,47 @@
         box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
       }
       
-      .apd-te-page-sheet:focus {
-        outline: none;
-      }
+      .apd-te-page-sheet:focus { outline: none; }
       
-      .apd-te-page-sheet[data-spacing="1.15"] { line-height: 1.35; }
-      .apd-te-page-sheet[data-spacing="1.5"] { line-height: 1.7; }
-      .apd-te-page-sheet[data-spacing="2.0"] { line-height: 2.15; }
-      
+      /* Typographic Fonts */
       .apd-te-page-sheet[data-font="garamond"] { font-family: "Garamond", "Georgia", serif; }
       .apd-te-page-sheet[data-font="times"] { font-family: "Times New Roman", "Times", serif; }
-      .apd-te-page-sheet[data-font="cambria"] { font-family: "Cambria", "Georgia", serif; }
-      .apd-te-page-sheet[data-font="sans"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .apd-te-page-sheet[data-font="georgia"] { font-family: "Georgia", "Garamond", serif; }
+      .apd-te-page-sheet[data-font="modern"] { font-family: "Computer Modern", "Latin Modern Roman", serif; }
+      .apd-te-page-sheet[data-font="sans"] { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .apd-te-page-sheet[data-font="mono"] { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
 
+      /* Dynamic Font Size */
+      .apd-te-page-sheet[data-size="11"] { font-size: 13.5px; }
+      .apd-te-page-sheet[data-size="12"] { font-size: 15px; }
+      .apd-te-page-sheet[data-size="14"] { font-size: 17px; }
+      .apd-te-page-sheet[data-size="16"] { font-size: 19px; }
+      .apd-te-page-sheet[data-size="18"] { font-size: 21px; }
+
+      /* Spacing */
+      .apd-te-page-sheet[data-spacing="1.0"] { line-height: 1.25; }
+      .apd-te-page-sheet[data-spacing="1.15"] { line-height: 1.4; }
+      .apd-te-page-sheet[data-spacing="1.5"] { line-height: 1.7; }
+      .apd-te-page-sheet[data-spacing="2.0"] { line-height: 2.15; }
+
+      /* Academic Sheet Elements */
       .apd-te-page-sheet h1 {
-        font-family: var(--font-display, "Georgia", serif);
         font-size: 26px;
         font-weight: 700;
         margin-top: 0;
-        margin-bottom: 24px;
+        margin-bottom: 22px;
         line-height: 1.25;
         border-bottom: 1px solid rgba(0,0,0,0.12);
-        padding-bottom: 12px;
+        padding-bottom: 10px;
       }
-      .dark .apd-te-page-sheet h1 {
-        border-bottom-color: rgba(255,255,255,0.12);
-      }
+      .dark .apd-te-page-sheet h1 { border-bottom-color: rgba(255,255,255,0.12); }
       .apd-te-page-sheet h2 {
-        font-family: var(--font-display, "Georgia", serif);
         font-size: 20px;
         font-weight: 700;
         margin-top: 28px;
         margin-bottom: 12px;
       }
       .apd-te-page-sheet h3 {
-        font-family: var(--font-display, "Georgia", serif);
         font-size: 16.5px;
         font-weight: 600;
         margin-top: 20px;
@@ -182,16 +271,42 @@
         background: rgba(140, 130, 115, 0.1);
         font-weight: 600;
       }
-      .apd-te-page-sheet .apd-plate-callout {
-        display: block;
-        padding: 10px 14px;
-        margin: 16px 0;
-        border: 1px dashed rgba(140, 130, 115, 0.4);
+      
+      /* Figures & Plates */
+      .apd-doc-figure {
+        margin: 24px auto;
+        padding: 10px;
         background: rgba(140, 130, 115, 0.04);
+        border: 1px solid rgba(140, 130, 115, 0.2);
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 90%;
+      }
+      .apd-doc-figure img {
+        max-width: 100%;
+        max-height: 480px;
+        height: auto;
         border-radius: 4px;
-        font-family: var(--font-mono, monospace);
-        font-size: 12px;
+        display: block;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .apd-doc-figure figcaption {
+        font-size: 12.5px;
+        font-style: italic;
         color: hsl(var(--muted-foreground, 30 8% 46%));
+        margin-top: 8px;
+        text-align: center;
+        outline: none;
+        width: 100%;
+      }
+      
+      /* Horizontal Page Break Line */
+      .apd-te-page-sheet hr {
+        border: none;
+        border-top: 1px solid rgba(140, 130, 115, 0.3);
+        margin: 28px 0;
       }
       
       /* Floating Inline AI Toolbar */
@@ -207,13 +322,8 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        animation: apdFadeInFast 0.12s ease-out;
       }
-      @keyframes apdFadeInFast {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
+
       /* Inline Help Me Write Bar */
       .apd-inline-prompt-box {
         margin: 16px 0;
@@ -224,18 +334,6 @@
         font-family: var(--font-body, sans-serif);
       }
 
-      /* Proofreading highlight badges */
-      .apd-fix-suggestion {
-        border-bottom: 2px dashed #f59e0b;
-        background: rgba(245, 158, 11, 0.1);
-        cursor: pointer;
-      }
-      .apd-fix-contradiction {
-        border-bottom: 2px dashed #ef4444;
-        background: rgba(239, 68, 68, 0.1);
-        cursor: pointer;
-      }
-
       .apd-te-pulse {
         animation: apdTePulse 1.5s infinite ease-in-out;
       }
@@ -244,7 +342,6 @@
         50% { opacity: 0.5; }
       }
       
-      /* Print formatting for true A4 thesis submission */
       @media print {
         body * { visibility: hidden; }
         #apd-te-doc-sheet, #apd-te-doc-sheet * { visibility: visible; }
@@ -316,34 +413,16 @@
       try {
         localStorage.setItem('archaeophd_thesis_status_' + projectId + '_' + encodeURIComponent(chapter), status);
       } catch(e) {}
-    },
-    getChecks: function(projectId) {
-      try {
-        var saved = localStorage.getItem('archaeophd_thesis_checks_' + projectId);
-        if (saved) return JSON.parse(saved);
-      } catch(e) {}
-      return {};
-    },
-    saveCheck: function(projectId, chapter, checkResult) {
-      try {
-        var c = this.getChecks(projectId);
-        c[chapter] = checkResult;
-        localStorage.setItem('archaeophd_thesis_checks_' + projectId, JSON.stringify(c));
-      } catch(e) {}
     }
   };
 
-  /**
-   * Helper to convert between plain text/markdown and HTML for initial load
-   */
   function textToHtml(text, chapter) {
     if (!text || !text.trim()) {
       return '<h1>' + chapter + '</h1><p>Begin drafting your archaeological analysis, stratigraphy, locus calibrations, and empirical discussion here...</p>';
     }
-    if (text.indexOf('<p>') !== -1 || text.indexOf('<h1>') !== -1 || text.indexOf('<div>') !== -1) {
+    if (text.indexOf('<p>') !== -1 || text.indexOf('<h1>') !== -1 || text.indexOf('<div>') !== -1 || text.indexOf('<figure>') !== -1) {
       return text;
     }
-    // Convert plain text / markdown lines to HTML
     var lines = text.split('\n');
     var html = '';
     var inList = false;
@@ -380,7 +459,6 @@
   function htmlToMarkdown(html) {
     var temp = document.createElement('div');
     temp.innerHTML = html;
-    
     var md = '';
     for (var i = 0; i < temp.childNodes.length; i++) {
       var node = temp.childNodes[i];
@@ -390,7 +468,13 @@
       else if (tag === 'h3') md += '### ' + node.textContent.trim() + '\n\n';
       else if (tag === 'p') md += node.textContent.trim() + '\n\n';
       else if (tag === 'blockquote') md += '> ' + node.textContent.trim() + '\n\n';
-      else if (tag === 'ul') {
+      else if (tag === 'figure') {
+        var img = node.querySelector('img');
+        var cap = node.querySelector('figcaption');
+        var capText = cap ? cap.textContent.trim() : 'Archaeological Plate';
+        var src = img ? img.getAttribute('src') : '';
+        md += '![' + capText + '](' + src + ')\n*' + capText + '*\n\n';
+      } else if (tag === 'ul') {
         var lis = node.querySelectorAll('li');
         lis.forEach(function(li) { md += '- ' + li.textContent.trim() + '\n'; });
         md += '\n';
@@ -422,6 +506,7 @@
 \\usepackage[margin=1in]{geometry}
 \\usepackage{setspace}
 \\usepackage{booktabs}
+\\usepackage{graphicx}
 \\usepackage{natbib}
 \\usepackage{microtype}
 \\doublespacing
@@ -449,11 +534,11 @@ ${body}
     claims: [],
     evidence: [],
     contradictions: [],
-    checks: {},
-    liveFixes: [],          // Real-time grammar & evidence proofreading items
-    liveInspectorTimer: null,
-    savedSpacing: '1.5',
+    artifacts: [],
+    liveFixes: [],
     savedFont: 'garamond',
+    savedFontSize: '12',
+    savedSpacing: '1.5',
 
     init: function () {
       injectStyles();
@@ -487,7 +572,6 @@ ${body}
 
     loadProjectData: async function () {
       var projectId = getActiveProjectId();
-      this.checks = DraftStore.getChecks(projectId);
 
       var bridge = window.nativeBridge;
       if (bridge && typeof bridge.call === 'function') {
@@ -508,20 +592,15 @@ ${body}
           if (Array.isArray(con)) this.contradictions = con;
         } catch(e) {}
         try {
+          var art = await bridge.call('get_artifacts', {}, projectId);
+          if (Array.isArray(art)) this.artifacts = art;
+        } catch(e) {}
+        try {
           var a = await bridge.call('get_thesis_audit', {}, projectId);
           if (a) this.auditData = a;
         } catch(e) {}
       }
       this.render();
-    },
-
-    getEvidenceByClaim: function () {
-      var m = {};
-      (this.evidence || []).forEach(function (e) {
-        if (!m[e.claim_id]) m[e.claim_id] = [];
-        m[e.claim_id].push(e);
-      });
-      return m;
     },
 
     render: function () {
@@ -547,7 +626,7 @@ ${body}
       var chapters = DraftStore.getChapters(projectId);
 
       if (this.viewMode === 'chapter') {
-        container.innerHTML = this.renderSingleChapterStudio(chapters, projectId, projectTitle);
+        container.innerHTML = this.renderGoogleDocsChapterStudio(chapters, projectId, projectTitle);
       } else if (this.viewMode === 'audit') {
         container.innerHTML = this.renderAuditHeader(projectTitle) + this.renderAuditView(chapters, projectId);
       } else {
@@ -557,9 +636,6 @@ ${body}
       this.bindEvents(container, projectId);
     },
 
-    /**
-     * View 1: Workspace Overview (All Chapters)
-     */
     renderWorkspaceOverview: function (chapters, projectId, projectTitle) {
       var self = this;
 
@@ -570,7 +646,7 @@ ${body}
               <span class="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">${APD_ICONS.book}</span>
               <div>
                 <h1 class="text-2xl font-bold font-display text-foreground tracking-tight">Thesis Workspace & Chapters</h1>
-                <p class="text-xs text-muted-foreground">${projectTitle} • Click any chapter to launch full academic writing studio</p>
+                <p class="text-xs text-muted-foreground">${projectTitle} • Click any chapter to launch full academic word processor</p>
               </div>
             </div>
           </div>
@@ -584,21 +660,6 @@ ${body}
               ${this.auditData ? `<span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-bold">${this.auditData.defense_readiness_score || 85}%</span>` : ''}
             </button>
           </div>
-        </div>
-
-        <div class="rounded-xl border border-accent/30 bg-accent/5 p-4 flex items-start gap-3">
-          <div class="text-accent shrink-0 mt-0.5">${APD_ICONS.alert}</div>
-          <div class="text-sm text-foreground/80">
-            <span class="font-semibold text-foreground">Click on any chapter below to open its dedicated Google Docs-grade writing studio.</span>
-            Features rich typography, inline real-time AI checking, citation auto-grounding against your project monographs, and live defense verification.
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <input id="apd-te-new-chapter-input" type="text" placeholder="Add a custom chapter (e.g. Chapter 4: Petrographic Analysis)…" class="max-w-md text-xs h-9 px-3 rounded-lg border border-border bg-card text-foreground outline-none focus:border-primary" />
-          <button id="apd-te-add-chapter-btn" class="h-9 px-3.5 rounded-lg border border-border bg-card text-xs font-medium hover:bg-muted flex items-center gap-1.5">
-            ${APD_ICONS.plus} Add chapter
-          </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -632,18 +693,6 @@ ${body}
                       ${status === 'ready' ? 'Defense Ready' : status === 'review' ? 'In Review' : 'Drafting'}
                     </span>
                   </div>
-
-                  <div class="mt-3 pt-3 border-t border-border/60 text-xs">
-                    ${cl.length > 0 ? `
-                      <div class="flex flex-wrap gap-1.5">
-                        <span class="text-[10.5px] text-muted-foreground">Primary claim:</span>
-                        <span class="text-[11px] font-medium text-foreground/90 truncate max-w-[280px]">"${cl[0].claim_text}"</span>
-                        ${cl.length > 1 ? `<span class="text-[10px] text-muted-foreground font-bold">+${cl.length - 1} more</span>` : ''}
-                      </div>
-                    ` : `
-                      <span class="text-[11px] text-muted-foreground italic">No claims allocated. Open chapter to start drafting.</span>
-                    `}
-                  </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
@@ -651,7 +700,7 @@ ${body}
                     ${words > 0 ? `${APD_ICONS.checkCircle} ${words} words drafted` : `${APD_ICONS.pen} Empty chapter`}
                   </span>
                   <span class="text-xs font-semibold text-primary flex items-center gap-1">
-                    Open Academic Studio ${APD_ICONS.chevronRight}
+                    Open Word Studio ${APD_ICONS.chevronRight}
                   </span>
                 </div>
               </div>
@@ -662,9 +711,9 @@ ${body}
     },
 
     /**
-     * View 2: Dedicated Single-Chapter Google Docs-style Studio
+     * View 2: Full Google Docs / Microsoft Word-Grade Single Chapter Studio
      */
-    renderSingleChapterStudio: function (chapters, projectId, projectTitle) {
+    renderGoogleDocsChapterStudio: function (chapters, projectId, projectTitle) {
       var self = this;
       var ch = this.activeChapter;
       var rawDraft = DraftStore.getDraft(projectId, ch);
@@ -676,38 +725,38 @@ ${body}
       });
 
       return `
-        <!-- Studio Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-border">
+        <!-- Top File Ribbon & Chapter Metadata -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2 border-b border-border">
           <div class="flex items-center gap-3">
-            <button id="apd-te-back-to-workspace" class="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition-all shadow-sm">
-              ${APD_ICONS.arrowLeft} All Chapters
+            <button id="apd-te-back-to-workspace" class="apd-gdocs-btn px-2.5 h-8 border border-border bg-card text-xs font-semibold flex items-center gap-1.5 text-foreground shadow-sm">
+              ${APD_ICONS.arrowLeft} Chapters
             </button>
             <div class="h-4 w-px bg-border"></div>
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-primary uppercase tracking-wider">Chapter:</span>
-                <h1 class="text-lg font-bold font-display text-foreground">${ch}</h1>
+                <span class="text-[11px] font-bold text-primary uppercase tracking-wider">Document:</span>
+                <h1 class="text-base font-bold font-display text-foreground">${ch}</h1>
               </div>
             </div>
           </div>
 
-          <!-- Studio Action Buttons -->
           <div class="flex items-center gap-2 text-xs">
-            <!-- Live Inspector Status Pill -->
-            <button id="apd-te-trigger-inspector" class="px-2.5 py-1 rounded-md border border-accent/40 bg-accent/5 hover:bg-accent/10 text-xs font-semibold flex items-center gap-1.5 text-foreground transition-all">
+            <!-- Proofreading Live Status Pill -->
+            <button id="apd-te-trigger-inspector" class="apd-gdocs-btn px-2.5 h-7 border border-accent/40 bg-accent/5 text-xs font-semibold flex items-center gap-1.5 text-foreground">
               <span class="text-accent">${APD_ICONS.sparkles}</span>
               <span id="apd-te-live-status-badge">AI Proofreading Active</span>
             </button>
 
-            <select id="apd-te-single-status" class="px-2.5 py-1 rounded-md bg-card border border-border text-xs font-medium text-foreground outline-none cursor-pointer">
+            <!-- Status Dropdown -->
+            <select id="apd-te-single-status" class="h-7 px-2 rounded-md bg-card border border-border text-xs font-medium text-foreground outline-none cursor-pointer">
               <option value="drafting" ${status === 'drafting' ? 'selected' : ''}>Status: Drafting</option>
               <option value="review" ${status === 'review' ? 'selected' : ''}>Status: In Review</option>
               <option value="ready" ${status === 'ready' ? 'selected' : ''}>Status: Defense Ready</option>
             </select>
 
-            <!-- Export Menu -->
+            <!-- Export Dropdown -->
             <div class="relative inline-block">
-              <button id="apd-te-export-menu-btn" class="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5">
+              <button id="apd-te-export-menu-btn" class="apd-gdocs-btn h-7 px-2.5 border border-border bg-card text-xs font-medium flex items-center gap-1.5">
                 ${APD_ICONS.download} Export
               </button>
               <div id="apd-te-export-dropdown" class="hidden absolute right-0 mt-1 w-44 rounded-lg border border-border bg-card shadow-lg z-50 py-1 text-xs">
@@ -732,94 +781,171 @@ ${body}
             var isSelected = c === ch;
             var cClaims = (self.claims || []).filter(function(clm) { return (clm.chapter || '').toLowerCase() === c.toLowerCase(); });
             return `
-              <button data-switch-to="${encodeURIComponent(c)}" class="px-2.5 py-1 rounded-lg text-xs whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${isSelected ? 'bg-primary text-white border-primary shadow-sm font-bold' : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'}">
+              <button data-switch-to="${encodeURIComponent(c)}" class="px-2.5 py-0.5 rounded-md text-xs whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${isSelected ? 'bg-primary text-white border-primary shadow-sm font-bold' : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'}">
                 <span class="text-[10px] opacity-75">${idx + 1}.</span>
                 <span>${c}</span>
-                ${cClaims.length > 0 ? `<span class="text-[9px] px-1 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'}">${cClaims.length}</span>` : ''}
+                ${cClaims.length > 0 ? `<span class="text-[9px] px-1 py-0.1 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'}">${cClaims.length}</span>` : ''}
               </button>
             `;
           }).join('')}
         </div>
 
-        <!-- Main Studio Layout: Editor (8 cols) + Side Intelligence Drawer (4 cols) -->
+        <!-- Main Workspace: Google Docs Ribbon + Canvas + Side Intelligence -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           
-          <!-- LEFT: Authentic Google Docs Academic Paper Canvas (8 cols) -->
-          <div class="lg:col-span-8 rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+          <!-- LEFT: Word Processor & Authentic Sheet (8 cols) -->
+          <div class="lg:col-span-8 flex flex-col space-y-2">
             
-            <!-- Google Docs-style Rich Formatting Ribbon -->
-            <div class="p-2 border-b border-border bg-muted/30 flex flex-wrap items-center gap-1 text-xs select-none sticky top-0 z-20">
-              <!-- Undo / Redo -->
-              <button data-doc-cmd="undo" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Undo (Ctrl+Z)">${APD_ICONS.undo}</button>
-              <button data-doc-cmd="redo" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Redo (Ctrl+Y)">${APD_ICONS.redo}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
+            <!-- GOOGLE DOCS / MICROSOFT WORD STYLE ICON TOOLBAR RIBBON -->
+            <div class="apd-gdocs-ribbon p-1.5 flex flex-wrap items-center gap-1 text-xs select-none sticky top-0 z-20">
+              
+              <!-- Undo / Redo / Print -->
+              <button data-doc-cmd="undo" class="apd-gdocs-btn" title="Undo (Ctrl+Z)">${APD_ICONS.undo}</button>
+              <button data-doc-cmd="redo" class="apd-gdocs-btn" title="Redo (Ctrl+Y)">${APD_ICONS.redo}</button>
+              <button id="apd-te-ribbon-print" class="apd-gdocs-btn" title="Print (Ctrl+P)">${APD_ICONS.printer}</button>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
 
-              <!-- Paragraph Hierarchy -->
-              <select id="apd-te-format-block" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
-                <option value="p">Paragraph</option>
+              <!-- Paragraph Hierarchy (Normal, H1, H2, H3, Blockquote) -->
+              <select id="apd-te-format-block" class="h-7 bg-card border border-border text-[11px] rounded px-2 text-foreground outline-none cursor-pointer">
+                <option value="p">Normal text</option>
                 <option value="h1">Heading 1 (Chapter)</option>
                 <option value="h2">Heading 2 (Section)</option>
                 <option value="h3">Heading 3 (Sub-section)</option>
                 <option value="blockquote">Blockquote (Excerpt)</option>
               </select>
 
-              <!-- Font Family Selector -->
-              <select id="apd-te-font-family" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
-                <option value="garamond">Garamond</option>
-                <option value="times">Times New Roman</option>
-                <option value="cambria">Cambria</option>
-                <option value="sans">Modern Sans</option>
+              <!-- 5 Authentic Typefaces / Font Styles -->
+              <select id="apd-te-font-family" class="h-7 bg-card border border-border text-[11px] rounded px-2 text-foreground outline-none cursor-pointer font-serif">
+                <option value="garamond">Garamond (Academic)</option>
+                <option value="times">Times New Roman (Standard)</option>
+                <option value="georgia">Georgia (Scholarly)</option>
+                <option value="modern">Computer Modern (LaTeX)</option>
+                <option value="sans">Modern Sans (Clean)</option>
+                <option value="mono">JetBrains Mono (Data)</option>
               </select>
 
-              <!-- Line Spacing Selector (University thesis requirement: 1.5 or 2.0) -->
-              <select id="apd-te-line-spacing" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
-                <option value="1.5">1.5 Spacing (Thesis)</option>
-                <option value="2.0">2.0 Double (Submission)</option>
-                <option value="1.15">1.15 Compact</option>
+              <!-- Font Size Stepper (- 12 +) -->
+              <div class="flex items-center border border-border rounded h-7 bg-card">
+                <button id="apd-te-font-size-dec" class="px-1.5 h-full hover:bg-muted text-muted-foreground hover:text-foreground">${APD_ICONS.minus}</button>
+                <span id="apd-te-font-size-val" class="px-1 text-[11.5px] font-bold text-foreground min-w-[20px] text-center">${self.savedFontSize}</span>
+                <button id="apd-te-font-size-inc" class="px-1.5 h-full hover:bg-muted text-muted-foreground hover:text-foreground">${APD_ICONS.plus}</button>
+              </div>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
+
+              <!-- Basic Formatting: Bold, Italic, Underline, Strikethrough -->
+              <button data-doc-cmd="bold" class="apd-gdocs-btn font-bold" title="Bold (Ctrl+B)">${APD_ICONS.bold}</button>
+              <button data-doc-cmd="italic" class="apd-gdocs-btn" title="Italic (Ctrl+I)">${APD_ICONS.italic}</button>
+              <button data-doc-cmd="underline" class="apd-gdocs-btn" title="Underline (Ctrl+U)">${APD_ICONS.underline}</button>
+              <button data-doc-cmd="strikeThrough" class="apd-gdocs-btn" title="Strikethrough">${APD_ICONS.strikethrough}</button>
+              <button data-doc-cmd="superscript" class="apd-gdocs-btn" title="Superscript / Footnote">${APD_ICONS.superscript}</button>
+              <button data-doc-cmd="subscript" class="apd-gdocs-btn" title="Subscript">${APD_ICONS.subscript}</button>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
+
+              <!-- Text Color Palette Dropdown -->
+              <div class="relative inline-block">
+                <button id="apd-te-text-color-btn" class="apd-gdocs-btn flex items-center gap-0.5" title="Text Color">
+                  ${APD_ICONS.textColor} ${APD_ICONS.chevronDown}
+                </button>
+                <div id="apd-te-text-color-picker" class="hidden absolute top-full left-0 mt-1 p-2 rounded-lg border border-border bg-card shadow-lg z-50 grid grid-cols-4 gap-1.5">
+                  <div data-color="#1a1a1a" class="w-5 h-5 rounded cursor-pointer border border-border" style="background: #1a1a1a" title="Black"></div>
+                  <div data-color="#8c2d19" class="w-5 h-5 rounded cursor-pointer" style="background: #8c2d19" title="Terracotta"></div>
+                  <div data-color="#1e40af" class="w-5 h-5 rounded cursor-pointer" style="background: #1e40af" title="Navy"></div>
+                  <div data-color="#047857" class="w-5 h-5 rounded cursor-pointer" style="background: #047857" title="Forest"></div>
+                  <div data-color="#b45309" class="w-5 h-5 rounded cursor-pointer" style="background: #b45309" title="Amber"></div>
+                  <div data-color="#6b21a8" class="w-5 h-5 rounded cursor-pointer" style="background: #6b21a8" title="Purple"></div>
+                  <div data-color="#be123c" class="w-5 h-5 rounded cursor-pointer" style="background: #be123c" title="Crimson"></div>
+                  <div data-color="#4b5563" class="w-5 h-5 rounded cursor-pointer" style="background: #4b5563" title="Muted Slate"></div>
+                </div>
+              </div>
+
+              <!-- Highlighter Color Palette Dropdown -->
+              <div class="relative inline-block">
+                <button id="apd-te-highlight-btn" class="apd-gdocs-btn flex items-center gap-0.5" title="Highlight Color">
+                  ${APD_ICONS.highlighter} ${APD_ICONS.chevronDown}
+                </button>
+                <div id="apd-te-highlight-picker" class="hidden absolute top-full left-0 mt-1 p-2 rounded-lg border border-border bg-card shadow-lg z-50 grid grid-cols-4 gap-1.5">
+                  <div data-bg="#fef08a" class="w-5 h-5 rounded cursor-pointer border border-border" style="background: #fef08a" title="Yellow"></div>
+                  <div data-bg="#bbf7d0" class="w-5 h-5 rounded cursor-pointer" style="background: #bbf7d0" title="Green"></div>
+                  <div data-bg="#bae6fd" class="w-5 h-5 rounded cursor-pointer" style="background: #bae6fd" title="Cyan"></div>
+                  <div data-bg="#fbcfe8" class="w-5 h-5 rounded cursor-pointer" style="background: #fbcfe8" title="Pink"></div>
+                  <div data-bg="#fed7aa" class="w-5 h-5 rounded cursor-pointer" style="background: #fed7aa" title="Orange"></div>
+                  <div data-bg="#e9d5ff" class="w-5 h-5 rounded cursor-pointer" style="background: #e9d5ff" title="Lavender"></div>
+                  <div data-bg="transparent" class="w-5 h-5 rounded cursor-pointer border border-border flex items-center justify-center text-[10px] text-muted-foreground" title="None">X</div>
+                </div>
+              </div>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
+
+              <!-- Alignment: Left, Center, Right, Justify -->
+              <button data-doc-cmd="justifyLeft" class="apd-gdocs-btn" title="Align Left">${APD_ICONS.alignLeft}</button>
+              <button data-doc-cmd="justifyCenter" class="apd-gdocs-btn" title="Align Center">${APD_ICONS.alignCenter}</button>
+              <button data-doc-cmd="justifyRight" class="apd-gdocs-btn" title="Align Right">${APD_ICONS.alignRight}</button>
+              <button data-doc-cmd="justifyFull" class="apd-gdocs-btn active" title="Justify (Academic standard)">${APD_ICONS.alignJustify}</button>
+              
+              <!-- Line Spacing Dropdown -->
+              <select id="apd-te-line-spacing" class="h-7 bg-card border border-border text-[11px] rounded px-1.5 text-foreground outline-none cursor-pointer">
+                <option value="1.5">1.5 Spacing</option>
+                <option value="2.0">2.0 Double</option>
+                <option value="1.15">1.15 Spacing</option>
+                <option value="1.0">1.0 Single</option>
               </select>
-              <div class="h-4 w-px bg-border mx-1"></div>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
 
-              <!-- Text Styling -->
-              <button data-doc-cmd="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground font-bold" title="Bold (Ctrl+B)">${APD_ICONS.bold}</button>
-              <button data-doc-cmd="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic (Ctrl+I)">${APD_ICONS.italic}</button>
-              <button data-doc-cmd="underline" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Underline (Ctrl+U)">${APD_ICONS.underline}</button>
-              <button data-doc-cmd="strikeThrough" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Strikethrough">${APD_ICONS.strikethrough}</button>
-              <button data-doc-cmd="superscript" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Superscript / Footnote mark">${APD_ICONS.superscript}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
+              <!-- Lists, Indent, Outdent -->
+              <button data-doc-cmd="insertUnorderedList" class="apd-gdocs-btn" title="Bullet List">${APD_ICONS.list}</button>
+              <button data-doc-cmd="insertOrderedList" class="apd-gdocs-btn" title="Numbered List">${APD_ICONS.listOrdered}</button>
+              <button id="apd-te-outdent-btn" class="apd-gdocs-btn" title="Decrease Indent">${APD_ICONS.outdent}</button>
+              <button id="apd-te-indent-btn" class="apd-gdocs-btn" title="Increase Indent">${APD_ICONS.indent}</button>
+              <div class="h-4 w-px bg-border mx-0.5"></div>
 
-              <!-- Alignments -->
-              <button data-doc-cmd="justifyLeft" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Align Left">${APD_ICONS.alignLeft}</button>
-              <button data-doc-cmd="justifyCenter" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Align Center">${APD_ICONS.alignCenter}</button>
-              <button data-doc-cmd="justifyFull" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Justify (Academic standard)">${APD_ICONS.alignJustify}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
+              <!-- Insert Image / Plate / Table / Divider / Clear Formatting -->
+              <button id="apd-te-insert-img-btn" class="apd-gdocs-btn" title="Insert Image / Archaeological Plate">${APD_ICONS.image}</button>
+              <input type="file" id="apd-te-hidden-file-inp" accept="image/*" class="hidden" />
+              <button id="apd-te-insert-table-btn" class="apd-gdocs-btn" title="Insert Archaeological Data Table">${APD_ICONS.table}</button>
+              <button id="apd-te-insert-hr-btn" class="apd-gdocs-btn" title="Insert Horizontal Page Divider">${APD_ICONS.horizontalRule}</button>
+              <button data-doc-cmd="removeFormat" class="apd-gdocs-btn" title="Clear Formatting">${APD_ICONS.clearFormatting}</button>
 
-              <!-- Lists & Tables -->
-              <button data-doc-cmd="insertUnorderedList" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>
-              <button data-doc-cmd="insertOrderedList" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Numbered List">${APD_ICONS.listOrdered}</button>
-              <button id="apd-te-insert-table-btn" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Insert Archaeological Data Table">${APD_ICONS.table}</button>
-              <button id="apd-te-insert-plate-btn" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Insert Plate / Figure Callout">${APD_ICONS.fileText}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
-
-              <!-- Inline Help Me Write Action -->
-              <button id="apd-te-inline-help-write-btn" class="px-2.5 py-1 rounded bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1 ml-auto shadow-sm" title="Invoke Inline AI Copilot (Ctrl+J)">
+              <!-- Inline Help Me Write Pill -->
+              <button id="apd-te-inline-help-write-btn" class="px-2.5 h-7 rounded bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1 ml-auto shadow-sm" title="Invoke Inline AI Copilot (Ctrl+J)">
                 ${APD_ICONS.sparkles} Help Me Write
               </button>
             </div>
 
-            <!-- Page Canvas: A4 Centered Sheet -->
+            <!-- Page Canvas: Authentic Ruler + A4 Centered Sheet -->
             <div class="apd-te-page-wrapper">
-              <div id="apd-te-doc-sheet" contenteditable="true" spellcheck="true" class="apd-te-page-sheet" data-spacing="1.5" data-font="garamond">
+              
+              <!-- Document Ruler Bar with Inch Markings -->
+              <div class="apd-doc-ruler">
+                <span class="apd-ruler-tick" style="left: 0%">0</span>
+                <span class="apd-ruler-subtick" style="left: 7.14%"></span>
+                <span class="apd-ruler-tick" style="left: 14.28%">1</span>
+                <span class="apd-ruler-subtick" style="left: 21.42%"></span>
+                <span class="apd-ruler-tick" style="left: 28.56%">2</span>
+                <span class="apd-ruler-subtick" style="left: 35.7%"></span>
+                <span class="apd-ruler-tick" style="left: 42.84%">3</span>
+                <span class="apd-ruler-subtick" style="left: 49.98%"></span>
+                <span class="apd-ruler-tick" style="left: 57.12%">4</span>
+                <span class="apd-ruler-subtick" style="left: 64.26%"></span>
+                <span class="apd-ruler-tick" style="left: 71.4%">5</span>
+                <span class="apd-ruler-subtick" style="left: 78.54%"></span>
+                <span class="apd-ruler-tick" style="left: 85.68%">6</span>
+                <span class="apd-ruler-subtick" style="left: 92.82%"></span>
+                <span class="apd-ruler-tick" style="left: 99.5%">7</span>
+              </div>
+
+              <!-- The Pristine Academic Sheet -->
+              <div id="apd-te-doc-sheet" contenteditable="true" spellcheck="true" class="apd-te-page-sheet" data-spacing="${self.savedSpacing}" data-font="${self.savedFont}" data-size="${self.savedFontSize}">
                 ${initialHtml}
               </div>
+
             </div>
 
-            <!-- Live Status & Word Counter Bar -->
-            <div class="p-2.5 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2 select-none">
+            <!-- Bottom Word, Character, and Page Status Bar -->
+            <div class="p-2 border rounded-lg bg-card border-border flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2 select-none shadow-sm">
               <div class="flex items-center gap-4">
                 <span id="apd-te-word-stat" class="font-bold text-foreground">0 words</span>
                 <span id="apd-te-char-stat">0 characters</span>
                 <span id="apd-te-page-stat">~1 page</span>
-                <span>Double-spaced (A4 thesis)</span>
+                <span>A4 Standard Format</span>
               </div>
               <div class="flex items-center gap-2 text-[11px]">
                 <span class="flex items-center gap-1 text-accent font-semibold">${APD_ICONS.checkCircle} Real-time autosave</span>
@@ -831,22 +957,22 @@ ${body}
           </div>
 
           <!-- RIGHT: Grounded Intelligence & Proofreading Drawer (4 cols) -->
-          <div class="lg:col-span-4 rounded-xl border border-primary/25 bg-card p-3.5 shadow-sm space-y-3.5">
+          <div class="lg:col-span-4 rounded-xl border border-primary/25 bg-card p-3 shadow-sm space-y-3">
             
             <!-- Side Tabs -->
-            <div class="flex items-center justify-between pb-2.5 border-b border-border">
+            <div class="flex items-center justify-between pb-2 border-b border-border">
               <div class="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border">
-                <button id="apd-te-right-tab-ai" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'ai' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                <button id="apd-te-right-tab-ai" class="px-2 py-0.5 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'ai' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
                   ${APD_ICONS.sparkles} Neural AI
                 </button>
-                <button id="apd-te-right-tab-inspector" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'inspector' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                <button id="apd-te-right-tab-inspector" class="px-2 py-0.5 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'inspector' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
                   ${APD_ICONS.shieldCheck} Inspector
-                  <span id="apd-te-inspector-count" class="ml-1 px-1 py-0.2 rounded-full bg-accent/20 text-accent text-[9px] font-bold">0</span>
+                  <span id="apd-te-inspector-count" class="ml-1 px-1 py-0.1 rounded-full bg-accent/20 text-accent text-[9px] font-bold">0</span>
                 </button>
-                <button id="apd-te-right-tab-claims" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'claims' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                <button id="apd-te-right-tab-claims" class="px-2 py-0.5 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'claims' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
                   ${APD_ICONS.bookmark} Claims
                 </button>
-                <button id="apd-te-right-tab-sources" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'sources' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                <button id="apd-te-right-tab-sources" class="px-2 py-0.5 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'sources' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
                   ${APD_ICONS.book} Library
                 </button>
               </div>
@@ -1019,22 +1145,22 @@ ${body}
 
         <!-- Floating Inline AI Bar (Pops up above text selection like Google Docs) -->
         <div id="apd-te-floating-ai-bar">
-          <button id="apd-te-sel-polish" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Fix grammar, typos, and improve academic tone">
+          <button id="apd-te-sel-polish" class="apd-gdocs-btn px-2 h-7 text-xs font-semibold flex items-center gap-1 text-foreground" title="Fix grammar, typos, and improve academic tone">
             <span class="text-primary">${APD_ICONS.sparkles}</span> Polish Phrasing
           </button>
           <div class="h-3.5 w-px bg-border"></div>
-          <button id="apd-te-sel-cite" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Ground statement with project monographs">
+          <button id="apd-te-sel-cite" class="apd-gdocs-btn px-2 h-7 text-xs font-semibold flex items-center gap-1 text-foreground" title="Ground statement with project monographs">
             <span class="text-accent">${APD_ICONS.book}</span> Add Citation
           </button>
           <div class="h-3.5 w-px bg-border"></div>
-          <button id="apd-te-sel-defend" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Add viva defense caveat against potential examiner objections">
+          <button id="apd-te-sel-defend" class="apd-gdocs-btn px-2 h-7 text-xs font-semibold flex items-center gap-1 text-foreground" title="Add viva defense caveat against potential examiner objections">
             <span class="text-chart-4">${APD_ICONS.shieldCheck}</span> Add Caveat
           </button>
           <div class="h-3.5 w-px bg-border"></div>
-          <button id="apd-te-sel-condense" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Make concise">
+          <button id="apd-te-sel-condense" class="apd-gdocs-btn px-2 h-7 text-xs font-semibold flex items-center gap-1 text-foreground" title="Make concise">
             Condense
           </button>
-          <button id="apd-te-sel-expand" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Expand with archaeological context">
+          <button id="apd-te-sel-expand" class="apd-gdocs-btn px-2 h-7 text-xs font-semibold flex items-center gap-1 text-foreground" title="Expand with archaeological context">
             Expand
           </button>
         </div>
@@ -1091,17 +1217,14 @@ ${body}
     bindEvents: function (container, projectId) {
       var self = this;
 
-      // Tab switcher: Workspace vs Audit
       var tabWorkspace = container.querySelector('#apd-te-tab-workspace');
       var tabAudit = container.querySelector('#apd-te-tab-audit');
       if (tabWorkspace) tabWorkspace.onclick = function () { self.viewMode = 'workspace'; self.render(); };
       if (tabAudit) tabAudit.onclick = function () { self.viewMode = 'audit'; self.render(); };
 
-      // Back to all chapters
       var backBtn = container.querySelector('#apd-te-back-to-workspace');
       if (backBtn) backBtn.onclick = function () { self.viewMode = 'workspace'; self.render(); };
 
-      // Open chapter card
       var chapterCards = container.querySelectorAll('[data-open-chapter]');
       chapterCards.forEach(function (card) {
         card.onclick = function () {
@@ -1112,7 +1235,6 @@ ${body}
         };
       });
 
-      // Switch to chapter via top ribbon
       var switchBtns = container.querySelectorAll('[data-switch-to]');
       switchBtns.forEach(function (btn) {
         btn.onclick = function () {
@@ -1123,33 +1245,11 @@ ${body}
         };
       });
 
-      // Add chapter button
-      var addChBtn = container.querySelector('#apd-te-add-chapter-btn');
-      var newChInp = container.querySelector('#apd-te-new-chapter-input');
-      if (addChBtn && newChInp) {
-        var handleAdd = function () {
-          var val = newChInp.value.trim();
-          if (!val) return;
-          var cur = DraftStore.getChapters(projectId);
-          if (cur.indexOf(val) === -1) {
-            cur.push(val);
-            DraftStore.saveChapters(projectId, cur);
-            self.activeChapter = val;
-            self.viewMode = 'chapter';
-            self.render();
-          }
-        };
-        addChBtn.onclick = handleAdd;
-        newChInp.onkeydown = function (e) { if (e.key === 'Enter') handleAdd(); };
-      }
-
-      // If in Chapter Studio: bind Google Docs-style Rich Editing and Inline AI
       var sheet = container.querySelector('#apd-te-doc-sheet');
       if (sheet) {
         self.bindDocumentCanvasEvents(sheet, container, projectId);
       }
 
-      // Bind Side Tabs
       var tabAi = container.querySelector('#apd-te-right-tab-ai');
       var tabInsp = container.querySelector('#apd-te-right-tab-inspector');
       var tabClaims = container.querySelector('#apd-te-right-tab-claims');
@@ -1166,7 +1266,6 @@ ${body}
         self.runLiveProofreading(sheet);
       };
 
-      // Export Menu toggle
       var exportMenuBtn = container.querySelector('#apd-te-export-menu-btn');
       var exportDropdown = container.querySelector('#apd-te-export-dropdown');
       if (exportMenuBtn && exportDropdown) {
@@ -1177,7 +1276,6 @@ ${body}
         document.addEventListener('click', function () { exportDropdown.classList.add('hidden'); });
       }
 
-      // Export LaTeX
       var exportTexBtn = container.querySelector('#apd-te-export-tex');
       if (exportTexBtn && sheet) {
         exportTexBtn.onclick = function () {
@@ -1192,7 +1290,6 @@ ${body}
         };
       }
 
-      // Export Markdown
       var exportMdBtn = container.querySelector('#apd-te-export-md');
       if (exportMdBtn && sheet) {
         exportMdBtn.onclick = function () {
@@ -1207,13 +1304,16 @@ ${body}
         };
       }
 
-      // Print PDF
       var printPdfBtn = container.querySelector('#apd-te-print-pdf');
       if (printPdfBtn) {
         printPdfBtn.onclick = function () { window.print(); };
       }
 
-      // Insert Claim into Document
+      var ribbonPrint = container.querySelector('#apd-te-ribbon-print');
+      if (ribbonPrint) {
+        ribbonPrint.onclick = function () { window.print(); };
+      }
+
       var insertClaimBtns = container.querySelectorAll('button[data-insert-claim-html]');
       insertClaimBtns.forEach(function (btn) {
         btn.onclick = function () {
@@ -1226,7 +1326,6 @@ ${body}
         };
       });
 
-      // Insert Citation into Document
       var citeSrcBtns = container.querySelectorAll('button[data-cite-src-author]');
       citeSrcBtns.forEach(function (btn) {
         btn.onclick = function () {
@@ -1241,7 +1340,6 @@ ${body}
         };
       });
 
-      // AI Action Buttons in Side Panel
       var aiActionBtns = container.querySelectorAll('.apd-te-ai-action-btn');
       aiActionBtns.forEach(function (btn) {
         btn.onclick = function () {
@@ -1250,7 +1348,6 @@ ${body}
         };
       });
 
-      // Custom Query
       var queryBtn = container.querySelector('#apd-te-query-btn');
       var customInp = container.querySelector('#apd-te-custom-query');
       if (queryBtn && customInp) {
@@ -1260,7 +1357,6 @@ ${body}
         };
       }
 
-      // Insert AI Output into Document
       var insertAiBtn = container.querySelector('#apd-te-insert-ai-output');
       if (insertAiBtn && sheet) {
         insertAiBtn.onclick = function () {
@@ -1274,14 +1370,10 @@ ${body}
       }
     },
 
-    /**
-     * Google Docs-style Rich Editing Canvas Event Binding
-     */
     bindDocumentCanvasEvents: function (sheet, container, projectId) {
       var self = this;
       var floatingBar = document.getElementById('apd-te-floating-ai-bar');
 
-      // Update Word / Character / Page Counters
       var updateStats = function () {
         var text = sheet.innerText || '';
         var words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -1297,7 +1389,6 @@ ${body}
       };
       updateStats();
 
-      // Debounced Autosave (300ms) & Live Proofreading (1.2s)
       var saveTimeout = null;
       var proofreadTimeout = null;
       sheet.addEventListener('input', function () {
@@ -1313,15 +1404,16 @@ ${body}
         }, 1200);
       });
 
-      // Keyboard Shortcuts (Ctrl+J = Help Me Write, Ctrl+B = Bold, Ctrl+I = Italic, Ctrl+U = Underline)
       sheet.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
           e.preventDefault();
           self.openInlineHelpMeWrite(sheet, projectId);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
         }
       });
 
-      // Format Ribbon Commands
       var docCmdBtns = container.querySelectorAll('button[data-doc-cmd]');
       docCmdBtns.forEach(function (btn) {
         btn.onclick = function () {
@@ -1332,7 +1424,13 @@ ${body}
         };
       });
 
-      // Format Block (H1, H2, H3, Blockquote, P)
+      // Indent & Outdent buttons
+      var indentBtn = container.querySelector('#apd-te-indent-btn');
+      var outdentBtn = container.querySelector('#apd-te-outdent-btn');
+      if (indentBtn) indentBtn.onclick = function () { document.execCommand('indent', false, null); sheet.focus(); self.triggerAutosave(sheet, projectId); };
+      if (outdentBtn) outdentBtn.onclick = function () { document.execCommand('outdent', false, null); sheet.focus(); self.triggerAutosave(sheet, projectId); };
+
+      // Format Block
       var formatBlockSelect = container.querySelector('#apd-te-format-block');
       if (formatBlockSelect) {
         formatBlockSelect.onchange = function () {
@@ -1343,13 +1441,37 @@ ${body}
         };
       }
 
-      // Font Family
+      // Font Family Selector
       var fontSelect = container.querySelector('#apd-te-font-family');
       if (fontSelect) {
         fontSelect.value = self.savedFont;
         fontSelect.onchange = function () {
           self.savedFont = fontSelect.value;
           sheet.setAttribute('data-font', fontSelect.value);
+        };
+      }
+
+      // Font Size Stepper (- 12 +)
+      var sizeValEl = container.querySelector('#apd-te-font-size-val');
+      var sizeDec = container.querySelector('#apd-te-font-size-dec');
+      var sizeInc = container.querySelector('#apd-te-font-size-inc');
+      var SIZES = ['11', '12', '14', '16', '18'];
+      if (sizeDec && sizeInc && sizeValEl) {
+        sizeDec.onclick = function () {
+          var idx = SIZES.indexOf(self.savedFontSize);
+          if (idx > 0) {
+            self.savedFontSize = SIZES[idx - 1];
+            sizeValEl.innerText = self.savedFontSize;
+            sheet.setAttribute('data-size', self.savedFontSize);
+          }
+        };
+        sizeInc.onclick = function () {
+          var idx = SIZES.indexOf(self.savedFontSize);
+          if (idx < SIZES.length - 1) {
+            self.savedFontSize = SIZES[idx + 1];
+            sizeValEl.innerText = self.savedFontSize;
+            sheet.setAttribute('data-size', self.savedFontSize);
+          }
         };
       }
 
@@ -1360,6 +1482,82 @@ ${body}
         lineSpacingSelect.onchange = function () {
           self.savedSpacing = lineSpacingSelect.value;
           sheet.setAttribute('data-spacing', lineSpacingSelect.value);
+        };
+      }
+
+      // Text Color Dropdown
+      var textColorBtn = container.querySelector('#apd-te-text-color-btn');
+      var textColorPicker = container.querySelector('#apd-te-text-color-picker');
+      if (textColorBtn && textColorPicker) {
+        textColorBtn.onclick = function (e) {
+          e.stopPropagation();
+          textColorPicker.classList.toggle('hidden');
+        };
+        var colorSwatches = textColorPicker.querySelectorAll('[data-color]');
+        colorSwatches.forEach(function (sw) {
+          sw.onclick = function (e) {
+            e.stopPropagation();
+            var col = sw.getAttribute('data-color');
+            document.execCommand('foreColor', false, col);
+            textColorPicker.classList.add('hidden');
+            sheet.focus();
+            self.triggerAutosave(sheet, projectId);
+          };
+        });
+      }
+
+      // Highlighter Palette Dropdown
+      var highlightBtn = container.querySelector('#apd-te-highlight-btn');
+      var highlightPicker = container.querySelector('#apd-te-highlight-picker');
+      if (highlightBtn && highlightPicker) {
+        highlightBtn.onclick = function (e) {
+          e.stopPropagation();
+          highlightPicker.classList.toggle('hidden');
+        };
+        var bgSwatches = highlightPicker.querySelectorAll('[data-bg]');
+        bgSwatches.forEach(function (sw) {
+          sw.onclick = function (e) {
+            e.stopPropagation();
+            var bg = sw.getAttribute('data-bg');
+            document.execCommand('hiliteColor', false, bg);
+            highlightPicker.classList.add('hidden');
+            sheet.focus();
+            self.triggerAutosave(sheet, projectId);
+          };
+        });
+      }
+
+      document.addEventListener('click', function () {
+        if (textColorPicker) textColorPicker.classList.add('hidden');
+        if (highlightPicker) highlightPicker.classList.add('hidden');
+      });
+
+      // Insert Image / Plate Action (Native file upload to document)
+      var insertImgBtn = container.querySelector('#apd-te-insert-img-btn');
+      var hiddenFileInp = container.querySelector('#apd-te-hidden-file-inp');
+      if (insertImgBtn && hiddenFileInp) {
+        insertImgBtn.onclick = function () {
+          hiddenFileInp.click();
+        };
+        hiddenFileInp.onchange = function () {
+          var file = hiddenFileInp.files[0];
+          if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var dataUrl = e.target.result;
+              var figureHtml = `
+                <figure class="apd-doc-figure" contenteditable="false">
+                  <img src="${dataUrl}" alt="Archaeological Plate" />
+                  <figcaption contenteditable="true">Figure: [Caption description - click to edit details and provenance]</figcaption>
+                </figure>
+                <p></p>
+              `;
+              sheet.focus();
+              document.execCommand('insertHTML', false, figureHtml);
+              self.triggerAutosave(sheet, projectId);
+            };
+            reader.readAsDataURL(file);
+          }
         };
       }
 
@@ -1374,15 +1572,15 @@ ${body}
                 <tr>
                   <th>Locus / Stratum</th>
                   <th>Period</th>
-                  <th>Diagnostic Artifacts</th>
-                  <th>Calibrated Date (BP)</th>
+                  <th>Diagnostic Ceramic Ware</th>
+                  <th>Radiocarbon Date (BP)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Locus 104 (Stratum IV)</td>
                   <td>Late Bronze IIB</td>
-                  <td>Mycenaean IIIB Sherds, Collar-rim Store Jars</td>
+                  <td>Mycenaean IIIB Sherds, Collar-rim Jars</td>
                   <td>3210 ± 35 BP</td>
                 </tr>
                 <tr>
@@ -1400,13 +1598,12 @@ ${body}
         };
       }
 
-      // Insert Plate / Figure Callout
-      var plateBtn = container.querySelector('#apd-te-insert-plate-btn');
-      if (plateBtn) {
-        plateBtn.onclick = function () {
+      // Insert Horizontal Divider
+      var hrBtn = container.querySelector('#apd-te-insert-hr-btn');
+      if (hrBtn) {
+        hrBtn.onclick = function () {
           sheet.focus();
-          var calloutHtml = `<div class="apd-plate-callout">[Figure 3.1: Stratigraphic profile across Trench B, illustrating balk section and primary destruction layer.]</div><p></p>`;
-          document.execCommand('insertHTML', false, calloutHtml);
+          document.execCommand('insertHorizontalRule', false, null);
           self.triggerAutosave(sheet, projectId);
         };
       }
@@ -1419,7 +1616,7 @@ ${body}
         };
       }
 
-      // Floating Selection AI Toolbar (Appears right above selection like Google Docs)
+      // Floating Selection AI Toolbar
       document.addEventListener('selectionchange', function () {
         var sel = window.getSelection();
         if (!sel || sel.isCollapsed || !sheet.contains(sel.anchorNode)) {
@@ -1442,7 +1639,6 @@ ${body}
         }
       });
 
-      // Floating Selection AI Actions
       var selPolish = container.querySelector('#apd-te-sel-polish');
       if (selPolish) selPolish.onclick = function () { self.runSelectionAi('polish', sheet, projectId); };
 
@@ -1458,7 +1654,6 @@ ${body}
       var selExpand = container.querySelector('#apd-te-sel-expand');
       if (selExpand) selExpand.onclick = function () { self.runSelectionAi('expand', sheet, projectId); };
 
-      // Initial Proofreading Run
       self.runLiveProofreading(sheet);
     },
 
@@ -1467,9 +1662,6 @@ ${body}
       DraftStore.saveDraft(projectId, this.activeChapter, html);
     },
 
-    /**
-     * Inline "Help Me Write" Prompt Card (like Google Docs Gemini / Copilot)
-     */
     openInlineHelpMeWrite: function (sheet, projectId) {
       var self = this;
       var existing = document.querySelector('.apd-inline-prompt-box');
@@ -1581,9 +1773,6 @@ ${body}
       });
     },
 
-    /**
-     * Floating Selection AI Action (Polish, Cite, Defend, Condense, Expand)
-     */
     runSelectionAi: async function (mode, sheet, projectId) {
       var self = this;
       var sel = window.getSelection();
@@ -1628,20 +1817,12 @@ ${body}
       }
     },
 
-    /**
-     * Real-time Background Proofreading & Evidence Checking
-     * Inspects document text as the researcher writes:
-     * - Finds colloquial/weak language and offers academic substitutions.
-     * - Flags unverified claims lacking citations.
-     * - Detects references to active project contradictions.
-     */
     runLiveProofreading: function (sheet) {
       if (!sheet) return;
       var text = sheet.innerText || '';
       var self = this;
       var fixes = [];
 
-      // 1. Academic Phrasing & Style Linter
       var phrasingRules = [
         { bad: /\ba lot of\b/gi, fix: "a substantial corpus of", reason: "Informal quantifier in academic writing" },
         { bad: /\bbasically\b/gi, fix: "fundamentally", reason: "Colloquial filler word" },
@@ -1657,26 +1838,22 @@ ${body}
             type: 'style',
             matched: match[0],
             replacement: rule.fix,
-            reason: rule.reason,
-            snippet: text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + match[0].length + 30))
+            reason: rule.reason
           });
           if (fixes.length > 8) break;
         }
       });
 
-      // 2. Missing Citation Warning on specific dates/names
       var yearMatch = text.match(/\b(1[0-9]{3}|20[0-2][0-9])\s*(BCE|BC|CE|AD)\b/gi);
       if (yearMatch && text.indexOf('(') === -1 && text.indexOf(')') === -1) {
         fixes.push({
           type: 'citation',
           matched: yearMatch[0],
           replacement: self.sources.length > 0 ? ' (' + (self.sources[0].author || 'Author') + ' ' + (self.sources[0].year || 'n.d.') + ')' : ' (Citation required)',
-          reason: "Absolute chronometric dates require authoritative monograph citations",
-          snippet: "Asserting date " + yearMatch[0] + " without linked locus calibration"
+          reason: "Absolute chronometric dates require authoritative monograph citations"
         });
       }
 
-      // 3. Contradiction Detector Integration
       (self.contradictions || []).forEach(function (con) {
         var aInDoc = text.toLowerCase().indexOf((con.claim_a || '').slice(0, 20).toLowerCase()) !== -1;
         var bInDoc = text.toLowerCase().indexOf((con.claim_b || '').slice(0, 20).toLowerCase()) !== -1;
@@ -1685,27 +1862,20 @@ ${body}
             type: 'contradiction',
             matched: con.type || 'Stratigraphic Dispute',
             replacement: ' (See stratigraphic caveat: ' + (con.claim_b || con.claim_a) + ')',
-            reason: 'Active project contradiction: ' + (con.anomaly_description || 'Disputed layer sequence'),
-            snippet: con.title || con.type
+            reason: 'Active project contradiction: ' + (con.anomaly_description || 'Disputed layer sequence')
           });
         }
       });
 
       this.liveFixes = fixes;
 
-      // Update badge
       var badge = document.getElementById('apd-te-live-status-badge');
       var countEl = document.getElementById('apd-te-inspector-count');
       if (badge) {
-        if (fixes.length === 0) {
-          badge.innerText = 'Document Verified';
-        } else {
-          badge.innerText = fixes.length + ' Suggestions Available';
-        }
+        badge.innerText = fixes.length === 0 ? 'Document Verified' : (fixes.length + ' Suggestions Available');
       }
       if (countEl) countEl.innerText = fixes.length;
 
-      // Populate Inspector Tab
       var listEl = document.getElementById('apd-te-inspector-list');
       if (listEl) {
         if (fixes.length === 0) {
@@ -1737,7 +1907,6 @@ ${body}
             `;
           }).join('');
 
-          // Bind Apply Fix buttons
           var applyBtns = listEl.querySelectorAll('[data-apply-fix]');
           applyBtns.forEach(function (btn) {
             btn.onclick = function () {
