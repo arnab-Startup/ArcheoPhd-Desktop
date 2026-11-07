@@ -1,6 +1,6 @@
 $installDir = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'ArchaeoPhD')
 Get-Process -Name ArchaeoPhD -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Milliseconds 400
+Start-Sleep -Milliseconds 1200
 
 # Copy to root dist
 $rootDist = Join-Path $installDir 'dist'

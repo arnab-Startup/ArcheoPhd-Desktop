@@ -45,7 +45,11 @@
     chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
     chevronDown: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
     quote: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
-    list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>'
+    list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
+    bold: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/><path d="M6 12h9"/></svg>',
+    italic: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>',
+    heading2: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/></svg>',
+    heading3: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/></svg>'
   };
 
   function injectStyles() {
@@ -495,11 +499,11 @@
               
               <!-- Formatting Toolbar -->
               <div class="p-2 border-b border-border bg-muted/20 flex flex-wrap items-center gap-1 text-xs">
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="bold" class="p-1.5 rounded hover:bg-muted font-bold text-muted-foreground hover:text-foreground" title="Bold">B</button>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="italic" class="p-1.5 rounded hover:bg-muted italic text-muted-foreground hover:text-foreground" title="Italic">I</button>
+                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bold">${APD_ICONS.bold}</button>
+                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic">${APD_ICONS.italic}</button>
                 <div class="h-4 w-px bg-border mx-1"></div>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h2" class="px-1.5 py-0.5 rounded hover:bg-muted font-semibold text-xs text-muted-foreground hover:text-foreground" title="Heading 2">H2</button>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h3" class="px-1.5 py-0.5 rounded hover:bg-muted font-semibold text-xs text-muted-foreground hover:text-foreground" title="Heading 3">H3</button>
+                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h2" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 2">${APD_ICONS.heading2}</button>
+                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h3" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 3">${APD_ICONS.heading3}</button>
                 <div class="h-4 w-px bg-border mx-1"></div>
                 <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="quote" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Blockquote">${APD_ICONS.quote}</button>
                 <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="list" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>

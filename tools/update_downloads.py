@@ -27,3 +27,4 @@ with open('web/downloads/checksums.sha256', 'w', encoding='utf-8') as f:
 
 for l in lines:
     print(l)
+
