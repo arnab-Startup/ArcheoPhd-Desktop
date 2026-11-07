@@ -1,16 +1,14 @@
 /**
- * ArchaeoPhD — Thesis Writing Section & Dissertation Studio
+ * ArchaeoPhD — Thesis Writing Studio & Focused Chapter Editor
  * 
- * Complete Thesis Drafting Structure & Workflow:
- * - Matches previous application's chapter-by-chapter organizational workflow
- *   (Introduction, Literature Review, Methodology, Chapter 1, 2, 3, Discussion, Conclusion + Custom)
- * - Assigns and displays claims per chapter with evidentiary indicators:
- *   [+Supporting], [-Contradicting], [No citation], [Weak evidence]
- * - Built-in "Check Evidence" AI analysis with issue classification and summary
- * - Full Dual Manual Drafting Editor + Grounded Neural AI Assistant (Qwen 2.5 7B):
- *   Grounded in years of project monographs, excavation field reports, stratigraphy, and radiocarbon dates
- * - Real-time autosaving to local project storage per chapter
- * - Pre-Submission Defense Readiness Audit integration
+ * Focused, fast, and smooth chapter writing experience:
+ * - Clicking a chapter opens ONLY that chapter in a dedicated studio.
+ * - Quick chapter switcher ribbon at the top for instant 1-click chapter jumps.
+ * - Distraction-free, responsive drafting canvas with instant debounced local autosave.
+ * - SVG toolbar (Bold, Italic, H2, H3, Blockquote, Bullet List, Citation Inserter).
+ * - Grounded Neural AI Assistant (Synthesize Claims, Suggest Citations, Viva Check, Continue Paragraph).
+ * - Chapter Claims & Evidence Shelf directly integrated into the studio.
+ * - Full Pre-Submission Defense Readiness Audit tab.
  */
 
 (function () {
@@ -43,7 +41,7 @@
     x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
     plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
     chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
-    chevronDown: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+    arrowLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
     quote: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
     list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
     bold: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/><path d="M6 12h9"/></svg>',
@@ -63,21 +61,24 @@
       }
       .apd-te-canvas {
         font-family: "Georgia", "Cambria", "Times New Roman", serif;
-        font-size: 15px;
-        line-height: 1.75;
+        font-size: 15.5px;
+        line-height: 1.8;
         letter-spacing: 0.01em;
         background: transparent;
         color: hsl(var(--foreground, 30 10% 12%));
         border: none;
         outline: none;
         width: 100%;
-        min-height: 420px;
+        min-height: 520px;
         resize: vertical;
-        padding: 16px;
+        padding: 20px;
       }
       .apd-te-canvas::placeholder {
         color: hsl(var(--muted-foreground, 30 8% 55%) / 0.65);
         font-style: italic;
+      }
+      .apd-te-canvas:focus {
+        outline: none;
       }
       .apd-te-pulse {
         animation: apdTePulse 1.5s infinite ease-in-out;
@@ -86,11 +87,13 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
       }
-      .apd-te-badge {
-        font-size: 10.5px;
-        font-weight: 600;
-        padding: 2px 7px;
-        border-radius: 9999px;
+      .apd-te-card-hover {
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      .apd-te-card-hover:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+        border-color: hsl(var(--primary, 24 75% 42%) / 0.5);
       }
     `;
     document.head.appendChild(style);
@@ -167,13 +170,11 @@
   };
 
   var ThesisStudio = {
-    activeTab: 'workspace', // 'workspace' (matches previous app) | 'editor' (dedicated studio) | 'audit' (defense audit)
+    viewMode: 'workspace', // 'workspace' (all chapters overview) | 'chapter' (focused ONLY on active chapter) | 'audit' (defense audit)
     activeChapter: DEFAULT_CHAPTERS[0],
-    expandedDraftChapter: null, // If user expands editor inline within a chapter card
-    checkingChapter: null,      // Chapter currently running AI evidence check
+    activeRightTab: 'ai',   // 'ai' | 'claims' | 'sources'
+    checkingChapter: null,
     isAiLoading: false,
-    aiSuggestionText: '',
-    showShelf: false,
     auditData: null,
     sources: [],
     claims: [],
@@ -255,7 +256,7 @@
       if (!container) {
         container = document.createElement('div');
         container.id = 'apd-thesis-studio-mount';
-        container.className = 'apd-te-container space-y-6 p-2';
+        container.className = 'apd-te-container space-y-5 p-2';
 
         var root = document.getElementById('root');
         var mainContent = root ? root.querySelector('main, .p-6, .space-y-6, div > div') : null;
@@ -272,184 +273,121 @@
       var projectTitle = getActiveProjectTitle();
       var chapters = DraftStore.getChapters(projectId);
 
-      container.innerHTML = `
-        <!-- Workspace Header matching previous application -->
+      if (this.viewMode === 'chapter') {
+        container.innerHTML = this.renderSingleChapterView(chapters, projectId, projectTitle);
+      } else if (this.viewMode === 'audit') {
+        container.innerHTML = this.renderAuditHeader(projectTitle) + this.renderAuditView(chapters, projectId);
+      } else {
+        container.innerHTML = this.renderWorkspaceOverview(chapters, projectId, projectTitle);
+      }
+
+      this.bindEvents(container, projectId);
+    },
+
+    /**
+     * View 1: Clean Chapter Workspace Overview
+     * Lists all chapters. Clicking any chapter immediately opens ONLY that chapter!
+     */
+    renderWorkspaceOverview: function (chapters, projectId, projectTitle) {
+      var self = this;
+      var evByClaim = this.getEvidenceByClaim();
+
+      return `
+        <!-- Workspace Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
           <div>
             <div class="flex items-center gap-2.5">
               <span class="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">${APD_ICONS.book}</span>
               <div>
-                <h1 class="text-2xl font-bold font-display text-foreground tracking-tight">Thesis Workspace</h1>
-                <p class="text-xs text-muted-foreground">${projectTitle}</p>
+                <h1 class="text-2xl font-bold font-display text-foreground tracking-tight">Thesis Workspace & Chapters</h1>
+                <p class="text-xs text-muted-foreground">${projectTitle} • Select any chapter to begin drafting</p>
               </div>
             </div>
           </div>
 
           <!-- Top Navigation Switcher -->
           <div class="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border shrink-0 self-start md:self-center">
-            <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${this.activeTab === 'workspace' ? 'bg-card text-foreground shadow-sm border border-border font-bold' : 'text-muted-foreground'}">
-              ${APD_ICONS.layers} Chapters Workspace
+            <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-foreground shadow-sm border border-border font-bold">
+              ${APD_ICONS.layers} All Chapters (${chapters.length})
             </button>
-            <button id="apd-te-tab-editor" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${this.activeTab === 'editor' ? 'bg-card text-foreground shadow-sm border border-border font-bold' : 'text-muted-foreground'}">
-              ${APD_ICONS.pen} Chapter Studio & AI
-            </button>
-            <button id="apd-te-tab-audit" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${this.activeTab === 'audit' ? 'bg-card text-foreground shadow-sm border border-border font-bold' : 'text-muted-foreground'}">
-              ${APD_ICONS.shieldCheck} Defense Readiness Audit
+            <button id="apd-te-tab-audit" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground">
+              ${APD_ICONS.shieldCheck} Defense Audit
               ${this.auditData ? `<span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-bold">${this.auditData.defense_readiness_score || 85}%</span>` : ''}
             </button>
           </div>
         </div>
 
-        <!-- Banner: Researcher-Directed Drafting & Neural AI Assistant -->
+        <!-- Banner -->
         <div class="rounded-xl border border-accent/30 bg-accent/5 p-4 flex items-start gap-3">
           <div class="text-accent shrink-0 mt-0.5">${APD_ICONS.alert}</div>
           <div class="text-sm text-foreground/80">
-            <span class="font-semibold text-foreground">Drafting Workspace & Neural AI Research Co-Writer.</span>
-            Structure chapters, verify evidence coverage, and write your dissertation with manual editor tools and local neural AI grounded strictly in your project's monographs, field notes, and excavation strata.
+            <span class="font-semibold text-foreground">Click on any chapter below to open its dedicated writing studio.</span>
+            Draft thesis prose with instant autosave, cite monographs, and consult the neural AI research assistant grounded strictly in your project's field evidence.
           </div>
         </div>
 
-        <!-- Add Custom Chapter Bar matching previous app -->
+        <!-- Add Custom Chapter Bar -->
         <div class="flex gap-2">
-          <input id="apd-te-new-chapter-input" type="text" placeholder="Add a custom chapter…" class="max-w-xs text-xs h-9 px-3 rounded-lg border border-border bg-card text-foreground outline-none focus:border-primary" />
-          <button id="apd-te-add-chapter-btn" class="h-9 px-3 rounded-lg border border-border bg-card text-xs font-medium hover:bg-muted flex items-center gap-1.5">
+          <input id="apd-te-new-chapter-input" type="text" placeholder="Add a custom chapter (e.g. Chapter 4: Petrographic Analysis)…" class="max-w-md text-xs h-9 px-3 rounded-lg border border-border bg-card text-foreground outline-none focus:border-primary" />
+          <button id="apd-te-add-chapter-btn" class="h-9 px-3.5 rounded-lg border border-border bg-card text-xs font-medium hover:bg-muted flex items-center gap-1.5">
             ${APD_ICONS.plus} Add chapter
           </button>
         </div>
 
-        <!-- Main Body Render -->
-        ${this.activeTab === 'workspace' ? this.renderWorkspaceView(chapters, projectId) : ''}
-        ${this.activeTab === 'editor' ? this.renderEditorView(chapters, projectId) : ''}
-        ${this.activeTab === 'audit' ? this.renderAuditView(chapters, projectId) : ''}
-      `;
-
-      this.bindEvents(container, projectId);
-    },
-
-    /**
-     * View 1: Chapters Workspace
-     * Exactly matches the previous application's drafting structure and workflow:
-     * - Lists all chapters (Introduction through Conclusion + custom)
-     * - Shows claim count per chapter
-     * - Check Evidence button per chapter
-     * - Badges on claims: [+sup], [-con], [Weak], [! No citation]
-     * - Evidence Check Summary box with AI analysis
-     * - Inline expandable Drafting Editor + Neural AI assistant
-     */
-    renderWorkspaceView: function (chapters, projectId) {
-      var self = this;
-      var evByClaim = this.getEvidenceByClaim();
-
-      return `
-        <div class="space-y-4">
-          ${chapters.map(function (ch) {
+        <!-- Chapters Grid: Fast, clean cards. Clicking any card opens ONLY that chapter! -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${chapters.map(function (ch, idx) {
             var cl = (self.claims || []).filter(function (c) {
               return (c.chapter || '').toLowerCase() === ch.toLowerCase();
             });
-            var check = self.checks[ch];
-            var isChecking = self.checkingChapter === ch;
-            var isExpanded = self.expandedDraftChapter === ch;
-            var currentDraft = DraftStore.getDraft(projectId, ch);
-            var words = currentDraft.trim() ? currentDraft.trim().split(/\s+/).filter(Boolean).length : 0;
+            var draft = DraftStore.getDraft(projectId, ch);
+            var words = draft.trim() ? draft.trim().split(/\s+/).filter(Boolean).length : 0;
             var status = DraftStore.getStatus(projectId, ch);
+            var check = self.checks[ch];
 
             return `
-              <div class="rounded-xl border border-border bg-card overflow-hidden shadow-sm transition-all" id="chapter-card-${encodeURIComponent(ch)}">
-                
-                <!-- Chapter Card Header -->
-                <div class="flex flex-wrap items-center justify-between p-4 border-b border-border bg-muted/20 gap-3">
-                  <div class="flex items-center gap-3">
-                    <span class="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                      ${APD_ICONS.book}
+              <div data-open-chapter="${encodeURIComponent(ch)}" class="apd-te-card-hover rounded-xl border border-border bg-card p-4 flex flex-col justify-between space-y-3 shadow-sm cursor-pointer">
+                <div>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                        ${idx + 1}
+                      </span>
+                      <div>
+                        <h3 class="font-display text-base font-bold text-foreground hover:text-primary transition-colors">${ch}</h3>
+                        <p class="text-xs text-muted-foreground mt-0.5">
+                          ${cl.length} claim${cl.length !== 1 ? 's' : ''} • ${words} words drafted
+                        </p>
+                      </div>
+                    </div>
+
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${status === 'ready' ? 'bg-accent/15 text-accent' : status === 'review' ? 'bg-chart-4/15 text-chart-4' : 'bg-muted text-muted-foreground'}">
+                      ${status === 'ready' ? 'Defense Ready' : status === 'review' ? 'In Review' : 'Drafting'}
                     </span>
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <h3 class="font-display text-lg font-semibold text-foreground">${ch}</h3>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${status === 'ready' ? 'bg-accent/15 text-accent' : status === 'review' ? 'bg-chart-4/15 text-chart-4' : 'bg-muted text-muted-foreground'}">
-                          ${status === 'ready' ? 'Defense Ready' : status === 'review' ? 'In Review' : 'Drafting'}
-                        </span>
-                      </div>
-                      <p class="text-xs text-muted-foreground">
-                        ${cl.length} claim${cl.length !== 1 ? 's' : ''} • ${words} drafted words
-                      </p>
-                    </div>
                   </div>
 
-                  <div class="flex items-center gap-2">
-                    <!-- Check Evidence Button matching previous app -->
-                    <button data-check-ch="${encodeURIComponent(ch)}" ${isChecking ? 'disabled' : ''} class="apd-te-check-evidence-btn px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-medium hover:bg-muted flex items-center gap-1.5 transition-all">
-                      ${isChecking ? `<span class="apd-te-pulse text-primary">${APD_ICONS.refresh}</span> Checking…` : `<span class="text-primary">${APD_ICONS.sparkles}</span> Check Evidence`}
-                    </button>
-
-                    <!-- Write / Draft Chapter Button -->
-                    <button data-toggle-draft="${encodeURIComponent(ch)}" class="apd-te-toggle-draft-btn px-3 py-1.5 rounded-lg border ${isExpanded ? 'bg-primary text-white border-primary shadow-sm' : 'border-border bg-card hover:bg-muted text-foreground'} text-xs font-semibold flex items-center gap-1.5 transition-all">
-                      ${APD_ICONS.pen} ${isExpanded ? 'Close Editor' : 'Draft Chapter'}
-                    </button>
+                  <!-- Claim previews or status snippet -->
+                  <div class="mt-3 pt-3 border-t border-border/60 text-xs">
+                    ${cl.length > 0 ? `
+                      <div class="flex flex-wrap gap-1.5">
+                        <span class="text-[10.5px] text-muted-foreground">Key claims:</span>
+                        <span class="text-[11px] font-medium text-foreground/90 truncate max-w-[280px]">"${cl[0].claim_text}"</span>
+                        ${cl.length > 1 ? `<span class="text-[10px] text-muted-foreground font-bold">+${cl.length - 1} more</span>` : ''}
+                      </div>
+                    ` : `
+                      <span class="text-[11px] text-muted-foreground italic">No claims allocated. Open chapter to start drafting.</span>
+                    `}
                   </div>
                 </div>
 
-                <!-- Claims & Evidence Section -->
-                <div class="p-4 space-y-3">
-                  ${cl.length === 0 ? `
-                    <p class="text-sm text-muted-foreground">
-                      No claims assigned to this chapter. <a href="#/claims" class="text-primary hover:underline font-medium">Create a claim</a> and set its chapter to “${ch}”.
-                    </p>
-                  ` : `
-                    <div class="space-y-2">
-                      ${cl.map(function (c) {
-                        var ev = evByClaim[c.id] || [];
-                        var sup = ev.filter(function (e) { return e.evidence_type === 'supporting'; }).length;
-                        var con = ev.filter(function (e) { return e.evidence_type === 'contradicting'; }).length;
-                        var hasSrc = ev.some(function (e) { return (e.source_ids || []).length > 0; }) || !!c.scholar_name;
-                        var issues = (check && check.results && check.results.find(function(r) { return r.claim === c.claim_text; }) && check.results.find(function(r) { return r.claim === c.claim_text; }).issues) || [];
-
-                        return `
-                          <div class="p-3 rounded-lg border border-border bg-card/60 hover:bg-muted/30 transition-colors">
-                            <div class="flex items-start justify-between gap-3">
-                              <div class="text-sm font-medium text-foreground hover:text-primary cursor-pointer flex-1" data-goto-claim="${c.id}">
-                                ${c.claim_text}
-                                ${c.scholar_name ? `<span class="block text-xs text-muted-foreground mt-0.5">Scholar: ${c.scholar_name} ${c.page_ref ? `(p. ${c.page_ref})` : ''}</span>` : ''}
-                              </div>
-                              <div class="flex items-center gap-1.5 text-[10px] shrink-0 font-bold">
-                                ${!hasSrc ? `<span class="px-1.5 py-0.5 rounded bg-destructive/15 text-destructive flex items-center gap-1">${APD_ICONS.alert} No citation</span>` : ''}
-                                ${sup === 0 ? `<span class="px-1.5 py-0.5 rounded bg-chart-4/15 text-chart-4">Weak</span>` : ''}
-                                <span class="px-1.5 py-0.5 rounded bg-accent/15 text-accent">+${sup}</span>
-                                ${con > 0 ? `<span class="px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">−${con}</span>` : ''}
-                              </div>
-                            </div>
-
-                            ${issues.length > 0 ? `
-                              <div class="flex flex-wrap gap-1.5 mt-2">
-                                ${issues.map(function(i) {
-                                  return `<span class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">${i.replace(/_/g, ' ')}</span>`;
-                                }).join('')}
-                              </div>
-                            ` : ''}
-                          </div>
-                        `;
-                      }).join('')}
-                    </div>
-                  `}
-
-                  <!-- Evidence Check Summary if performed -->
-                  ${check && check.summary ? `
-                    <div class="mt-3 p-3.5 rounded-lg bg-muted/50 border border-border text-xs text-foreground/90 space-y-1">
-                      <div class="font-bold text-[10px] uppercase tracking-wider text-primary flex items-center gap-1">
-                        ${APD_ICONS.sparkles} Evidence Check Summary
-                      </div>
-                      <div class="leading-relaxed font-sans">${check.summary}</div>
-                    </div>
-                  ` : ''}
-
-                  <!-- Inline Drafting Canvas when Expanded -->
-                  ${isExpanded ? `
-                    <div class="mt-4 pt-4 border-t border-border space-y-4">
-                      ${self.renderInlineDraftCanvas(ch, projectId, currentDraft, status, cl)}
-                    </div>
-                  ` : ''}
-
+                <div class="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
+                  <span class="text-[11px] text-muted-foreground flex items-center gap-1">
+                    ${words > 0 ? `${APD_ICONS.checkCircle} Draft in progress` : `${APD_ICONS.pen} Empty draft`}
+                  </span>
+                  <span class="text-xs font-semibold text-primary flex items-center gap-1 group-hover:underline">
+                    Open Chapter Writing Studio ${APD_ICONS.chevronRight}
+                  </span>
                 </div>
-
               </div>
             `;
           }).join('')}
@@ -458,238 +396,358 @@
     },
 
     /**
-     * Render the dual Manual Drafting Editor + AI Research Co-Writer canvas
+     * View 2: ONLY THIS CHAPTER
+     * Dedicated, distraction-free, fast, smooth writing experience for ONLY the selected chapter.
      */
-    renderInlineDraftCanvas: function (chapter, projectId, draftText, status, chapterClaims) {
-      var words = draftText.trim() ? draftText.trim().split(/\s+/).filter(Boolean).length : 0;
-      var chars = draftText.length;
+    renderSingleChapterView: function (chapters, projectId, projectTitle) {
+      var self = this;
+      var ch = this.activeChapter;
+      var draft = DraftStore.getDraft(projectId, ch);
+      var status = DraftStore.getStatus(projectId, ch);
+      var words = draft.trim() ? draft.trim().split(/\s+/).filter(Boolean).length : 0;
+      var chars = draft.length;
       var readMin = Math.max(1, Math.ceil(words / 220));
 
-      return `
-        <div class="rounded-xl border border-primary/25 bg-muted/10 p-4 space-y-4">
-          
-          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-primary uppercase tracking-wider">Chapter Drafting Canvas:</span>
-              <span class="text-sm font-bold text-foreground">${chapter}</span>
-            </div>
-
-            <div class="flex items-center gap-2 text-xs">
-              <select data-status-for="${encodeURIComponent(chapter)}" class="apd-te-inline-status px-2.5 py-1 rounded-md bg-card border border-border text-xs font-medium text-foreground outline-none cursor-pointer">
-                <option value="drafting" ${status === 'drafting' ? 'selected' : ''}>Status: Drafting</option>
-                <option value="review" ${status === 'review' ? 'selected' : ''}>Status: In Review</option>
-                <option value="ready" ${status === 'ready' ? 'selected' : ''}>Status: Defense Ready</option>
-              </select>
-
-              <button data-export-ch="${encodeURIComponent(chapter)}" class="apd-te-inline-export p-1.5 rounded-md hover:bg-muted border border-border bg-card text-muted-foreground hover:text-foreground" title="Export Markdown">
-                ${APD_ICONS.download}
-              </button>
-
-              <button data-focus-ch="${encodeURIComponent(chapter)}" class="apd-te-inline-focus px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1" title="Open Fullscreen Studio">
-                ${APD_ICONS.pen} Focused Studio
-              </button>
-            </div>
-          </div>
-
-          <!-- Dual Grid: 7 cols Manual Editor, 5 cols Grounded AI Co-Writer -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            
-            <!-- Manual Editor -->
-            <div class="lg:col-span-7 rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
-              
-              <!-- Formatting Toolbar -->
-              <div class="p-2 border-b border-border bg-muted/20 flex flex-wrap items-center gap-1 text-xs">
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bold">${APD_ICONS.bold}</button>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic">${APD_ICONS.italic}</button>
-                <div class="h-4 w-px bg-border mx-1"></div>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h2" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 2">${APD_ICONS.heading2}</button>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="h3" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 3">${APD_ICONS.heading3}</button>
-                <div class="h-4 w-px bg-border mx-1"></div>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="quote" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Blockquote">${APD_ICONS.quote}</button>
-                <button data-fmt-ch="${encodeURIComponent(chapter)}" data-fmt="list" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>
-                <div class="h-4 w-px bg-border mx-1"></div>
-
-                <!-- Quick Citation Inserter -->
-                ${this.sources.length > 0 ? `
-                  <select data-cite-for="${encodeURIComponent(chapter)}" class="apd-te-quick-cite-sel bg-card border border-border text-[11px] rounded px-2 py-1 text-muted-foreground hover:text-foreground outline-none cursor-pointer max-w-[150px] truncate ml-auto">
-                    <option value="">+ Insert Citation…</option>
-                    ${this.sources.map(function(s) {
-                      return `<option value=" (${s.author || 'Author'}, ${s.year || 'n.d.'}: p. ${s.pages || 'XX'})">${s.author || 'Author'} (${s.year || 'n.d.'})</option>`;
-                    }).join('')}
-                  </select>
-                ` : ''}
-              </div>
-
-              <!-- Canvas Textarea -->
-              <textarea data-ta-ch="${encodeURIComponent(chapter)}" class="apd-te-canvas" placeholder="Begin drafting Chapter: ${chapter}… Express your archaeological interpretation, reference loci, stratigraphy, and chronometric calibrations…">${draftText}</textarea>
-
-              <!-- Footer Stats -->
-              <div class="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2">
-                <div class="flex items-center gap-4">
-                  <span id="apd-te-word-stat-${encodeURIComponent(chapter)}" class="font-bold text-foreground">${words} words</span>
-                  <span id="apd-te-char-stat-${encodeURIComponent(chapter)}">${chars} characters</span>
-                  <span>~${readMin} min read</span>
-                </div>
-                <div class="flex items-center gap-1.5 text-[11px] text-accent font-semibold">
-                  ${APD_ICONS.checkCircle} Saved locally to project
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Grounded Neural AI Research Co-Writer -->
-            <div class="lg:col-span-5 rounded-xl border border-primary/25 bg-card p-4 shadow-sm space-y-3.5">
-              
-              <div class="flex items-center justify-between pb-2.5 border-b border-border">
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs">
-                    ${APD_ICONS.sparkles}
-                  </span>
-                  <div>
-                    <h4 class="font-bold text-xs text-foreground">AI Research Co-Writer</h4>
-                    <p class="text-[10px] text-muted-foreground">Grounded strictly in project monographs & claims</p>
-                  </div>
-                </div>
-                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                  Offline Neural AI
-                </span>
-              </div>
-
-              <!-- Grounding Stats -->
-              <div class="p-2 rounded-lg bg-muted/40 border border-border text-[11px] flex items-center justify-between">
-                <span class="text-muted-foreground text-[10px] uppercase font-bold">Project Library:</span>
-                <div class="flex items-center gap-2 font-bold text-primary text-[10.5px]">
-                  <span>${this.sources.length} Monographs</span>
-                  <span>•</span>
-                  <span>${chapterClaims.length} Claims</span>
-                  <span>•</span>
-                  <span>${this.contradictions.length} Disputes</span>
-                </div>
-              </div>
-
-              <!-- Quick AI Actions -->
-              <div class="space-y-1.5">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Select AI Action:</span>
-                <div class="grid grid-cols-2 gap-1.5">
-                  <button data-ai-for="${encodeURIComponent(chapter)}" data-ai-action="synthesize" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
-                    <span class="text-primary">${APD_ICONS.sparkles}</span>
-                    <span>Synthesize Claims</span>
-                  </button>
-
-                  <button data-ai-for="${encodeURIComponent(chapter)}" data-ai-action="citations" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
-                    <span class="text-accent">${APD_ICONS.book}</span>
-                    <span>Suggest Citations</span>
-                  </button>
-
-                  <button data-ai-for="${encodeURIComponent(chapter)}" data-ai-action="viva_check" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
-                    <span class="text-chart-4">${APD_ICONS.shieldCheck}</span>
-                    <span>Viva Defense Check</span>
-                  </button>
-
-                  <button data-ai-for="${encodeURIComponent(chapter)}" data-ai-action="expand" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
-                    <span class="text-primary">${APD_ICONS.pen}</span>
-                    <span>Continue Paragraph</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Custom Inquiry Box -->
-              <div class="space-y-1.5 pt-1">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Custom Scholarly Inquiry:</span>
-                <div class="flex gap-2">
-                  <input data-query-for="${encodeURIComponent(chapter)}" type="text" placeholder="e.g. Synthesize the stratigraphy of Trench B with Kenyon 1978…" class="text-xs h-8 px-2.5 rounded-md border border-border bg-transparent flex-1 outline-none focus:border-primary" />
-                  <button data-query-btn-for="${encodeURIComponent(chapter)}" class="apd-te-query-btn h-8 px-3 rounded-md bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1">
-                    Generate
-                  </button>
-                </div>
-              </div>
-
-              <!-- AI Loading State -->
-              <div id="apd-te-ai-loading-${encodeURIComponent(chapter)}" class="hidden p-5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center space-y-2">
-                <span class="text-primary apd-te-pulse">${APD_ICONS.refresh}</span>
-                <p class="text-xs font-bold text-foreground">Evaluating library monographs & claims…</p>
-                <p class="text-[10px] text-muted-foreground">Synthesizing peer-reviewed archaeological prose with Qwen 2.5 7B</p>
-              </div>
-
-              <!-- AI Suggestion Output -->
-              <div id="apd-te-ai-output-${encodeURIComponent(chapter)}" class="hidden p-3.5 rounded-xl border border-primary/30 bg-primary/5 space-y-2.5">
-                <div class="flex items-center justify-between text-xs pb-1.5 border-b border-primary/15">
-                  <span class="font-bold text-primary text-[11px] flex items-center gap-1">
-                    ${APD_ICONS.sparkles} Grounded Academic Suggestion
-                  </span>
-                  <button data-close-ai-output="${encodeURIComponent(chapter)}" class="text-muted-foreground hover:text-foreground">${APD_ICONS.x}</button>
-                </div>
-
-                <div id="apd-te-suggestion-body-${encodeURIComponent(chapter)}" class="text-xs font-serif leading-relaxed text-foreground/90 max-h-[200px] overflow-y-auto whitespace-pre-wrap p-2 rounded bg-card/80 border border-border"></div>
-
-                <div class="flex items-center justify-between pt-1">
-                  <button data-insert-ai-output="${encodeURIComponent(chapter)}" class="h-7 px-2.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1">
-                    ${APD_ICONS.pen} Insert in Editor
-                  </button>
-
-                  <div class="flex gap-1.5">
-                    <button data-append-ai-output="${encodeURIComponent(chapter)}" class="h-7 px-2.5 rounded-md border border-border bg-card text-xs font-medium hover:bg-muted">
-                      Append
-                    </button>
-                    <button data-copy-ai-output="${encodeURIComponent(chapter)}" class="h-7 px-2 rounded-md border border-border bg-card hover:bg-muted text-muted-foreground" title="Copy suggestion">
-                      ${APD_ICONS.copy}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      `;
-    },
-
-    /**
-     * View 2: Focused Chapter Studio (Dedicated Fullscreen Writing Canvas)
-     */
-    renderEditorView: function (chapters, projectId) {
-      var self = this;
-      var activeDraft = DraftStore.getDraft(projectId, this.activeChapter);
-      var activeStatus = DraftStore.getStatus(projectId, this.activeChapter);
-      var activeClaims = (this.claims || []).filter(function (c) {
-        return (c.chapter || '').toLowerCase() === self.activeChapter.toLowerCase();
+      var chapterClaims = (this.claims || []).filter(function (c) {
+        return (c.chapter || '').toLowerCase() === ch.toLowerCase();
       });
+      var evByClaim = this.getEvidenceByClaim();
+      var check = this.checks[ch];
+      var isChecking = this.checkingChapter === ch;
 
       return `
-        <!-- Chapter Selector Ribbon -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-muted-foreground shrink-0 flex items-center gap-1.5 mr-1">
-            ${APD_ICONS.book} Chapter:
-          </span>
-          ${chapters.map(function(ch, idx) {
-            var isSelected = ch === self.activeChapter;
-            var chClaims = (self.claims || []).filter(function(c) { return (c.chapter || '').toLowerCase() === ch.toLowerCase(); });
+        <!-- Single Chapter Studio Top Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-border">
+          <div class="flex items-center gap-3">
+            <button id="apd-te-back-to-workspace" class="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition-all shadow-sm">
+              ${APD_ICONS.arrowLeft} All Chapters
+            </button>
+            <div class="h-4 w-px bg-border"></div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-primary uppercase tracking-wider">Chapter:</span>
+                <h1 class="text-lg font-bold font-display text-foreground">${ch}</h1>
+              </div>
+            </div>
+          </div>
+
+          <!-- Studio Actions -->
+          <div class="flex items-center gap-2 text-xs">
+            <select id="apd-te-single-status" class="px-2.5 py-1 rounded-md bg-card border border-border text-xs font-medium text-foreground outline-none cursor-pointer">
+              <option value="drafting" ${status === 'drafting' ? 'selected' : ''}>Status: Drafting</option>
+              <option value="review" ${status === 'review' ? 'selected' : ''}>Status: In Review</option>
+              <option value="ready" ${status === 'ready' ? 'selected' : ''}>Status: Defense Ready</option>
+            </select>
+
+            <button id="apd-te-check-evidence-btn" ${isChecking ? 'disabled' : ''} class="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5">
+              ${isChecking ? `<span class="apd-te-pulse text-primary">${APD_ICONS.refresh}</span> Checking…` : `<span class="text-primary">${APD_ICONS.sparkles}</span> Check Evidence`}
+            </button>
+
+            <button id="apd-te-copy-btn" class="p-1.5 rounded-md hover:bg-muted border border-border bg-card text-muted-foreground hover:text-foreground" title="Copy draft">
+              ${APD_ICONS.copy}
+            </button>
+
+            <button id="apd-te-export-btn" class="p-1.5 rounded-md hover:bg-muted border border-border bg-card text-muted-foreground hover:text-foreground" title="Export Markdown">
+              ${APD_ICONS.download}
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick 1-Click Chapter Switcher Ribbon: jump between chapters instantly without friction -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0 mr-1">Switch:</span>
+          ${chapters.map(function (c, idx) {
+            var isSelected = c === ch;
+            var cClaims = (self.claims || []).filter(function(clm) { return (clm.chapter || '').toLowerCase() === c.toLowerCase(); });
             return `
-              <button data-ch-select="${encodeURIComponent(ch)}" class="apd-te-ch-select-btn px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-2 border shrink-0 ${isSelected ? 'bg-primary text-white border-primary shadow-sm font-semibold' : 'bg-card/70 text-foreground/80 border-border hover:bg-muted'}">
-                <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${isSelected ? 'bg-white/25 text-white' : 'bg-muted text-muted-foreground'}">${idx + 1}</span>
-                <span>${ch}</span>
-                ${chClaims.length > 0 ? `<span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/25 text-white' : 'bg-muted/80 text-muted-foreground'}">${chClaims.length}</span>` : ''}
+              <button data-switch-to="${encodeURIComponent(c)}" class="px-2.5 py-1 rounded-lg text-xs whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${isSelected ? 'bg-primary text-white border-primary shadow-sm font-bold' : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'}">
+                <span class="text-[10px] opacity-75">${idx + 1}.</span>
+                <span>${c}</span>
+                ${cClaims.length > 0 ? `<span class="text-[9px] px-1 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'}">${cClaims.length}</span>` : ''}
               </button>
             `;
           }).join('')}
         </div>
 
-        <!-- Render the full canvas for activeChapter -->
-        ${this.renderInlineDraftCanvas(this.activeChapter, projectId, activeDraft, activeStatus, activeClaims)}
+        <!-- Focused Dual Studio Canvas (7 cols Editor, 5 cols Grounded AI & Research Shelf) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          
+          <!-- LEFT: Smooth Writing Editor (7 cols) -->
+          <div class="lg:col-span-7 rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+            
+            <!-- Formatting Toolbar -->
+            <div class="p-2 border-b border-border bg-muted/20 flex flex-wrap items-center gap-1 text-xs">
+              <button data-fmt="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bold">${APD_ICONS.bold}</button>
+              <button data-fmt="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic">${APD_ICONS.italic}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+              <button data-fmt="h2" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 2">${APD_ICONS.heading2}</button>
+              <button data-fmt="h3" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 3">${APD_ICONS.heading3}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+              <button data-fmt="quote" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Blockquote">${APD_ICONS.quote}</button>
+              <button data-fmt="list" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+
+              <!-- Quick Citation Inserter -->
+              ${this.sources.length > 0 ? `
+                <select id="apd-te-quick-cite" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-muted-foreground hover:text-foreground outline-none cursor-pointer max-w-[170px] truncate ml-auto">
+                  <option value="">+ Insert Citation…</option>
+                  ${this.sources.map(function(s) {
+                    return `<option value=" (${s.author || 'Author'}, ${s.year || 'n.d.'}: p. ${s.pages || 'XX'})">${s.author || 'Author'} (${s.year || 'n.d.'})</option>`;
+                  }).join('')}
+                </select>
+              ` : ''}
+            </div>
+
+            <!-- Writing Canvas: autofocus, fast, zero lag -->
+            <textarea id="apd-te-active-canvas" class="apd-te-canvas" placeholder="Begin drafting Chapter: ${ch}… Express your archaeological interpretation, reference loci, stratigraphy, and chronometric calibrations…">${draft}</textarea>
+
+            <!-- Bottom Live Stats & Autosave Feedback -->
+            <div class="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2">
+              <div class="flex items-center gap-4">
+                <span id="apd-te-word-stat" class="font-bold text-foreground">${words} words</span>
+                <span id="apd-te-char-stat">${chars} characters</span>
+                <span>~${readMin} min read</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-accent font-semibold">
+                ${APD_ICONS.checkCircle} Real-time autosave
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Grounded Neural AI Assistant & Chapter Evidence Shelf (5 cols) -->
+          <div class="lg:col-span-5 rounded-xl border border-primary/25 bg-card p-4 shadow-sm space-y-4">
+            
+            <!-- Side Tab Switcher -->
+            <div class="flex items-center justify-between pb-3 border-b border-border">
+              <div class="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border">
+                <button id="apd-te-right-tab-ai" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'ai' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                  ${APD_ICONS.sparkles} Neural AI
+                </button>
+                <button id="apd-te-right-tab-claims" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'claims' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                  ${APD_ICONS.bookmark} Claims (${chapterClaims.length})
+                </button>
+                <button id="apd-te-right-tab-sources" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'sources' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                  ${APD_ICONS.book} Library (${this.sources.length})
+                </button>
+              </div>
+
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+                Offline AI
+              </span>
+            </div>
+
+            <!-- TAB 1: Grounded Neural AI Research Co-Writer -->
+            ${this.activeRightTab === 'ai' ? `
+              <div class="space-y-3.5">
+                <!-- Grounding Stats -->
+                <div class="p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] flex items-center justify-between">
+                  <span class="text-muted-foreground text-[10px] uppercase font-bold">Library Grounding:</span>
+                  <div class="flex items-center gap-2 font-bold text-primary text-[10.5px]">
+                    <span>${this.sources.length} Monographs</span>
+                    <span>•</span>
+                    <span>${chapterClaims.length} Claims</span>
+                    <span>•</span>
+                    <span>${this.contradictions.length} Disputes</span>
+                  </div>
+                </div>
+
+                <!-- Quick AI Actions -->
+                <div class="space-y-1.5">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Select AI Writing Action:</span>
+                  <div class="grid grid-cols-2 gap-1.5">
+                    <button data-ai-action="synthesize" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
+                      <span class="text-primary">${APD_ICONS.sparkles}</span>
+                      <span>Synthesize Claims</span>
+                    </button>
+
+                    <button data-ai-action="citations" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
+                      <span class="text-accent">${APD_ICONS.book}</span>
+                      <span>Suggest Citations</span>
+                    </button>
+
+                    <button data-ai-action="viva_check" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
+                      <span class="text-chart-4">${APD_ICONS.shieldCheck}</span>
+                      <span>Viva Defense Check</span>
+                    </button>
+
+                    <button data-ai-action="expand" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
+                      <span class="text-primary">${APD_ICONS.pen}</span>
+                      <span>Continue Paragraph</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Custom Inquiry Box -->
+                <div class="space-y-1.5 pt-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Custom Scholarly Inquiry:</span>
+                  <div class="flex gap-2">
+                    <input id="apd-te-custom-query" type="text" placeholder="e.g. Synthesize the stratigraphy of Trench B with Kenyon 1978…" class="text-xs h-8 px-2.5 rounded-md border border-border bg-transparent flex-1 outline-none focus:border-primary" />
+                    <button id="apd-te-query-btn" class="h-8 px-3 rounded-md bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1">
+                      Generate
+                    </button>
+                  </div>
+                </div>
+
+                <!-- AI Loading State -->
+                <div id="apd-te-ai-loading" class="hidden p-5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center space-y-2">
+                  <span class="text-primary apd-te-pulse">${APD_ICONS.refresh}</span>
+                  <p class="text-xs font-bold text-foreground">Evaluating library monographs & claims…</p>
+                  <p class="text-[10px] text-muted-foreground">Synthesizing peer-reviewed archaeological prose with Qwen 2.5 7B</p>
+                </div>
+
+                <!-- AI Suggestion Output -->
+                <div id="apd-te-ai-output" class="hidden p-3.5 rounded-xl border border-primary/30 bg-primary/5 space-y-2.5">
+                  <div class="flex items-center justify-between text-xs pb-1.5 border-b border-primary/15">
+                    <span class="font-bold text-primary text-[11px] flex items-center gap-1">
+                      ${APD_ICONS.sparkles} Grounded Academic Suggestion
+                    </span>
+                    <button id="apd-te-close-ai-output" class="text-muted-foreground hover:text-foreground">${APD_ICONS.x}</button>
+                  </div>
+
+                  <div id="apd-te-suggestion-body" class="text-xs font-serif leading-relaxed text-foreground/90 max-h-[220px] overflow-y-auto whitespace-pre-wrap p-2 rounded bg-card/80 border border-border"></div>
+
+                  <div class="flex items-center justify-between pt-1">
+                    <button id="apd-te-insert-ai-output" class="h-7 px-2.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1">
+                      ${APD_ICONS.pen} Insert in Editor
+                    </button>
+
+                    <div class="flex gap-1.5">
+                      <button id="apd-te-append-ai-output" class="h-7 px-2.5 rounded-md border border-border bg-card text-xs font-medium hover:bg-muted">
+                        Append
+                      </button>
+                      <button id="apd-te-copy-ai-output" class="h-7 px-2 rounded-md border border-border bg-card hover:bg-muted text-muted-foreground" title="Copy suggestion">
+                        ${APD_ICONS.copy}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Evidence Check Summary if performed -->
+                ${check && check.summary ? `
+                  <div class="mt-2 p-3 rounded-lg bg-muted/50 border border-border text-xs text-foreground/90 space-y-1">
+                    <div class="font-bold text-[10px] uppercase tracking-wider text-primary flex items-center gap-1">
+                      ${APD_ICONS.sparkles} Evidence Check Summary
+                    </div>
+                    <div class="leading-relaxed font-sans">${check.summary}</div>
+                  </div>
+                ` : ''}
+
+              </div>
+            ` : ''}
+
+            <!-- TAB 2: Chapter Claims & Evidence Shelf -->
+            ${this.activeRightTab === 'claims' ? `
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs pb-1 border-b border-border">
+                  <span class="font-bold text-foreground">Claims Allocated to this Chapter</span>
+                  <span class="text-muted-foreground text-[11px]">${chapterClaims.length} total</span>
+                </div>
+
+                ${chapterClaims.length === 0 ? `
+                  <div class="p-4 rounded-lg bg-muted/30 border border-border text-center text-xs text-muted-foreground">
+                    No claims assigned to “${ch}” yet. You can assign claims to chapters in Claims Manager.
+                  </div>
+                ` : `
+                  <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                    ${chapterClaims.map(function(c) {
+                      var ev = evByClaim[c.id] || [];
+                      var sup = ev.filter(function(e) { return e.evidence_type === 'supporting'; }).length;
+                      var con = ev.filter(function(e) { return e.evidence_type === 'contradicting'; }).length;
+                      var hasSrc = ev.some(function(e) { return (e.source_ids || []).length > 0; }) || !!c.scholar_name;
+
+                      return `
+                        <div class="p-2.5 rounded-lg border border-border bg-card/70 space-y-1.5 text-xs">
+                          <div class="flex items-start justify-between gap-2">
+                            <span class="font-medium text-foreground leading-snug flex-1">${c.claim_text}</span>
+                            <button data-insert-claim-text="${encodeURIComponent(c.claim_text)}" class="apd-te-insert-claim-btn px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
+                              + Insert
+                            </button>
+                          </div>
+                          <div class="flex items-center gap-1.5 text-[9.5px] font-bold">
+                            ${!hasSrc ? `<span class="px-1.5 py-0.2 rounded bg-destructive/15 text-destructive">No citation</span>` : ''}
+                            ${sup === 0 ? `<span class="px-1.5 py-0.2 rounded bg-chart-4/15 text-chart-4">Weak</span>` : ''}
+                            <span class="px-1.5 py-0.2 rounded bg-accent/15 text-accent">+${sup}</span>
+                            ${con > 0 ? `<span class="px-1.5 py-0.2 rounded bg-destructive/15 text-destructive">−${con}</span>` : ''}
+                            ${c.scholar_name ? `<span class="text-muted-foreground font-normal ml-auto">${c.scholar_name}</span>` : ''}
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
+              </div>
+            ` : ''}
+
+            <!-- TAB 3: Project Library Monographs -->
+            ${this.activeRightTab === 'sources' ? `
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs pb-1 border-b border-border">
+                  <span class="font-bold text-foreground">Project Ingested Monographs</span>
+                  <span class="text-muted-foreground text-[11px]">${this.sources.length} sources</span>
+                </div>
+
+                ${this.sources.length === 0 ? `
+                  <div class="p-4 rounded-lg bg-muted/30 border border-border text-center text-xs text-muted-foreground">
+                    No library monographs recorded yet.
+                  </div>
+                ` : `
+                  <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                    ${this.sources.map(function(s) {
+                      return `
+                        <div class="p-2.5 rounded-lg border border-border bg-card/70 flex items-center justify-between gap-2 text-xs">
+                          <div class="truncate flex-1">
+                            <span class="font-bold text-foreground">${s.author || 'Author'}</span> (${s.year || 'n.d.'}):
+                            <span class="text-muted-foreground"> ${s.title}</span>
+                          </div>
+                          <button data-cite-src="${encodeURIComponent(s.author || 'Author')}" data-cite-yr="${encodeURIComponent(s.year || 'n.d.')}" data-cite-pg="${encodeURIComponent(s.pages || 'XX')}" class="apd-te-cite-src-btn px-2 py-0.5 rounded bg-accent/15 text-accent hover:bg-accent hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
+                            + Cite
+                          </button>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
+              </div>
+            ` : ''}
+
+          </div>
+
+        </div>
       `;
     },
 
-    /**
-     * View 3: Pre-Submission Defense Readiness Audit
-     */
+    renderAuditHeader: function (projectTitle) {
+      return `
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">${APD_ICONS.shieldCheck}</span>
+              <div>
+                <h1 class="text-2xl font-bold font-display text-foreground tracking-tight">Pre-Submission Defense Audit</h1>
+                <p class="text-xs text-muted-foreground">${projectTitle}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border shrink-0 self-start md:self-center">
+            <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground">
+              ${APD_ICONS.layers} All Chapters
+            </button>
+            <button id="apd-te-tab-audit" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-foreground shadow-sm border border-border font-bold">
+              ${APD_ICONS.shieldCheck} Defense Audit
+            </button>
+          </div>
+        </div>
+      `;
+    },
+
     renderAuditView: function (chapters, projectId) {
       var self = this;
       var score = (this.auditData && this.auditData.defense_readiness_score) || 85;
 
       return `
-        <div class="space-y-6">
+        <div class="space-y-6 pt-2">
           <div class="rounded-xl border border-primary/20 bg-card p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-5 border-b border-border">
               <div class="flex items-center gap-4">
@@ -752,8 +810,8 @@
                       </div>
                     </div>
 
-                    <button data-goto-draft="${encodeURIComponent(ch)}" class="apd-te-goto-draft-btn px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold hover:bg-muted flex items-center gap-1">
-                      Draft Chapter ${APD_ICONS.chevronRight}
+                    <button data-open-chapter="${encodeURIComponent(ch)}" class="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold hover:bg-muted flex items-center gap-1">
+                      Open Writing Studio ${APD_ICONS.chevronRight}
                     </button>
                   </div>
 
@@ -786,15 +844,47 @@
     bindEvents: function (container, projectId) {
       var self = this;
 
-      // Tab switcher
+      // Top Tab Switchers
       var tabWs = container.querySelector('#apd-te-tab-workspace');
-      if (tabWs) tabWs.onclick = function () { self.activeTab = 'workspace'; self.render(); };
-
-      var tabEd = container.querySelector('#apd-te-tab-editor');
-      if (tabEd) tabEd.onclick = function () { self.activeTab = 'editor'; self.render(); };
+      if (tabWs) tabWs.onclick = function () { self.viewMode = 'workspace'; self.render(); };
 
       var tabAu = container.querySelector('#apd-te-tab-audit');
-      if (tabAu) tabAu.onclick = function () { self.activeTab = 'audit'; self.render(); };
+      if (tabAu) tabAu.onclick = function () { self.viewMode = 'audit'; self.render(); };
+
+      var backBtn = container.querySelector('#apd-te-back-to-workspace');
+      if (backBtn) backBtn.onclick = function () { self.viewMode = 'workspace'; self.render(); };
+
+      // Open Chapter on Card Click (Opens ONLY that chapter)
+      var openChapterCards = container.querySelectorAll('[data-open-chapter]');
+      openChapterCards.forEach(function (card) {
+        card.onclick = function () {
+          var ch = decodeURIComponent(card.getAttribute('data-open-chapter'));
+          self.activeChapter = ch;
+          self.viewMode = 'chapter';
+          self.render();
+        };
+      });
+
+      // Quick chapter switcher in Single Chapter Studio
+      var switchBtns = container.querySelectorAll('[data-switch-to]');
+      switchBtns.forEach(function (btn) {
+        btn.onclick = function () {
+          var ch = decodeURIComponent(btn.getAttribute('data-switch-to'));
+          self.activeChapter = ch;
+          self.viewMode = 'chapter';
+          self.render();
+        };
+      });
+
+      // Right Side Panel Tab Switcher
+      var rightAi = container.querySelector('#apd-te-right-tab-ai');
+      if (rightAi) rightAi.onclick = function () { self.activeRightTab = 'ai'; self.render(); };
+
+      var rightClaims = container.querySelector('#apd-te-right-tab-claims');
+      if (rightClaims) rightClaims.onclick = function () { self.activeRightTab = 'claims'; self.render(); };
+
+      var rightSources = container.querySelector('#apd-te-right-tab-sources');
+      if (rightSources) rightSources.onclick = function () { self.activeRightTab = 'sources'; self.render(); };
 
       // Add Custom Chapter
       var addChBtn = container.querySelector('#apd-te-add-chapter-btn');
@@ -807,119 +897,71 @@
         if (cur.includes(val)) return;
         cur.push(val);
         DraftStore.saveChapters(projectId, cur);
-        newChInp.value = '';
+        self.activeChapter = val;
+        self.viewMode = 'chapter';
         self.render();
       }
       if (addChBtn) addChBtn.onclick = doAddChapter;
       if (newChInp) newChInp.onkeydown = function(e) { if (e.key === 'Enter') doAddChapter(); };
 
-      // Check Evidence Button per chapter
-      var checkBtns = container.querySelectorAll('.apd-te-check-evidence-btn');
-      checkBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-check-ch'));
-          self.runEvidenceCheck(ch, projectId);
-        };
-      });
+      // Active Writing Canvas Textarea (Fast debounced autosave)
+      var canvas = container.querySelector('#apd-te-active-canvas');
+      if (canvas) {
+        // Automatically focus for instant writing flow
+        if (document.activeElement !== canvas) {
+          setTimeout(function() { canvas.focus(); }, 50);
+        }
 
-      // Toggle inline draft canvas
-      var toggleDraftBtns = container.querySelectorAll('.apd-te-toggle-draft-btn');
-      toggleDraftBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-toggle-draft'));
-          if (self.expandedDraftChapter === ch) {
-            self.expandedDraftChapter = null;
-          } else {
-            self.expandedDraftChapter = ch;
-          }
-          self.render();
-        };
-      });
-
-      // Switch to Focused Studio from button
-      var focusBtns = container.querySelectorAll('.apd-te-inline-focus, .apd-te-goto-draft-btn');
-      focusBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-focus-ch') || btn.getAttribute('data-goto-draft'));
-          self.activeChapter = ch;
-          self.activeTab = 'editor';
-          self.render();
-        };
-      });
-
-      // Chapter select in Focused Studio
-      var chSelBtns = container.querySelectorAll('.apd-te-ch-select-btn');
-      chSelBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          self.activeChapter = decodeURIComponent(btn.getAttribute('data-ch-select'));
-          self.render();
-        };
-      });
-
-      // Textareas input handler (autosave)
-      var textareas = container.querySelectorAll('textarea[data-ta-ch]');
-      textareas.forEach(function (ta) {
-        var ch = decodeURIComponent(ta.getAttribute('data-ta-ch'));
-        ta.oninput = function () {
-          DraftStore.saveDraft(projectId, ch, ta.value);
-          var words = ta.value.trim() ? ta.value.trim().split(/\s+/).filter(Boolean).length : 0;
-          var chars = ta.value.length;
-          var wStat = container.querySelector('#apd-te-word-stat-' + encodeURIComponent(ch));
-          var cStat = container.querySelector('#apd-te-char-stat-' + encodeURIComponent(ch));
+        var saveTimeout = null;
+        canvas.oninput = function () {
+          var val = canvas.value;
+          var words = val.trim() ? val.trim().split(/\s+/).filter(Boolean).length : 0;
+          var chars = val.length;
+          var wStat = container.querySelector('#apd-te-word-stat');
+          var cStat = container.querySelector('#apd-te-char-stat');
           if (wStat) wStat.innerText = words + ' words';
           if (cStat) cStat.innerText = chars + ' characters';
-        };
-      });
 
-      // Status dropdowns
-      var statusDropdowns = container.querySelectorAll('select[data-status-for]');
-      statusDropdowns.forEach(function (sel) {
-        var ch = decodeURIComponent(sel.getAttribute('data-status-for'));
-        sel.onchange = function () {
-          DraftStore.saveStatus(projectId, ch, sel.value);
+          clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(function () {
+            DraftStore.saveDraft(projectId, self.activeChapter, val);
+          }, 300);
         };
-      });
+      }
 
-      // Quick Citation select
-      var citeSelects = container.querySelectorAll('.apd-te-quick-cite-sel');
-      citeSelects.forEach(function (sel) {
-        var ch = decodeURIComponent(sel.getAttribute('data-cite-for'));
-        var ta = container.querySelector('textarea[data-ta-ch="' + encodeURIComponent(ch) + '"]');
-        sel.onchange = function () {
-          if (sel.value && ta) {
-            self.insertAtCursor(ta, ch, sel.value);
-            sel.value = '';
-          }
+      // Status dropdown
+      var statusSel = container.querySelector('#apd-te-single-status');
+      if (statusSel) {
+        statusSel.onchange = function () {
+          DraftStore.saveStatus(projectId, self.activeChapter, statusSel.value);
         };
-      });
+      }
 
-      // Formatting buttons
-      var fmtBtns = container.querySelectorAll('button[data-fmt-ch]');
-      fmtBtns.forEach(function (b) {
-        b.onclick = function () {
-          var ch = decodeURIComponent(b.getAttribute('data-fmt-ch'));
-          var ta = container.querySelector('textarea[data-ta-ch="' + encodeURIComponent(ch) + '"]');
-          if (!ta) return;
-          var fmt = b.getAttribute('data-fmt');
-          if (fmt === 'bold') self.wrapSelection(ta, ch, '**', '**');
-          else if (fmt === 'italic') self.wrapSelection(ta, ch, '*', '*');
-          else if (fmt === 'h2') self.wrapSelection(ta, ch, '## ', '');
-          else if (fmt === 'h3') self.wrapSelection(ta, ch, '### ', '');
-          else if (fmt === 'quote') self.wrapSelection(ta, ch, '> ', '');
-          else if (fmt === 'list') self.wrapSelection(ta, ch, '- ', '');
+      // Check Evidence Button
+      var checkEvBtn = container.querySelector('#apd-te-check-evidence-btn');
+      if (checkEvBtn) {
+        checkEvBtn.onclick = function () {
+          self.runEvidenceCheck(self.activeChapter, projectId);
         };
-      });
+      }
 
-      // Export Markdown button
-      var exportBtns = container.querySelectorAll('.apd-te-inline-export');
-      exportBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-export-ch'));
-          var ta = container.querySelector('textarea[data-ta-ch="' + encodeURIComponent(ch) + '"]');
-          var text = ta ? ta.value : DraftStore.getDraft(projectId, ch);
-          var filename = ch.replace(/[^a-zA-Z0-9_-]/g, '_') + '_Draft.md';
+      // Copy Button
+      var copyBtn = container.querySelector('#apd-te-copy-btn');
+      if (copyBtn && canvas) {
+        copyBtn.onclick = function () {
+          navigator.clipboard.writeText(canvas.value);
+          alert('Chapter draft copied to clipboard!');
+        };
+      }
+
+      // Export Button
+      var exportBtn = container.querySelector('#apd-te-export-btn');
+      if (exportBtn && canvas) {
+        exportBtn.onclick = function () {
+          var text = canvas.value;
+          var filename = self.activeChapter.replace(/[^a-zA-Z0-9_-]/g, '_') + '_Draft.md';
           var blob = new Blob([
-            '# ' + ch + '\n\n' +
+            '# ' + self.activeChapter + '\n\n' +
             '**Project:** ' + getActiveProjectTitle() + '\n' +
             '**Exported:** ' + new Date().toLocaleString() + '\n\n' +
             '---\n\n' + text
@@ -931,80 +973,115 @@
           a.click();
           URL.revokeObjectURL(url);
         };
+      }
+
+      // Formatting Toolbar
+      var fmtBtns = container.querySelectorAll('button[data-fmt]');
+      fmtBtns.forEach(function (b) {
+        b.onclick = function () {
+          if (!canvas) return;
+          var fmt = b.getAttribute('data-fmt');
+          if (fmt === 'bold') self.wrapSelection(canvas, self.activeChapter, '**', '**');
+          else if (fmt === 'italic') self.wrapSelection(canvas, self.activeChapter, '*', '*');
+          else if (fmt === 'h2') self.wrapSelection(canvas, self.activeChapter, '## ', '');
+          else if (fmt === 'h3') self.wrapSelection(canvas, self.activeChapter, '### ', '');
+          else if (fmt === 'quote') self.wrapSelection(canvas, self.activeChapter, '> ', '');
+          else if (fmt === 'list') self.wrapSelection(canvas, self.activeChapter, '- ', '');
+        };
+      });
+
+      // Quick Citation Inserter
+      var quickCite = container.querySelector('#apd-te-quick-cite');
+      if (quickCite && canvas) {
+        quickCite.onchange = function () {
+          if (quickCite.value) {
+            self.insertAtCursor(canvas, self.activeChapter, quickCite.value);
+            quickCite.value = '';
+          }
+        };
+      }
+
+      // Insert Claim Text from Claims Tab
+      var insertClaimBtns = container.querySelectorAll('button[data-insert-claim-text]');
+      insertClaimBtns.forEach(function (btn) {
+        btn.onclick = function () {
+          var clm = decodeURIComponent(btn.getAttribute('data-insert-claim-text'));
+          if (canvas) self.insertAtCursor(canvas, self.activeChapter, '\n\n"' + clm + '"\n');
+        };
+      });
+
+      // Insert Citation from Sources Tab
+      var citeSrcBtns = container.querySelectorAll('button[data-cite-src]');
+      citeSrcBtns.forEach(function (btn) {
+        btn.onclick = function () {
+          var a = decodeURIComponent(btn.getAttribute('data-cite-src'));
+          var y = decodeURIComponent(btn.getAttribute('data-cite-yr'));
+          var p = decodeURIComponent(btn.getAttribute('data-cite-pg'));
+          if (canvas) self.insertAtCursor(canvas, self.activeChapter, ' (' + a + ', ' + y + ': p. ' + p + ')');
+        };
       });
 
       // AI Action Buttons
       var aiActionBtns = container.querySelectorAll('.apd-te-ai-action-btn');
       aiActionBtns.forEach(function (btn) {
         btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-ai-for'));
           var action = btn.getAttribute('data-ai-action');
-          self.runAiQuery(ch, action, '');
+          self.runAiQuery(self.activeChapter, action, '');
         };
       });
 
       // Custom Query Button
-      var queryBtns = container.querySelectorAll('.apd-te-query-btn');
-      queryBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-query-btn-for'));
-          var inp = container.querySelector('input[data-query-for="' + encodeURIComponent(ch) + '"]');
-          if (inp && inp.value.trim()) {
-            self.runAiQuery(ch, 'custom', inp.value.trim());
-          }
+      var queryBtn = container.querySelector('#apd-te-query-btn');
+      var customInp = container.querySelector('#apd-te-custom-query');
+      if (queryBtn && customInp) {
+        queryBtn.onclick = function () {
+          var val = customInp.value.trim();
+          if (val) self.runAiQuery(self.activeChapter, 'custom', val);
         };
-      });
+      }
 
       // AI Output Close
-      var closeAiBtns = container.querySelectorAll('button[data-close-ai-output]');
-      closeAiBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-close-ai-output'));
-          var outBox = container.querySelector('#apd-te-ai-output-' + encodeURIComponent(ch));
+      var closeAiBtn = container.querySelector('#apd-te-close-ai-output');
+      if (closeAiBtn) {
+        closeAiBtn.onclick = function () {
+          var outBox = container.querySelector('#apd-te-ai-output');
           if (outBox) outBox.classList.add('hidden');
         };
-      });
+      }
 
       // AI Output Insert in Editor
-      var insertAiBtns = container.querySelectorAll('button[data-insert-ai-output]');
-      insertAiBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-insert-ai-output'));
-          var ta = container.querySelector('textarea[data-ta-ch="' + encodeURIComponent(ch) + '"]');
-          var body = container.querySelector('#apd-te-suggestion-body-' + encodeURIComponent(ch));
-          if (ta && body) {
-            self.insertAtCursor(ta, ch, '\n\n' + body.innerText + '\n\n');
-          }
+      var insertAiBtn = container.querySelector('#apd-te-insert-ai-output');
+      if (insertAiBtn && canvas) {
+        insertAiBtn.onclick = function () {
+          var body = container.querySelector('#apd-te-suggestion-body');
+          if (body) self.insertAtCursor(canvas, self.activeChapter, '\n\n' + body.innerText + '\n\n');
         };
-      });
+      }
 
       // AI Output Append
-      var appendAiBtns = container.querySelectorAll('button[data-append-ai-output]');
-      appendAiBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-append-ai-output'));
-          var ta = container.querySelector('textarea[data-ta-ch="' + encodeURIComponent(ch) + '"]');
-          var body = container.querySelector('#apd-te-suggestion-body-' + encodeURIComponent(ch));
-          if (ta && body) {
-            ta.value = ta.value + '\n\n' + body.innerText;
-            DraftStore.saveDraft(projectId, ch, ta.value);
+      var appendAiBtn = container.querySelector('#apd-te-append-ai-output');
+      if (appendAiBtn && canvas) {
+        appendAiBtn.onclick = function () {
+          var body = container.querySelector('#apd-te-suggestion-body');
+          if (body) {
+            canvas.value = canvas.value + '\n\n' + body.innerText;
+            DraftStore.saveDraft(projectId, self.activeChapter, canvas.value);
             alert('Appended suggestion to chapter draft!');
           }
         };
-      });
+      }
 
       // AI Output Copy
-      var copyAiBtns = container.querySelectorAll('button[data-copy-ai-output]');
-      copyAiBtns.forEach(function (btn) {
-        btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-copy-ai-output'));
-          var body = container.querySelector('#apd-te-suggestion-body-' + encodeURIComponent(ch));
+      var copyAiBtn = container.querySelector('#apd-te-copy-ai-output');
+      if (copyAiBtn) {
+        copyAiBtn.onclick = function () {
+          var body = container.querySelector('#apd-te-suggestion-body');
           if (body) {
             navigator.clipboard.writeText(body.innerText);
             alert('Copied suggestion to clipboard!');
           }
         };
-      });
+      }
 
       // Audit Re-Run Button
       var auditBtn = container.querySelector('#apd-te-run-audit-btn');
@@ -1045,12 +1122,6 @@
       ta.setSelectionRange(start + text.length, start + text.length);
     },
 
-    /**
-     * Run Evidence Check matching the previous application's workflow:
-     * Gathers chapter claims and evidence, calls InvokeLLM with the standard evidence check schema,
-     * flags issues (no_citation, weak_evidence, contradictory_evidence, missing_source_connection),
-     * and produces an Evidence Check Summary.
-     */
     runEvidenceCheck: async function (chapter, projectId) {
       var cl = (this.claims || []).filter(function (c) {
         return (c.chapter || '').toLowerCase() === chapter.toLowerCase();
@@ -1124,15 +1195,12 @@
       this.render();
     },
 
-    /**
-     * Grounded AI Research Suggestion Engine
-     */
     runAiQuery: async function (chapter, mode, customQuery) {
       var projectId = getActiveProjectId();
       var bridge = window.nativeBridge;
-      var loadingEl = document.getElementById('apd-te-ai-loading-' + encodeURIComponent(chapter));
-      var outputEl = document.getElementById('apd-te-ai-output-' + encodeURIComponent(chapter));
-      var bodyEl = document.getElementById('apd-te-suggestion-body-' + encodeURIComponent(chapter));
+      var loadingEl = document.getElementById('apd-te-ai-loading');
+      var outputEl = document.getElementById('apd-te-ai-output');
+      var bodyEl = document.getElementById('apd-te-suggestion-body');
 
       if (loadingEl) loadingEl.classList.remove('hidden');
       if (outputEl) outputEl.classList.add('hidden');
