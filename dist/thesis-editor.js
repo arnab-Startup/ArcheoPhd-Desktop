@@ -1,14 +1,17 @@
 /**
- * ArchaeoPhD — Thesis Writing Studio & Focused Chapter Editor
+ * ArchaeoPhD — Academic Thesis Paper Studio & Dissertation Editor
  * 
- * Focused, fast, and smooth chapter writing experience:
- * - Clicking a chapter opens ONLY that chapter in a dedicated studio.
- * - Quick chapter switcher ribbon at the top for instant 1-click chapter jumps.
- * - Distraction-free, responsive drafting canvas with instant debounced local autosave.
- * - SVG toolbar (Bold, Italic, H2, H3, Blockquote, Bullet List, Citation Inserter).
- * - Grounded Neural AI Assistant (Synthesize Claims, Suggest Citations, Viva Check, Continue Paragraph).
- * - Chapter Claims & Evidence Shelf directly integrated into the studio.
- * - Full Pre-Submission Defense Readiness Audit tab.
+ * Google Docs-grade academic paper writing experience with real-time inline AI:
+ * - Authentic A4 Academic Page Canvas with margin guidelines, serif typography, and line-spacing controls.
+ * - Full Academic Formatting Toolbar: Headings, Bold, Italic, Underline, Strikethrough, Superscript, Subscript,
+ *   Align (Left, Center, Justify), Lists, Blockquotes, Archaeological Data Tables, and Plate/Figure Callouts.
+ * - Floating Inline AI Assistant: Pops up on selection with 1-click Academic Polish, Citation Grounding,
+ *   Viva Caveat Defense, Expand, and Condense.
+ * - Inline "Help Me Write" Copilot (Ctrl+J or inline pill) with grounded dissertation synthesis.
+ * - Real-Time Live Writing Inspector: Continuous background proofreading for academic tone, ungrounded claims,
+ *   missing citations, and active stratigraphic contradictions with 1-click "Apply Fix".
+ * - Multi-Format Export: Academic LaTeX (.tex), Markdown (.md), and Print to PDF.
+ * - Zero emojis throughout (strict SVG Lucide-style vector paths).
  */
 
 (function () {
@@ -26,28 +29,39 @@
   ];
 
   var APD_ICONS = {
-    book: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 2v20"/></svg>',
-    pen: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
-    sparkles: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
-    shieldCheck: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
-    layers: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
-    bookmark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
-    copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
-    download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
-    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    checkCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-    alert: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
-    refresh: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
-    x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
-    plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
-    chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
-    arrowLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
-    quote: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
-    list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
-    bold: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/><path d="M6 12h9"/></svg>',
-    italic: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>',
-    heading2: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/></svg>',
-    heading3: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/></svg>'
+    book: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 2v20"/></svg>',
+    pen: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+    sparkles: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
+    shieldCheck: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+    shieldAlert: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
+    layers: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+    bookmark: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
+    copy: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+    download: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+    check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    checkCircle: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    alert: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
+    refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
+    plus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
+    chevronRight: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+    arrowLeft: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+    quote: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>',
+    list: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>',
+    listOrdered: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>',
+    bold: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/><path d="M6 12h9"/></svg>',
+    italic: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>',
+    underline: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><line x1="4" x2="20" y1="21" y2="21"/></svg>',
+    strikethrough: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" x2="20" y1="12" y2="12"/></svg>',
+    alignLeft: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/></svg>',
+    alignCenter: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="18" x2="6" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>',
+    alignJustify: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>',
+    table: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>',
+    printer: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
+    superscript: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 19 6-6"/><path d="m4 13 6 6"/><path d="M20 9h-4c0-1 1-2 2-3s1-1.5 0-2-2 0-2 1"/></svg>',
+    undo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>',
+    redo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>',
+    fileText: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>'
   };
 
   function injectStyles() {
@@ -59,27 +73,169 @@
         font-family: var(--font-body, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
         color: hsl(var(--foreground, 30 10% 12%));
       }
-      .apd-te-canvas {
-        font-family: "Georgia", "Cambria", "Times New Roman", serif;
-        font-size: 15.5px;
-        line-height: 1.8;
-        letter-spacing: 0.01em;
-        background: transparent;
-        color: hsl(var(--foreground, 30 10% 12%));
-        border: none;
-        outline: none;
+      
+      /* Google Docs-style Academic Page Canvas */
+      .apd-te-page-wrapper {
+        display: flex;
+        justify-content: center;
+        background: hsl(var(--muted, 36 20% 93%) / 0.5);
+        padding: 24px 16px 48px;
+        min-height: calc(100vh - 210px);
+        overflow-y: auto;
+      }
+      
+      .apd-te-page-sheet {
         width: 100%;
-        min-height: 520px;
-        resize: vertical;
-        padding: 20px;
+        max-width: 820px;
+        min-height: 1060px;
+        background: #ffffff;
+        color: #1a1a1a;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 4px;
+        padding: 64px 72px;
+        outline: none;
+        box-sizing: border-box;
+        position: relative;
+        font-family: "Garamond", "Georgia", "Cambria", "Times New Roman", serif;
+        font-size: 15.5px;
+        line-height: 1.65;
+        letter-spacing: 0.01em;
+        transition: line-height 0.15s ease, font-size 0.15s ease;
       }
-      .apd-te-canvas::placeholder {
-        color: hsl(var(--muted-foreground, 30 8% 55%) / 0.65);
-        font-style: italic;
+      
+      /* Dark mode adaptation for academic paper readability */
+      .dark .apd-te-page-sheet {
+        background: #181715;
+        color: #e6e3df;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
       }
-      .apd-te-canvas:focus {
+      
+      .apd-te-page-sheet:focus {
         outline: none;
       }
+      
+      .apd-te-page-sheet[data-spacing="1.15"] { line-height: 1.35; }
+      .apd-te-page-sheet[data-spacing="1.5"] { line-height: 1.7; }
+      .apd-te-page-sheet[data-spacing="2.0"] { line-height: 2.15; }
+      
+      .apd-te-page-sheet[data-font="garamond"] { font-family: "Garamond", "Georgia", serif; }
+      .apd-te-page-sheet[data-font="times"] { font-family: "Times New Roman", "Times", serif; }
+      .apd-te-page-sheet[data-font="cambria"] { font-family: "Cambria", "Georgia", serif; }
+      .apd-te-page-sheet[data-font="sans"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+      .apd-te-page-sheet h1 {
+        font-family: var(--font-display, "Georgia", serif);
+        font-size: 26px;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 24px;
+        line-height: 1.25;
+        border-bottom: 1px solid rgba(0,0,0,0.12);
+        padding-bottom: 12px;
+      }
+      .dark .apd-te-page-sheet h1 {
+        border-bottom-color: rgba(255,255,255,0.12);
+      }
+      .apd-te-page-sheet h2 {
+        font-family: var(--font-display, "Georgia", serif);
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+      .apd-te-page-sheet h3 {
+        font-family: var(--font-display, "Georgia", serif);
+        font-size: 16.5px;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 8px;
+      }
+      .apd-te-page-sheet p {
+        margin-top: 0;
+        margin-bottom: 14px;
+        text-align: justify;
+        text-justify: inter-word;
+      }
+      .apd-te-page-sheet blockquote {
+        margin: 18px 0;
+        padding: 8px 20px;
+        border-left: 3px solid hsl(var(--primary, 24 75% 42%));
+        background: rgba(140, 130, 115, 0.06);
+        font-style: italic;
+        color: inherit;
+        opacity: 0.92;
+      }
+      .apd-te-page-sheet table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 13.5px;
+      }
+      .apd-te-page-sheet th, .apd-te-page-sheet td {
+        border: 1px solid rgba(140, 130, 115, 0.25);
+        padding: 8px 12px;
+        text-align: left;
+      }
+      .apd-te-page-sheet th {
+        background: rgba(140, 130, 115, 0.1);
+        font-weight: 600;
+      }
+      .apd-te-page-sheet .apd-plate-callout {
+        display: block;
+        padding: 10px 14px;
+        margin: 16px 0;
+        border: 1px dashed rgba(140, 130, 115, 0.4);
+        background: rgba(140, 130, 115, 0.04);
+        border-radius: 4px;
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        color: hsl(var(--muted-foreground, 30 8% 46%));
+      }
+      
+      /* Floating Inline AI Toolbar */
+      #apd-te-floating-ai-bar {
+        position: absolute;
+        z-index: 9999;
+        display: none;
+        background: hsl(var(--card, 38 28% 97%));
+        border: 1px solid hsl(var(--primary, 24 75% 42%) / 0.4);
+        border-radius: 8px;
+        padding: 4px 6px;
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.18), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        animation: apdFadeInFast 0.12s ease-out;
+      }
+      @keyframes apdFadeInFast {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* Inline Help Me Write Bar */
+      .apd-inline-prompt-box {
+        margin: 16px 0;
+        border: 1px solid hsl(var(--primary, 24 75% 42%) / 0.35);
+        background: hsl(var(--primary, 24 75% 42%) / 0.04);
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-family: var(--font-body, sans-serif);
+      }
+
+      /* Proofreading highlight badges */
+      .apd-fix-suggestion {
+        border-bottom: 2px dashed #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+        cursor: pointer;
+      }
+      .apd-fix-contradiction {
+        border-bottom: 2px dashed #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        cursor: pointer;
+      }
+
       .apd-te-pulse {
         animation: apdTePulse 1.5s infinite ease-in-out;
       }
@@ -87,13 +243,21 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
       }
-      .apd-te-card-hover {
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-      }
-      .apd-te-card-hover:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
-        border-color: hsl(var(--primary, 24 75% 42%) / 0.5);
+      
+      /* Print formatting for true A4 thesis submission */
+      @media print {
+        body * { visibility: hidden; }
+        #apd-te-doc-sheet, #apd-te-doc-sheet * { visibility: visible; }
+        #apd-te-doc-sheet {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-shadow: none !important;
+          border: none !important;
+          padding: 0 !important;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -136,9 +300,9 @@
         return '';
       }
     },
-    saveDraft: function(projectId, chapter, text) {
+    saveDraft: function(projectId, chapter, content) {
       try {
-        localStorage.setItem('archaeophd_thesis_draft_' + projectId + '_' + encodeURIComponent(chapter), text);
+        localStorage.setItem('archaeophd_thesis_draft_' + projectId + '_' + encodeURIComponent(chapter), content);
       } catch(e) {}
     },
     getStatus: function(projectId, chapter) {
@@ -169,10 +333,115 @@
     }
   };
 
+  /**
+   * Helper to convert between plain text/markdown and HTML for initial load
+   */
+  function textToHtml(text, chapter) {
+    if (!text || !text.trim()) {
+      return '<h1>' + chapter + '</h1><p>Begin drafting your archaeological analysis, stratigraphy, locus calibrations, and empirical discussion here...</p>';
+    }
+    if (text.indexOf('<p>') !== -1 || text.indexOf('<h1>') !== -1 || text.indexOf('<div>') !== -1) {
+      return text;
+    }
+    // Convert plain text / markdown lines to HTML
+    var lines = text.split('\n');
+    var html = '';
+    var inList = false;
+    lines.forEach(function(l) {
+      var trimmed = l.trim();
+      if (!trimmed) {
+        if (inList) { html += '</ul>'; inList = false; }
+        return;
+      }
+      if (trimmed.startsWith('# ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<h1>' + trimmed.slice(2) + '</h1>';
+      } else if (trimmed.startsWith('## ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<h2>' + trimmed.slice(3) + '</h2>';
+      } else if (trimmed.startsWith('### ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<h3>' + trimmed.slice(4) + '</h3>';
+      } else if (trimmed.startsWith('> ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<blockquote>' + trimmed.slice(2) + '</blockquote>';
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) { html += '<ul>'; inList = true; }
+        html += '<li>' + trimmed.slice(2) + '</li>';
+      } else {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<p>' + trimmed + '</p>';
+      }
+    });
+    if (inList) html += '</ul>';
+    return html;
+  }
+
+  function htmlToMarkdown(html) {
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    var md = '';
+    for (var i = 0; i < temp.childNodes.length; i++) {
+      var node = temp.childNodes[i];
+      var tag = node.nodeName.toLowerCase();
+      if (tag === 'h1') md += '# ' + node.textContent.trim() + '\n\n';
+      else if (tag === 'h2') md += '## ' + node.textContent.trim() + '\n\n';
+      else if (tag === 'h3') md += '### ' + node.textContent.trim() + '\n\n';
+      else if (tag === 'p') md += node.textContent.trim() + '\n\n';
+      else if (tag === 'blockquote') md += '> ' + node.textContent.trim() + '\n\n';
+      else if (tag === 'ul') {
+        var lis = node.querySelectorAll('li');
+        lis.forEach(function(li) { md += '- ' + li.textContent.trim() + '\n'; });
+        md += '\n';
+      } else if (tag === 'ol') {
+        var ols = node.querySelectorAll('li');
+        ols.forEach(function(li, idx) { md += (idx + 1) + '. ' + li.textContent.trim() + '\n'; });
+        md += '\n';
+      } else if (node.textContent.trim()) {
+        md += node.textContent.trim() + '\n\n';
+      }
+    }
+    return md.trim();
+  }
+
+  function htmlToLatex(html, chapterTitle) {
+    var md = htmlToMarkdown(html);
+    var body = md
+      .replace(/^# (.*$)/gim, '\\chapter{$1}')
+      .replace(/^## (.*$)/gim, '\\section{$1}')
+      .replace(/^### (.*$)/gim, '\\subsection{$1}')
+      .replace(/> (.*$)/gim, '\\begin{quote}\n$1\n\\end{quote}')
+      .replace(/\*\*(.*?)\*\*/g, '\\textbf{$1}')
+      .replace(/\*(.*?)\*/g, '\\textit{$1}')
+      .replace(/_(.*?)_/g, '\\textit{$1}')
+      .replace(/\[\^(.*?)\]/g, '\\footnote{$1}');
+
+    return `\\documentclass[12pt,a4paper,oneside]{report}
+\\usepackage[utf8]{inputenc}
+\\usepackage[margin=1in]{geometry}
+\\usepackage{setspace}
+\\usepackage{booktabs}
+\\usepackage{natbib}
+\\usepackage{microtype}
+\\doublespacing
+
+\\title{${chapterTitle}}
+\\author{PhD Researcher}
+\\date{\\today}
+
+\\begin{document}
+\\maketitle
+
+${body}
+
+\\end{document}`;
+  }
+
   var ThesisStudio = {
-    viewMode: 'workspace', // 'workspace' (all chapters overview) | 'chapter' (focused ONLY on active chapter) | 'audit' (defense audit)
+    viewMode: 'workspace', // 'workspace' | 'chapter' | 'audit'
     activeChapter: DEFAULT_CHAPTERS[0],
-    activeRightTab: 'ai',   // 'ai' | 'claims' | 'sources'
+    activeRightTab: 'ai',   // 'ai' | 'inspector' | 'claims' | 'sources'
     checkingChapter: null,
     isAiLoading: false,
     auditData: null,
@@ -181,6 +450,10 @@
     evidence: [],
     contradictions: [],
     checks: {},
+    liveFixes: [],          // Real-time grammar & evidence proofreading items
+    liveInspectorTimer: null,
+    savedSpacing: '1.5',
+    savedFont: 'garamond',
 
     init: function () {
       injectStyles();
@@ -256,7 +529,7 @@
       if (!container) {
         container = document.createElement('div');
         container.id = 'apd-thesis-studio-mount';
-        container.className = 'apd-te-container space-y-5 p-2';
+        container.className = 'apd-te-container space-y-4 p-2';
 
         var root = document.getElementById('root');
         var mainContent = root ? root.querySelector('main, .p-6, .space-y-6, div > div') : null;
@@ -274,7 +547,7 @@
       var chapters = DraftStore.getChapters(projectId);
 
       if (this.viewMode === 'chapter') {
-        container.innerHTML = this.renderSingleChapterView(chapters, projectId, projectTitle);
+        container.innerHTML = this.renderSingleChapterStudio(chapters, projectId, projectTitle);
       } else if (this.viewMode === 'audit') {
         container.innerHTML = this.renderAuditHeader(projectTitle) + this.renderAuditView(chapters, projectId);
       } else {
@@ -285,27 +558,23 @@
     },
 
     /**
-     * View 1: Clean Chapter Workspace Overview
-     * Lists all chapters. Clicking any chapter immediately opens ONLY that chapter!
+     * View 1: Workspace Overview (All Chapters)
      */
     renderWorkspaceOverview: function (chapters, projectId, projectTitle) {
       var self = this;
-      var evByClaim = this.getEvidenceByClaim();
 
       return `
-        <!-- Workspace Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
           <div>
             <div class="flex items-center gap-2.5">
               <span class="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">${APD_ICONS.book}</span>
               <div>
                 <h1 class="text-2xl font-bold font-display text-foreground tracking-tight">Thesis Workspace & Chapters</h1>
-                <p class="text-xs text-muted-foreground">${projectTitle} • Select any chapter to begin drafting</p>
+                <p class="text-xs text-muted-foreground">${projectTitle} • Click any chapter to launch full academic writing studio</p>
               </div>
             </div>
           </div>
 
-          <!-- Top Navigation Switcher -->
           <div class="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border shrink-0 self-start md:self-center">
             <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-foreground shadow-sm border border-border font-bold">
               ${APD_ICONS.layers} All Chapters (${chapters.length})
@@ -317,16 +586,14 @@
           </div>
         </div>
 
-        <!-- Banner -->
         <div class="rounded-xl border border-accent/30 bg-accent/5 p-4 flex items-start gap-3">
           <div class="text-accent shrink-0 mt-0.5">${APD_ICONS.alert}</div>
           <div class="text-sm text-foreground/80">
-            <span class="font-semibold text-foreground">Click on any chapter below to open its dedicated writing studio.</span>
-            Draft thesis prose with instant autosave, cite monographs, and consult the neural AI research assistant grounded strictly in your project's field evidence.
+            <span class="font-semibold text-foreground">Click on any chapter below to open its dedicated Google Docs-grade writing studio.</span>
+            Features rich typography, inline real-time AI checking, citation auto-grounding against your project monographs, and live defense verification.
           </div>
         </div>
 
-        <!-- Add Custom Chapter Bar -->
         <div class="flex gap-2">
           <input id="apd-te-new-chapter-input" type="text" placeholder="Add a custom chapter (e.g. Chapter 4: Petrographic Analysis)…" class="max-w-md text-xs h-9 px-3 rounded-lg border border-border bg-card text-foreground outline-none focus:border-primary" />
           <button id="apd-te-add-chapter-btn" class="h-9 px-3.5 rounded-lg border border-border bg-card text-xs font-medium hover:bg-muted flex items-center gap-1.5">
@@ -334,19 +601,19 @@
           </button>
         </div>
 
-        <!-- Chapters Grid: Fast, clean cards. Clicking any card opens ONLY that chapter! -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${chapters.map(function (ch, idx) {
             var cl = (self.claims || []).filter(function (c) {
               return (c.chapter || '').toLowerCase() === ch.toLowerCase();
             });
             var draft = DraftStore.getDraft(projectId, ch);
-            var words = draft.trim() ? draft.trim().split(/\s+/).filter(Boolean).length : 0;
+            var cleanText = draft.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            var words = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
+            var pages = Math.max(1, Math.ceil(words / 250));
             var status = DraftStore.getStatus(projectId, ch);
-            var check = self.checks[ch];
 
             return `
-              <div data-open-chapter="${encodeURIComponent(ch)}" class="apd-te-card-hover rounded-xl border border-border bg-card p-4 flex flex-col justify-between space-y-3 shadow-sm cursor-pointer">
+              <div data-open-chapter="${encodeURIComponent(ch)}" class="rounded-xl border border-border bg-card p-4 flex flex-col justify-between space-y-3 shadow-sm hover:border-primary/50 transition-all cursor-pointer">
                 <div>
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-2.5">
@@ -356,7 +623,7 @@
                       <div>
                         <h3 class="font-display text-base font-bold text-foreground hover:text-primary transition-colors">${ch}</h3>
                         <p class="text-xs text-muted-foreground mt-0.5">
-                          ${cl.length} claim${cl.length !== 1 ? 's' : ''} • ${words} words drafted
+                          ${cl.length} claim${cl.length !== 1 ? 's' : ''} • ${words} words (~${pages} page${pages !== 1 ? 's' : ''})
                         </p>
                       </div>
                     </div>
@@ -366,11 +633,10 @@
                     </span>
                   </div>
 
-                  <!-- Claim previews or status snippet -->
                   <div class="mt-3 pt-3 border-t border-border/60 text-xs">
                     ${cl.length > 0 ? `
                       <div class="flex flex-wrap gap-1.5">
-                        <span class="text-[10.5px] text-muted-foreground">Key claims:</span>
+                        <span class="text-[10.5px] text-muted-foreground">Primary claim:</span>
                         <span class="text-[11px] font-medium text-foreground/90 truncate max-w-[280px]">"${cl[0].claim_text}"</span>
                         ${cl.length > 1 ? `<span class="text-[10px] text-muted-foreground font-bold">+${cl.length - 1} more</span>` : ''}
                       </div>
@@ -382,10 +648,10 @@
 
                 <div class="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
                   <span class="text-[11px] text-muted-foreground flex items-center gap-1">
-                    ${words > 0 ? `${APD_ICONS.checkCircle} Draft in progress` : `${APD_ICONS.pen} Empty draft`}
+                    ${words > 0 ? `${APD_ICONS.checkCircle} ${words} words drafted` : `${APD_ICONS.pen} Empty chapter`}
                   </span>
-                  <span class="text-xs font-semibold text-primary flex items-center gap-1 group-hover:underline">
-                    Open Chapter Writing Studio ${APD_ICONS.chevronRight}
+                  <span class="text-xs font-semibold text-primary flex items-center gap-1">
+                    Open Academic Studio ${APD_ICONS.chevronRight}
                   </span>
                 </div>
               </div>
@@ -396,27 +662,21 @@
     },
 
     /**
-     * View 2: ONLY THIS CHAPTER
-     * Dedicated, distraction-free, fast, smooth writing experience for ONLY the selected chapter.
+     * View 2: Dedicated Single-Chapter Google Docs-style Studio
      */
-    renderSingleChapterView: function (chapters, projectId, projectTitle) {
+    renderSingleChapterStudio: function (chapters, projectId, projectTitle) {
       var self = this;
       var ch = this.activeChapter;
-      var draft = DraftStore.getDraft(projectId, ch);
+      var rawDraft = DraftStore.getDraft(projectId, ch);
+      var initialHtml = textToHtml(rawDraft, ch);
       var status = DraftStore.getStatus(projectId, ch);
-      var words = draft.trim() ? draft.trim().split(/\s+/).filter(Boolean).length : 0;
-      var chars = draft.length;
-      var readMin = Math.max(1, Math.ceil(words / 220));
 
       var chapterClaims = (this.claims || []).filter(function (c) {
         return (c.chapter || '').toLowerCase() === ch.toLowerCase();
       });
-      var evByClaim = this.getEvidenceByClaim();
-      var check = this.checks[ch];
-      var isChecking = this.checkingChapter === ch;
 
       return `
-        <!-- Single Chapter Studio Top Bar -->
+        <!-- Studio Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-border">
           <div class="flex items-center gap-3">
             <button id="apd-te-back-to-workspace" class="px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold flex items-center gap-1.5 text-foreground transition-all shadow-sm">
@@ -431,29 +691,41 @@
             </div>
           </div>
 
-          <!-- Studio Actions -->
+          <!-- Studio Action Buttons -->
           <div class="flex items-center gap-2 text-xs">
+            <!-- Live Inspector Status Pill -->
+            <button id="apd-te-trigger-inspector" class="px-2.5 py-1 rounded-md border border-accent/40 bg-accent/5 hover:bg-accent/10 text-xs font-semibold flex items-center gap-1.5 text-foreground transition-all">
+              <span class="text-accent">${APD_ICONS.sparkles}</span>
+              <span id="apd-te-live-status-badge">AI Proofreading Active</span>
+            </button>
+
             <select id="apd-te-single-status" class="px-2.5 py-1 rounded-md bg-card border border-border text-xs font-medium text-foreground outline-none cursor-pointer">
               <option value="drafting" ${status === 'drafting' ? 'selected' : ''}>Status: Drafting</option>
               <option value="review" ${status === 'review' ? 'selected' : ''}>Status: In Review</option>
               <option value="ready" ${status === 'ready' ? 'selected' : ''}>Status: Defense Ready</option>
             </select>
 
-            <button id="apd-te-check-evidence-btn" ${isChecking ? 'disabled' : ''} class="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5">
-              ${isChecking ? `<span class="apd-te-pulse text-primary">${APD_ICONS.refresh}</span> Checking…` : `<span class="text-primary">${APD_ICONS.sparkles}</span> Check Evidence`}
-            </button>
-
-            <button id="apd-te-copy-btn" class="p-1.5 rounded-md hover:bg-muted border border-border bg-card text-muted-foreground hover:text-foreground" title="Copy draft">
-              ${APD_ICONS.copy}
-            </button>
-
-            <button id="apd-te-export-btn" class="p-1.5 rounded-md hover:bg-muted border border-border bg-card text-muted-foreground hover:text-foreground" title="Export Markdown">
-              ${APD_ICONS.download}
-            </button>
+            <!-- Export Menu -->
+            <div class="relative inline-block">
+              <button id="apd-te-export-menu-btn" class="px-2.5 py-1 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5">
+                ${APD_ICONS.download} Export
+              </button>
+              <div id="apd-te-export-dropdown" class="hidden absolute right-0 mt-1 w-44 rounded-lg border border-border bg-card shadow-lg z-50 py-1 text-xs">
+                <button id="apd-te-export-tex" class="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center gap-2">
+                  ${APD_ICONS.fileText} LaTeX (.tex)
+                </button>
+                <button id="apd-te-export-md" class="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center gap-2">
+                  ${APD_ICONS.copy} Markdown (.md)
+                </button>
+                <button id="apd-te-print-pdf" class="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center gap-2">
+                  ${APD_ICONS.printer} Print / PDF
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Quick 1-Click Chapter Switcher Ribbon: jump between chapters instantly without friction -->
+        <!-- 1-Click Chapter Switcher Ribbon -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
           <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0 mr-1">Switch:</span>
           ${chapters.map(function (c, idx) {
@@ -469,81 +741,123 @@
           }).join('')}
         </div>
 
-        <!-- Focused Dual Studio Canvas (7 cols Editor, 5 cols Grounded AI & Research Shelf) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Main Studio Layout: Editor (8 cols) + Side Intelligence Drawer (4 cols) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           
-          <!-- LEFT: Smooth Writing Editor (7 cols) -->
-          <div class="lg:col-span-7 rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
+          <!-- LEFT: Authentic Google Docs Academic Paper Canvas (8 cols) -->
+          <div class="lg:col-span-8 rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col">
             
-            <!-- Formatting Toolbar -->
-            <div class="p-2 border-b border-border bg-muted/20 flex flex-wrap items-center gap-1 text-xs">
-              <button data-fmt="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bold">${APD_ICONS.bold}</button>
-              <button data-fmt="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic">${APD_ICONS.italic}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
-              <button data-fmt="h2" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 2">${APD_ICONS.heading2}</button>
-              <button data-fmt="h3" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Heading 3">${APD_ICONS.heading3}</button>
-              <div class="h-4 w-px bg-border mx-1"></div>
-              <button data-fmt="quote" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Blockquote">${APD_ICONS.quote}</button>
-              <button data-fmt="list" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>
+            <!-- Google Docs-style Rich Formatting Ribbon -->
+            <div class="p-2 border-b border-border bg-muted/30 flex flex-wrap items-center gap-1 text-xs select-none sticky top-0 z-20">
+              <!-- Undo / Redo -->
+              <button data-doc-cmd="undo" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Undo (Ctrl+Z)">${APD_ICONS.undo}</button>
+              <button data-doc-cmd="redo" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Redo (Ctrl+Y)">${APD_ICONS.redo}</button>
               <div class="h-4 w-px bg-border mx-1"></div>
 
-              <!-- Quick Citation Inserter -->
-              ${this.sources.length > 0 ? `
-                <select id="apd-te-quick-cite" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-muted-foreground hover:text-foreground outline-none cursor-pointer max-w-[170px] truncate ml-auto">
-                  <option value="">+ Insert Citation…</option>
-                  ${this.sources.map(function(s) {
-                    return `<option value=" (${s.author || 'Author'}, ${s.year || 'n.d.'}: p. ${s.pages || 'XX'})">${s.author || 'Author'} (${s.year || 'n.d.'})</option>`;
-                  }).join('')}
-                </select>
-              ` : ''}
+              <!-- Paragraph Hierarchy -->
+              <select id="apd-te-format-block" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
+                <option value="p">Paragraph</option>
+                <option value="h1">Heading 1 (Chapter)</option>
+                <option value="h2">Heading 2 (Section)</option>
+                <option value="h3">Heading 3 (Sub-section)</option>
+                <option value="blockquote">Blockquote (Excerpt)</option>
+              </select>
+
+              <!-- Font Family Selector -->
+              <select id="apd-te-font-family" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
+                <option value="garamond">Garamond</option>
+                <option value="times">Times New Roman</option>
+                <option value="cambria">Cambria</option>
+                <option value="sans">Modern Sans</option>
+              </select>
+
+              <!-- Line Spacing Selector (University thesis requirement: 1.5 or 2.0) -->
+              <select id="apd-te-line-spacing" class="bg-card border border-border text-[11px] rounded px-2 py-1 text-foreground outline-none cursor-pointer">
+                <option value="1.5">1.5 Spacing (Thesis)</option>
+                <option value="2.0">2.0 Double (Submission)</option>
+                <option value="1.15">1.15 Compact</option>
+              </select>
+              <div class="h-4 w-px bg-border mx-1"></div>
+
+              <!-- Text Styling -->
+              <button data-doc-cmd="bold" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground font-bold" title="Bold (Ctrl+B)">${APD_ICONS.bold}</button>
+              <button data-doc-cmd="italic" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Italic (Ctrl+I)">${APD_ICONS.italic}</button>
+              <button data-doc-cmd="underline" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Underline (Ctrl+U)">${APD_ICONS.underline}</button>
+              <button data-doc-cmd="strikeThrough" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Strikethrough">${APD_ICONS.strikethrough}</button>
+              <button data-doc-cmd="superscript" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Superscript / Footnote mark">${APD_ICONS.superscript}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+
+              <!-- Alignments -->
+              <button data-doc-cmd="justifyLeft" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Align Left">${APD_ICONS.alignLeft}</button>
+              <button data-doc-cmd="justifyCenter" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Align Center">${APD_ICONS.alignCenter}</button>
+              <button data-doc-cmd="justifyFull" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Justify (Academic standard)">${APD_ICONS.alignJustify}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+
+              <!-- Lists & Tables -->
+              <button data-doc-cmd="insertUnorderedList" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Bullet List">${APD_ICONS.list}</button>
+              <button data-doc-cmd="insertOrderedList" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Numbered List">${APD_ICONS.listOrdered}</button>
+              <button id="apd-te-insert-table-btn" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Insert Archaeological Data Table">${APD_ICONS.table}</button>
+              <button id="apd-te-insert-plate-btn" class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground" title="Insert Plate / Figure Callout">${APD_ICONS.fileText}</button>
+              <div class="h-4 w-px bg-border mx-1"></div>
+
+              <!-- Inline Help Me Write Action -->
+              <button id="apd-te-inline-help-write-btn" class="px-2.5 py-1 rounded bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1 ml-auto shadow-sm" title="Invoke Inline AI Copilot (Ctrl+J)">
+                ${APD_ICONS.sparkles} Help Me Write
+              </button>
             </div>
 
-            <!-- Writing Canvas: autofocus, fast, zero lag -->
-            <textarea id="apd-te-active-canvas" class="apd-te-canvas" placeholder="Begin drafting Chapter: ${ch}… Express your archaeological interpretation, reference loci, stratigraphy, and chronometric calibrations…">${draft}</textarea>
-
-            <!-- Bottom Live Stats & Autosave Feedback -->
-            <div class="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2">
-              <div class="flex items-center gap-4">
-                <span id="apd-te-word-stat" class="font-bold text-foreground">${words} words</span>
-                <span id="apd-te-char-stat">${chars} characters</span>
-                <span>~${readMin} min read</span>
+            <!-- Page Canvas: A4 Centered Sheet -->
+            <div class="apd-te-page-wrapper">
+              <div id="apd-te-doc-sheet" contenteditable="true" spellcheck="true" class="apd-te-page-sheet" data-spacing="1.5" data-font="garamond">
+                ${initialHtml}
               </div>
-              <div class="flex items-center gap-1.5 text-[11px] text-accent font-semibold">
-                ${APD_ICONS.checkCircle} Real-time autosave
+            </div>
+
+            <!-- Live Status & Word Counter Bar -->
+            <div class="p-2.5 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2 select-none">
+              <div class="flex items-center gap-4">
+                <span id="apd-te-word-stat" class="font-bold text-foreground">0 words</span>
+                <span id="apd-te-char-stat">0 characters</span>
+                <span id="apd-te-page-stat">~1 page</span>
+                <span>Double-spaced (A4 thesis)</span>
+              </div>
+              <div class="flex items-center gap-2 text-[11px]">
+                <span class="flex items-center gap-1 text-accent font-semibold">${APD_ICONS.checkCircle} Real-time autosave</span>
+                <span>•</span>
+                <span class="text-muted-foreground">Press Ctrl+J for inline AI</span>
               </div>
             </div>
 
           </div>
 
-          <!-- RIGHT: Grounded Neural AI Assistant & Chapter Evidence Shelf (5 cols) -->
-          <div class="lg:col-span-5 rounded-xl border border-primary/25 bg-card p-4 shadow-sm space-y-4">
+          <!-- RIGHT: Grounded Intelligence & Proofreading Drawer (4 cols) -->
+          <div class="lg:col-span-4 rounded-xl border border-primary/25 bg-card p-3.5 shadow-sm space-y-3.5">
             
-            <!-- Side Tab Switcher -->
-            <div class="flex items-center justify-between pb-3 border-b border-border">
+            <!-- Side Tabs -->
+            <div class="flex items-center justify-between pb-2.5 border-b border-border">
               <div class="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border">
                 <button id="apd-te-right-tab-ai" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'ai' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
                   ${APD_ICONS.sparkles} Neural AI
                 </button>
+                <button id="apd-te-right-tab-inspector" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'inspector' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
+                  ${APD_ICONS.shieldCheck} Inspector
+                  <span id="apd-te-inspector-count" class="ml-1 px-1 py-0.2 rounded-full bg-accent/20 text-accent text-[9px] font-bold">0</span>
+                </button>
                 <button id="apd-te-right-tab-claims" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'claims' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
-                  ${APD_ICONS.bookmark} Claims (${chapterClaims.length})
+                  ${APD_ICONS.bookmark} Claims
                 </button>
                 <button id="apd-te-right-tab-sources" class="px-2.5 py-1 rounded text-xs font-semibold transition-all ${this.activeRightTab === 'sources' ? 'bg-card text-foreground shadow-sm font-bold' : 'text-muted-foreground'}">
-                  ${APD_ICONS.book} Library (${this.sources.length})
+                  ${APD_ICONS.book} Library
                 </button>
               </div>
-
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                Offline AI
-              </span>
             </div>
 
-            <!-- TAB 1: Grounded Neural AI Research Co-Writer -->
+            <!-- TAB 1: Neural AI Co-Writer -->
             ${this.activeRightTab === 'ai' ? `
-              <div class="space-y-3.5">
-                <!-- Grounding Stats -->
-                <div class="p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] flex items-center justify-between">
+              <div class="space-y-3">
+                <div class="p-2 rounded-lg bg-muted/40 border border-border text-[11px] flex items-center justify-between">
                   <span class="text-muted-foreground text-[10px] uppercase font-bold">Library Grounding:</span>
-                  <div class="flex items-center gap-2 font-bold text-primary text-[10.5px]">
+                  <div class="flex items-center gap-1.5 font-bold text-primary text-[10.5px]">
                     <span>${this.sources.length} Monographs</span>
                     <span>•</span>
                     <span>${chapterClaims.length} Claims</span>
@@ -552,7 +866,6 @@
                   </div>
                 </div>
 
-                <!-- Quick AI Actions -->
                 <div class="space-y-1.5">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Select AI Writing Action:</span>
                   <div class="grid grid-cols-2 gap-1.5">
@@ -560,17 +873,14 @@
                       <span class="text-primary">${APD_ICONS.sparkles}</span>
                       <span>Synthesize Claims</span>
                     </button>
-
                     <button data-ai-action="citations" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
                       <span class="text-accent">${APD_ICONS.book}</span>
                       <span>Suggest Citations</span>
                     </button>
-
                     <button data-ai-action="viva_check" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
                       <span class="text-chart-4">${APD_ICONS.shieldCheck}</span>
                       <span>Viva Defense Check</span>
                     </button>
-
                     <button data-ai-action="expand" class="apd-te-ai-action-btn p-2 rounded-lg border border-border bg-card/60 hover:bg-muted text-left text-xs font-medium transition-colors flex items-center gap-1.5">
                       <span class="text-primary">${APD_ICONS.pen}</span>
                       <span>Continue Paragraph</span>
@@ -578,98 +888,90 @@
                   </div>
                 </div>
 
-                <!-- Custom Inquiry Box -->
                 <div class="space-y-1.5 pt-1">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Custom Scholarly Inquiry:</span>
                   <div class="flex gap-2">
-                    <input id="apd-te-custom-query" type="text" placeholder="e.g. Synthesize the stratigraphy of Trench B with Kenyon 1978…" class="text-xs h-8 px-2.5 rounded-md border border-border bg-transparent flex-1 outline-none focus:border-primary" />
+                    <input id="apd-te-custom-query" type="text" placeholder="e.g. Synthesize Trench B locus with Kenyon radiocarbon…" class="text-xs h-8 px-2.5 rounded-md border border-border bg-transparent flex-1 outline-none focus:border-primary" />
                     <button id="apd-te-query-btn" class="h-8 px-3 rounded-md bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1">
                       Generate
                     </button>
                   </div>
                 </div>
 
-                <!-- AI Loading State -->
-                <div id="apd-te-ai-loading" class="hidden p-5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center space-y-2">
+                <div id="apd-te-ai-loading" class="hidden p-4 rounded-xl border border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center space-y-1.5">
                   <span class="text-primary apd-te-pulse">${APD_ICONS.refresh}</span>
                   <p class="text-xs font-bold text-foreground">Evaluating library monographs & claims…</p>
-                  <p class="text-[10px] text-muted-foreground">Synthesizing peer-reviewed archaeological prose with Qwen 2.5 7B</p>
+                  <p class="text-[10px] text-muted-foreground">Synthesizing peer-reviewed prose with Qwen 2.5 7B</p>
                 </div>
 
-                <!-- AI Suggestion Output -->
-                <div id="apd-te-ai-output" class="hidden p-3.5 rounded-xl border border-primary/30 bg-primary/5 space-y-2.5">
-                  <div class="flex items-center justify-between text-xs pb-1.5 border-b border-primary/15">
+                <div id="apd-te-ai-output" class="hidden p-3 rounded-xl border border-primary/30 bg-primary/5 space-y-2">
+                  <div class="flex items-center justify-between text-xs pb-1 border-b border-primary/15">
                     <span class="font-bold text-primary text-[11px] flex items-center gap-1">
-                      ${APD_ICONS.sparkles} Grounded Academic Suggestion
+                      ${APD_ICONS.sparkles} Grounded Suggestion
                     </span>
                     <button id="apd-te-close-ai-output" class="text-muted-foreground hover:text-foreground">${APD_ICONS.x}</button>
                   </div>
-
-                  <div id="apd-te-suggestion-body" class="text-xs font-serif leading-relaxed text-foreground/90 max-h-[220px] overflow-y-auto whitespace-pre-wrap p-2 rounded bg-card/80 border border-border"></div>
-
+                  <div id="apd-te-suggestion-body" class="text-xs font-serif leading-relaxed text-foreground/90 max-h-[200px] overflow-y-auto whitespace-pre-wrap p-2 rounded bg-card/80 border border-border"></div>
                   <div class="flex items-center justify-between pt-1">
                     <button id="apd-te-insert-ai-output" class="h-7 px-2.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary/90 flex items-center gap-1">
-                      ${APD_ICONS.pen} Insert in Editor
+                      ${APD_ICONS.pen} Insert in Document
                     </button>
-
                     <div class="flex gap-1.5">
-                      <button id="apd-te-append-ai-output" class="h-7 px-2.5 rounded-md border border-border bg-card text-xs font-medium hover:bg-muted">
-                        Append
-                      </button>
                       <button id="apd-te-copy-ai-output" class="h-7 px-2 rounded-md border border-border bg-card hover:bg-muted text-muted-foreground" title="Copy suggestion">
                         ${APD_ICONS.copy}
                       </button>
                     </div>
                   </div>
                 </div>
-
-                <!-- Evidence Check Summary if performed -->
-                ${check && check.summary ? `
-                  <div class="mt-2 p-3 rounded-lg bg-muted/50 border border-border text-xs text-foreground/90 space-y-1">
-                    <div class="font-bold text-[10px] uppercase tracking-wider text-primary flex items-center gap-1">
-                      ${APD_ICONS.sparkles} Evidence Check Summary
-                    </div>
-                    <div class="leading-relaxed font-sans">${check.summary}</div>
-                  </div>
-                ` : ''}
-
               </div>
             ` : ''}
 
-            <!-- TAB 2: Chapter Claims & Evidence Shelf -->
+            <!-- TAB 2: Real-time Live Writing Inspector (Proofreading, Tone & Contradictions) -->
+            ${this.activeRightTab === 'inspector' ? `
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs pb-1 border-b border-border">
+                  <span class="font-bold text-foreground flex items-center gap-1">
+                    ${APD_ICONS.shieldCheck} Live Writing Inspector
+                  </span>
+                  <button id="apd-te-refresh-inspector" class="text-primary hover:underline text-[11px] flex items-center gap-1">
+                    ${APD_ICONS.refresh} Re-analyze
+                  </button>
+                </div>
+
+                <div id="apd-te-inspector-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                  <!-- Dynamically populated proofreading recommendations -->
+                  <div class="p-3 rounded-lg bg-muted/40 border border-border text-center text-xs text-muted-foreground">
+                    Analyzing document text in real time...
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- TAB 3: Chapter Claims Shelf -->
             ${this.activeRightTab === 'claims' ? `
               <div class="space-y-3">
                 <div class="flex items-center justify-between text-xs pb-1 border-b border-border">
-                  <span class="font-bold text-foreground">Claims Allocated to this Chapter</span>
-                  <span class="text-muted-foreground text-[11px]">${chapterClaims.length} total</span>
+                  <span class="font-bold text-foreground">Claims for this Chapter</span>
+                  <span class="text-muted-foreground text-[11px]">${chapterClaims.length} allocated</span>
                 </div>
 
                 ${chapterClaims.length === 0 ? `
                   <div class="p-4 rounded-lg bg-muted/30 border border-border text-center text-xs text-muted-foreground">
-                    No claims assigned to “${ch}” yet. You can assign claims to chapters in Claims Manager.
+                    No claims assigned to “${ch}” yet. You can assign claims in Claims Manager.
                   </div>
                 ` : `
                   <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                     ${chapterClaims.map(function(c) {
-                      var ev = evByClaim[c.id] || [];
-                      var sup = ev.filter(function(e) { return e.evidence_type === 'supporting'; }).length;
-                      var con = ev.filter(function(e) { return e.evidence_type === 'contradicting'; }).length;
-                      var hasSrc = ev.some(function(e) { return (e.source_ids || []).length > 0; }) || !!c.scholar_name;
-
                       return `
                         <div class="p-2.5 rounded-lg border border-border bg-card/70 space-y-1.5 text-xs">
                           <div class="flex items-start justify-between gap-2">
                             <span class="font-medium text-foreground leading-snug flex-1">${c.claim_text}</span>
-                            <button data-insert-claim-text="${encodeURIComponent(c.claim_text)}" class="apd-te-insert-claim-btn px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
+                            <button data-insert-claim-html="${encodeURIComponent(c.claim_text)}" class="apd-te-insert-claim-btn px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
                               + Insert
                             </button>
                           </div>
-                          <div class="flex items-center gap-1.5 text-[9.5px] font-bold">
-                            ${!hasSrc ? `<span class="px-1.5 py-0.2 rounded bg-destructive/15 text-destructive">No citation</span>` : ''}
-                            ${sup === 0 ? `<span class="px-1.5 py-0.2 rounded bg-chart-4/15 text-chart-4">Weak</span>` : ''}
-                            <span class="px-1.5 py-0.2 rounded bg-accent/15 text-accent">+${sup}</span>
-                            ${con > 0 ? `<span class="px-1.5 py-0.2 rounded bg-destructive/15 text-destructive">−${con}</span>` : ''}
-                            ${c.scholar_name ? `<span class="text-muted-foreground font-normal ml-auto">${c.scholar_name}</span>` : ''}
+                          <div class="text-[9.5px] text-muted-foreground font-normal">
+                            Scholar: ${c.scholar_name || 'Recorded'} • Status: ${c.status || 'Active'}
                           </div>
                         </div>
                       `;
@@ -679,11 +981,11 @@
               </div>
             ` : ''}
 
-            <!-- TAB 3: Project Library Monographs -->
+            <!-- TAB 4: Project Library Monographs -->
             ${this.activeRightTab === 'sources' ? `
               <div class="space-y-3">
                 <div class="flex items-center justify-between text-xs pb-1 border-b border-border">
-                  <span class="font-bold text-foreground">Project Ingested Monographs</span>
+                  <span class="font-bold text-foreground">Ingested Monographs</span>
                   <span class="text-muted-foreground text-[11px]">${this.sources.length} sources</span>
                 </div>
 
@@ -700,7 +1002,7 @@
                             <span class="font-bold text-foreground">${s.author || 'Author'}</span> (${s.year || 'n.d.'}):
                             <span class="text-muted-foreground"> ${s.title}</span>
                           </div>
-                          <button data-cite-src="${encodeURIComponent(s.author || 'Author')}" data-cite-yr="${encodeURIComponent(s.year || 'n.d.')}" data-cite-pg="${encodeURIComponent(s.pages || 'XX')}" class="apd-te-cite-src-btn px-2 py-0.5 rounded bg-accent/15 text-accent hover:bg-accent hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
+                          <button data-cite-src-author="${encodeURIComponent(s.author || 'Author')}" data-cite-src-year="${encodeURIComponent(s.year || 'n.d.')}" data-cite-src-pages="${encodeURIComponent(s.pages || 'XX')}" class="apd-te-cite-src-btn px-2 py-0.5 rounded bg-accent/15 text-accent hover:bg-accent hover:text-white font-semibold text-[10px] shrink-0 transition-colors">
                             + Cite
                           </button>
                         </div>
@@ -713,6 +1015,28 @@
 
           </div>
 
+        </div>
+
+        <!-- Floating Inline AI Bar (Pops up above text selection like Google Docs) -->
+        <div id="apd-te-floating-ai-bar">
+          <button id="apd-te-sel-polish" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Fix grammar, typos, and improve academic tone">
+            <span class="text-primary">${APD_ICONS.sparkles}</span> Polish Phrasing
+          </button>
+          <div class="h-3.5 w-px bg-border"></div>
+          <button id="apd-te-sel-cite" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Ground statement with project monographs">
+            <span class="text-accent">${APD_ICONS.book}</span> Add Citation
+          </button>
+          <div class="h-3.5 w-px bg-border"></div>
+          <button id="apd-te-sel-defend" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Add viva defense caveat against potential examiner objections">
+            <span class="text-chart-4">${APD_ICONS.shieldCheck}</span> Add Caveat
+          </button>
+          <div class="h-3.5 w-px bg-border"></div>
+          <button id="apd-te-sel-condense" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Make concise">
+            Condense
+          </button>
+          <button id="apd-te-sel-expand" class="px-2 py-1 rounded hover:bg-muted text-xs font-semibold flex items-center gap-1 text-foreground" title="Expand with archaeological context">
+            Expand
+          </button>
         </div>
       `;
     },
@@ -748,94 +1072,17 @@
 
       return `
         <div class="space-y-6 pt-2">
-          <div class="rounded-xl border border-primary/20 bg-card p-6 shadow-sm">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-5 border-b border-border">
-              <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
-                  <span class="text-2xl font-bold text-primary">${score}%</span>
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Defense</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-lg flex items-center gap-2">
-                    ${APD_ICONS.shieldCheck} Pre-Submission Defense Readiness Audit
-                  </h3>
-                  <p class="text-sm text-muted-foreground">
-                    Verifies chapter assertions against physical excavation layers, IntCal20 radiocarbon bounds, and library contradictions.
-                  </p>
-                </div>
-              </div>
-
-              <button id="apd-te-run-audit-btn" class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-2 shadow-sm shrink-0 self-start md:self-center">
-                ${APD_ICONS.refresh} Re-Run Defense Audit
-              </button>
+          <div class="p-6 rounded-2xl border border-primary/20 bg-primary/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+            <div class="space-y-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-primary">Dissertation Defense Readiness</span>
+              <h2 class="text-3xl font-bold font-display text-foreground">${score}% Readiness Rating</h2>
+              <p class="text-xs text-muted-foreground max-w-xl">
+                Synthesized across all project monographs, empirical claims, and excavation reports.
+              </p>
             </div>
-
-            <!-- Audit Metrics Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-5">
-              <div class="p-3.5 rounded-xl bg-muted/40 border border-border">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Total Chapters</div>
-                <div class="text-2xl font-bold">${chapters.length}</div>
-              </div>
-              <div class="p-3.5 rounded-xl bg-muted/40 border border-border">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Assigned Claims</div>
-                <div class="text-2xl font-bold">${this.claims.length}</div>
-              </div>
-              <div class="p-3.5 rounded-xl bg-chart-4/10 border border-chart-4/20 text-chart-4">
-                <div class="text-[10px] font-bold uppercase tracking-wider mb-1">Active Conflicts</div>
-                <div class="text-2xl font-bold">${(this.auditData && this.auditData.total_conflicts_detected) || this.contradictions.length}</div>
-              </div>
-              <div class="p-3.5 rounded-xl bg-accent/10 border border-accent/20 text-accent">
-                <div class="text-[10px] font-bold uppercase tracking-wider mb-1">Library Monographs</div>
-                <div class="text-2xl font-bold">${this.sources.length}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Per-Chapter Verification Table -->
-          <div class="space-y-4">
-            <h4 class="font-bold text-sm flex items-center gap-2">
-              ${APD_ICONS.layers} Chapter Claims Verification
-            </h4>
-            ${chapters.map(function(ch) {
-              var chClaims = (self.claims || []).filter(function(c) { return (c.chapter || '').toLowerCase() === ch.toLowerCase(); });
-              var isAffected = self.auditData && self.auditData.affected_chapters && self.auditData.affected_chapters.includes(ch);
-              return `
-                <div class="rounded-xl border bg-card overflow-hidden ${isAffected ? 'border-chart-4/40 shadow-sm' : 'border-border'}">
-                  <div class="flex items-center justify-between p-4 border-b border-border bg-muted/20">
-                    <div class="flex items-center gap-3">
-                      <span class="${isAffected ? 'text-chart-4' : 'text-accent'}">${isAffected ? APD_ICONS.alert : APD_ICONS.checkCircle}</span>
-                      <div>
-                        <h4 class="font-bold text-base font-display">${ch}</h4>
-                        <p class="text-xs text-muted-foreground">${chClaims.length} verified claim${chClaims.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-
-                    <button data-open-chapter="${encodeURIComponent(ch)}" class="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold hover:bg-muted flex items-center gap-1">
-                      Open Writing Studio ${APD_ICONS.chevronRight}
-                    </button>
-                  </div>
-
-                  <div class="p-4">
-                    ${chClaims.length === 0 ? `
-                      <p class="text-xs text-muted-foreground italic">No claims assigned to this chapter yet.</p>
-                    ` : `
-                      <div class="space-y-2">
-                        ${chClaims.map(function(c) {
-                          return `
-                            <div class="p-3 rounded-lg border border-border bg-card/60 flex items-start justify-between gap-3 text-xs">
-                              <div class="flex-1">
-                                <span class="font-medium text-foreground">${c.claim_text}</span>
-                                ${c.scholar_name ? `<div class="text-[11px] text-muted-foreground mt-0.5">Scholar: ${c.scholar_name} ${c.page_ref ? `(p. ${c.page_ref})` : ''}</div>` : ''}
-                              </div>
-                            </div>
-                          `;
-                        }).join('')}
-                      </div>
-                    `}
-                  </div>
-                </div>
-              `;
-            }).join('')}
+            <button id="apd-te-run-audit-btn" class="h-10 px-5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-2 self-start md:self-center shadow-sm">
+              ${APD_ICONS.refresh} Re-Analyze Dissertation Defense
+            </button>
           </div>
         </div>
       `;
@@ -844,19 +1091,19 @@
     bindEvents: function (container, projectId) {
       var self = this;
 
-      // Top Tab Switchers
-      var tabWs = container.querySelector('#apd-te-tab-workspace');
-      if (tabWs) tabWs.onclick = function () { self.viewMode = 'workspace'; self.render(); };
+      // Tab switcher: Workspace vs Audit
+      var tabWorkspace = container.querySelector('#apd-te-tab-workspace');
+      var tabAudit = container.querySelector('#apd-te-tab-audit');
+      if (tabWorkspace) tabWorkspace.onclick = function () { self.viewMode = 'workspace'; self.render(); };
+      if (tabAudit) tabAudit.onclick = function () { self.viewMode = 'audit'; self.render(); };
 
-      var tabAu = container.querySelector('#apd-te-tab-audit');
-      if (tabAu) tabAu.onclick = function () { self.viewMode = 'audit'; self.render(); };
-
+      // Back to all chapters
       var backBtn = container.querySelector('#apd-te-back-to-workspace');
       if (backBtn) backBtn.onclick = function () { self.viewMode = 'workspace'; self.render(); };
 
-      // Open Chapter on Card Click (Opens ONLY that chapter)
-      var openChapterCards = container.querySelectorAll('[data-open-chapter]');
-      openChapterCards.forEach(function (card) {
+      // Open chapter card
+      var chapterCards = container.querySelectorAll('[data-open-chapter]');
+      chapterCards.forEach(function (card) {
         card.onclick = function () {
           var ch = decodeURIComponent(card.getAttribute('data-open-chapter'));
           self.activeChapter = ch;
@@ -865,337 +1112,651 @@
         };
       });
 
-      // Quick chapter switcher in Single Chapter Studio
+      // Switch to chapter via top ribbon
       var switchBtns = container.querySelectorAll('[data-switch-to]');
       switchBtns.forEach(function (btn) {
         btn.onclick = function () {
-          var ch = decodeURIComponent(btn.getAttribute('data-switch-to'));
-          self.activeChapter = ch;
+          var targetCh = decodeURIComponent(btn.getAttribute('data-switch-to'));
+          self.activeChapter = targetCh;
           self.viewMode = 'chapter';
           self.render();
         };
       });
 
-      // Right Side Panel Tab Switcher
-      var rightAi = container.querySelector('#apd-te-right-tab-ai');
-      if (rightAi) rightAi.onclick = function () { self.activeRightTab = 'ai'; self.render(); };
-
-      var rightClaims = container.querySelector('#apd-te-right-tab-claims');
-      if (rightClaims) rightClaims.onclick = function () { self.activeRightTab = 'claims'; self.render(); };
-
-      var rightSources = container.querySelector('#apd-te-right-tab-sources');
-      if (rightSources) rightSources.onclick = function () { self.activeRightTab = 'sources'; self.render(); };
-
-      // Add Custom Chapter
+      // Add chapter button
       var addChBtn = container.querySelector('#apd-te-add-chapter-btn');
       var newChInp = container.querySelector('#apd-te-new-chapter-input');
-      function doAddChapter() {
-        if (!newChInp) return;
-        var val = newChInp.value.trim();
-        if (!val) return;
-        var cur = DraftStore.getChapters(projectId);
-        if (cur.includes(val)) return;
-        cur.push(val);
-        DraftStore.saveChapters(projectId, cur);
-        self.activeChapter = val;
-        self.viewMode = 'chapter';
+      if (addChBtn && newChInp) {
+        var handleAdd = function () {
+          var val = newChInp.value.trim();
+          if (!val) return;
+          var cur = DraftStore.getChapters(projectId);
+          if (cur.indexOf(val) === -1) {
+            cur.push(val);
+            DraftStore.saveChapters(projectId, cur);
+            self.activeChapter = val;
+            self.viewMode = 'chapter';
+            self.render();
+          }
+        };
+        addChBtn.onclick = handleAdd;
+        newChInp.onkeydown = function (e) { if (e.key === 'Enter') handleAdd(); };
+      }
+
+      // If in Chapter Studio: bind Google Docs-style Rich Editing and Inline AI
+      var sheet = container.querySelector('#apd-te-doc-sheet');
+      if (sheet) {
+        self.bindDocumentCanvasEvents(sheet, container, projectId);
+      }
+
+      // Bind Side Tabs
+      var tabAi = container.querySelector('#apd-te-right-tab-ai');
+      var tabInsp = container.querySelector('#apd-te-right-tab-inspector');
+      var tabClaims = container.querySelector('#apd-te-right-tab-claims');
+      var tabSources = container.querySelector('#apd-te-right-tab-sources');
+      if (tabAi) tabAi.onclick = function () { self.activeRightTab = 'ai'; self.render(); };
+      if (tabInsp) tabInsp.onclick = function () { self.activeRightTab = 'inspector'; self.render(); self.runLiveProofreading(sheet); };
+      if (tabClaims) tabClaims.onclick = function () { self.activeRightTab = 'claims'; self.render(); };
+      if (tabSources) tabSources.onclick = function () { self.activeRightTab = 'sources'; self.render(); };
+
+      var triggerInsp = container.querySelector('#apd-te-trigger-inspector');
+      if (triggerInsp) triggerInsp.onclick = function () {
+        self.activeRightTab = 'inspector';
         self.render();
-      }
-      if (addChBtn) addChBtn.onclick = doAddChapter;
-      if (newChInp) newChInp.onkeydown = function(e) { if (e.key === 'Enter') doAddChapter(); };
+        self.runLiveProofreading(sheet);
+      };
 
-      // Active Writing Canvas Textarea (Fast debounced autosave)
-      var canvas = container.querySelector('#apd-te-active-canvas');
-      if (canvas) {
-        // Automatically focus for instant writing flow
-        if (document.activeElement !== canvas) {
-          setTimeout(function() { canvas.focus(); }, 50);
-        }
-
-        var saveTimeout = null;
-        canvas.oninput = function () {
-          var val = canvas.value;
-          var words = val.trim() ? val.trim().split(/\s+/).filter(Boolean).length : 0;
-          var chars = val.length;
-          var wStat = container.querySelector('#apd-te-word-stat');
-          var cStat = container.querySelector('#apd-te-char-stat');
-          if (wStat) wStat.innerText = words + ' words';
-          if (cStat) cStat.innerText = chars + ' characters';
-
-          clearTimeout(saveTimeout);
-          saveTimeout = setTimeout(function () {
-            DraftStore.saveDraft(projectId, self.activeChapter, val);
-          }, 300);
+      // Export Menu toggle
+      var exportMenuBtn = container.querySelector('#apd-te-export-menu-btn');
+      var exportDropdown = container.querySelector('#apd-te-export-dropdown');
+      if (exportMenuBtn && exportDropdown) {
+        exportMenuBtn.onclick = function (e) {
+          e.stopPropagation();
+          exportDropdown.classList.toggle('hidden');
         };
+        document.addEventListener('click', function () { exportDropdown.classList.add('hidden'); });
       }
 
-      // Status dropdown
-      var statusSel = container.querySelector('#apd-te-single-status');
-      if (statusSel) {
-        statusSel.onchange = function () {
-          DraftStore.saveStatus(projectId, self.activeChapter, statusSel.value);
-        };
-      }
-
-      // Check Evidence Button
-      var checkEvBtn = container.querySelector('#apd-te-check-evidence-btn');
-      if (checkEvBtn) {
-        checkEvBtn.onclick = function () {
-          self.runEvidenceCheck(self.activeChapter, projectId);
-        };
-      }
-
-      // Copy Button
-      var copyBtn = container.querySelector('#apd-te-copy-btn');
-      if (copyBtn && canvas) {
-        copyBtn.onclick = function () {
-          navigator.clipboard.writeText(canvas.value);
-          alert('Chapter draft copied to clipboard!');
-        };
-      }
-
-      // Export Button
-      var exportBtn = container.querySelector('#apd-te-export-btn');
-      if (exportBtn && canvas) {
-        exportBtn.onclick = function () {
-          var text = canvas.value;
-          var filename = self.activeChapter.replace(/[^a-zA-Z0-9_-]/g, '_') + '_Draft.md';
-          var blob = new Blob([
-            '# ' + self.activeChapter + '\n\n' +
-            '**Project:** ' + getActiveProjectTitle() + '\n' +
-            '**Exported:** ' + new Date().toLocaleString() + '\n\n' +
-            '---\n\n' + text
-          ], { type: 'text/markdown;charset=utf-8' });
+      // Export LaTeX
+      var exportTexBtn = container.querySelector('#apd-te-export-tex');
+      if (exportTexBtn && sheet) {
+        exportTexBtn.onclick = function () {
+          var tex = htmlToLatex(sheet.innerHTML, self.activeChapter);
+          var blob = new Blob([tex], { type: 'text/plain;charset=utf-8' });
           var url = URL.createObjectURL(blob);
           var a = document.createElement('a');
           a.href = url;
-          a.download = filename;
+          a.download = self.activeChapter.replace(/\s+/g, '_') + '.tex';
           a.click();
           URL.revokeObjectURL(url);
         };
       }
 
-      // Formatting Toolbar
-      var fmtBtns = container.querySelectorAll('button[data-fmt]');
-      fmtBtns.forEach(function (b) {
-        b.onclick = function () {
-          if (!canvas) return;
-          var fmt = b.getAttribute('data-fmt');
-          if (fmt === 'bold') self.wrapSelection(canvas, self.activeChapter, '**', '**');
-          else if (fmt === 'italic') self.wrapSelection(canvas, self.activeChapter, '*', '*');
-          else if (fmt === 'h2') self.wrapSelection(canvas, self.activeChapter, '## ', '');
-          else if (fmt === 'h3') self.wrapSelection(canvas, self.activeChapter, '### ', '');
-          else if (fmt === 'quote') self.wrapSelection(canvas, self.activeChapter, '> ', '');
-          else if (fmt === 'list') self.wrapSelection(canvas, self.activeChapter, '- ', '');
-        };
-      });
-
-      // Quick Citation Inserter
-      var quickCite = container.querySelector('#apd-te-quick-cite');
-      if (quickCite && canvas) {
-        quickCite.onchange = function () {
-          if (quickCite.value) {
-            self.insertAtCursor(canvas, self.activeChapter, quickCite.value);
-            quickCite.value = '';
-          }
+      // Export Markdown
+      var exportMdBtn = container.querySelector('#apd-te-export-md');
+      if (exportMdBtn && sheet) {
+        exportMdBtn.onclick = function () {
+          var md = htmlToMarkdown(sheet.innerHTML);
+          var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = self.activeChapter.replace(/\s+/g, '_') + '.md';
+          a.click();
+          URL.revokeObjectURL(url);
         };
       }
 
-      // Insert Claim Text from Claims Tab
-      var insertClaimBtns = container.querySelectorAll('button[data-insert-claim-text]');
+      // Print PDF
+      var printPdfBtn = container.querySelector('#apd-te-print-pdf');
+      if (printPdfBtn) {
+        printPdfBtn.onclick = function () { window.print(); };
+      }
+
+      // Insert Claim into Document
+      var insertClaimBtns = container.querySelectorAll('button[data-insert-claim-html]');
       insertClaimBtns.forEach(function (btn) {
         btn.onclick = function () {
-          var clm = decodeURIComponent(btn.getAttribute('data-insert-claim-text'));
-          if (canvas) self.insertAtCursor(canvas, self.activeChapter, '\n\n"' + clm + '"\n');
+          var clm = decodeURIComponent(btn.getAttribute('data-insert-claim-html'));
+          if (sheet) {
+            sheet.focus();
+            document.execCommand('insertHTML', false, '<p><strong>Claim:</strong> <em>“' + clm + '”</em></p>');
+            self.triggerAutosave(sheet, projectId);
+          }
         };
       });
 
-      // Insert Citation from Sources Tab
-      var citeSrcBtns = container.querySelectorAll('button[data-cite-src]');
+      // Insert Citation into Document
+      var citeSrcBtns = container.querySelectorAll('button[data-cite-src-author]');
       citeSrcBtns.forEach(function (btn) {
         btn.onclick = function () {
-          var a = decodeURIComponent(btn.getAttribute('data-cite-src'));
-          var y = decodeURIComponent(btn.getAttribute('data-cite-yr'));
-          var p = decodeURIComponent(btn.getAttribute('data-cite-pg'));
-          if (canvas) self.insertAtCursor(canvas, self.activeChapter, ' (' + a + ', ' + y + ': p. ' + p + ')');
+          var a = decodeURIComponent(btn.getAttribute('data-cite-src-author'));
+          var y = decodeURIComponent(btn.getAttribute('data-cite-src-year'));
+          var p = decodeURIComponent(btn.getAttribute('data-cite-src-pages'));
+          if (sheet) {
+            sheet.focus();
+            document.execCommand('insertHTML', false, ' (' + a + ' ' + y + ': p. ' + p + ') ');
+            self.triggerAutosave(sheet, projectId);
+          }
         };
       });
 
-      // AI Action Buttons
+      // AI Action Buttons in Side Panel
       var aiActionBtns = container.querySelectorAll('.apd-te-ai-action-btn');
       aiActionBtns.forEach(function (btn) {
         btn.onclick = function () {
           var action = btn.getAttribute('data-ai-action');
-          self.runAiQuery(self.activeChapter, action, '');
+          self.runAiQuery(self.activeChapter, action, '', sheet);
         };
       });
 
-      // Custom Query Button
+      // Custom Query
       var queryBtn = container.querySelector('#apd-te-query-btn');
       var customInp = container.querySelector('#apd-te-custom-query');
       if (queryBtn && customInp) {
         queryBtn.onclick = function () {
           var val = customInp.value.trim();
-          if (val) self.runAiQuery(self.activeChapter, 'custom', val);
+          if (val) self.runAiQuery(self.activeChapter, 'custom', val, sheet);
         };
       }
 
-      // AI Output Close
-      var closeAiBtn = container.querySelector('#apd-te-close-ai-output');
-      if (closeAiBtn) {
-        closeAiBtn.onclick = function () {
-          var outBox = container.querySelector('#apd-te-ai-output');
-          if (outBox) outBox.classList.add('hidden');
-        };
-      }
-
-      // AI Output Insert in Editor
+      // Insert AI Output into Document
       var insertAiBtn = container.querySelector('#apd-te-insert-ai-output');
-      if (insertAiBtn && canvas) {
+      if (insertAiBtn && sheet) {
         insertAiBtn.onclick = function () {
           var body = container.querySelector('#apd-te-suggestion-body');
-          if (body) self.insertAtCursor(canvas, self.activeChapter, '\n\n' + body.innerText + '\n\n');
-        };
-      }
-
-      // AI Output Append
-      var appendAiBtn = container.querySelector('#apd-te-append-ai-output');
-      if (appendAiBtn && canvas) {
-        appendAiBtn.onclick = function () {
-          var body = container.querySelector('#apd-te-suggestion-body');
           if (body) {
-            canvas.value = canvas.value + '\n\n' + body.innerText;
-            DraftStore.saveDraft(projectId, self.activeChapter, canvas.value);
-            alert('Appended suggestion to chapter draft!');
-          }
-        };
-      }
-
-      // AI Output Copy
-      var copyAiBtn = container.querySelector('#apd-te-copy-ai-output');
-      if (copyAiBtn) {
-        copyAiBtn.onclick = function () {
-          var body = container.querySelector('#apd-te-suggestion-body');
-          if (body) {
-            navigator.clipboard.writeText(body.innerText);
-            alert('Copied suggestion to clipboard!');
-          }
-        };
-      }
-
-      // Audit Re-Run Button
-      var auditBtn = container.querySelector('#apd-te-run-audit-btn');
-      if (auditBtn) {
-        auditBtn.onclick = async function () {
-          var bridge = window.nativeBridge;
-          if (bridge && typeof bridge.call === 'function') {
-            auditBtn.innerText = 'Auditing…';
-            try {
-              var a = await bridge.call('get_thesis_audit', {}, projectId);
-              self.auditData = a;
-              self.render();
-            } catch(e) {
-              alert('Audit failed: ' + e.message);
-            }
+            sheet.focus();
+            document.execCommand('insertHTML', false, '<p>' + body.innerText.replace(/\n\n/g, '</p><p>') + '</p>');
+            self.triggerAutosave(sheet, projectId);
           }
         };
       }
     },
 
-    wrapSelection: function (ta, chapter, prefix, suffix) {
-      var start = ta.selectionStart || 0;
-      var end = ta.selectionEnd || 0;
-      var sel = ta.value.substring(start, end);
-      var replacement = prefix + (sel || 'text') + suffix;
-      ta.value = ta.value.substring(0, start) + replacement + ta.value.substring(end);
-      DraftStore.saveDraft(getActiveProjectId(), chapter, ta.value);
-      ta.focus();
-      ta.setSelectionRange(start + prefix.length, start + prefix.length + (sel.length || 4));
-    },
+    /**
+     * Google Docs-style Rich Editing Canvas Event Binding
+     */
+    bindDocumentCanvasEvents: function (sheet, container, projectId) {
+      var self = this;
+      var floatingBar = document.getElementById('apd-te-floating-ai-bar');
 
-    insertAtCursor: function (ta, chapter, text) {
-      var start = ta.selectionStart || 0;
-      var end = ta.selectionEnd || 0;
-      ta.value = ta.value.substring(0, start) + text + ta.value.substring(end);
-      DraftStore.saveDraft(getActiveProjectId(), chapter, ta.value);
-      ta.focus();
-      ta.setSelectionRange(start + text.length, start + text.length);
-    },
+      // Update Word / Character / Page Counters
+      var updateStats = function () {
+        var text = sheet.innerText || '';
+        var words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+        var chars = text.length;
+        var pages = Math.max(1, Math.ceil(words / 250));
 
-    runEvidenceCheck: async function (chapter, projectId) {
-      var cl = (this.claims || []).filter(function (c) {
-        return (c.chapter || '').toLowerCase() === chapter.toLowerCase();
+        var wEl = container.querySelector('#apd-te-word-stat');
+        var cEl = container.querySelector('#apd-te-char-stat');
+        var pEl = container.querySelector('#apd-te-page-stat');
+        if (wEl) wEl.innerText = words + ' words';
+        if (cEl) cEl.innerText = chars + ' characters';
+        if (pEl) pEl.innerText = '~' + pages + ' page' + (pages !== 1 ? 's' : '');
+      };
+      updateStats();
+
+      // Debounced Autosave (300ms) & Live Proofreading (1.2s)
+      var saveTimeout = null;
+      var proofreadTimeout = null;
+      sheet.addEventListener('input', function () {
+        updateStats();
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(function () {
+          self.triggerAutosave(sheet, projectId);
+        }, 300);
+
+        clearTimeout(proofreadTimeout);
+        proofreadTimeout = setTimeout(function () {
+          self.runLiveProofreading(sheet);
+        }, 1200);
       });
-      if (cl.length === 0) {
-        alert('No claims assigned to this chapter. Add claims and set their chapter to "' + chapter + '" first.');
+
+      // Keyboard Shortcuts (Ctrl+J = Help Me Write, Ctrl+B = Bold, Ctrl+I = Italic, Ctrl+U = Underline)
+      sheet.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+          e.preventDefault();
+          self.openInlineHelpMeWrite(sheet, projectId);
+        }
+      });
+
+      // Format Ribbon Commands
+      var docCmdBtns = container.querySelectorAll('button[data-doc-cmd]');
+      docCmdBtns.forEach(function (btn) {
+        btn.onclick = function () {
+          var cmd = btn.getAttribute('data-doc-cmd');
+          document.execCommand(cmd, false, null);
+          sheet.focus();
+          self.triggerAutosave(sheet, projectId);
+        };
+      });
+
+      // Format Block (H1, H2, H3, Blockquote, P)
+      var formatBlockSelect = container.querySelector('#apd-te-format-block');
+      if (formatBlockSelect) {
+        formatBlockSelect.onchange = function () {
+          var val = formatBlockSelect.value;
+          document.execCommand('formatBlock', false, val);
+          sheet.focus();
+          self.triggerAutosave(sheet, projectId);
+        };
+      }
+
+      // Font Family
+      var fontSelect = container.querySelector('#apd-te-font-family');
+      if (fontSelect) {
+        fontSelect.value = self.savedFont;
+        fontSelect.onchange = function () {
+          self.savedFont = fontSelect.value;
+          sheet.setAttribute('data-font', fontSelect.value);
+        };
+      }
+
+      // Line Spacing
+      var lineSpacingSelect = container.querySelector('#apd-te-line-spacing');
+      if (lineSpacingSelect) {
+        lineSpacingSelect.value = self.savedSpacing;
+        lineSpacingSelect.onchange = function () {
+          self.savedSpacing = lineSpacingSelect.value;
+          sheet.setAttribute('data-spacing', lineSpacingSelect.value);
+        };
+      }
+
+      // Insert Archaeological Table
+      var tableBtn = container.querySelector('#apd-te-insert-table-btn');
+      if (tableBtn) {
+        tableBtn.onclick = function () {
+          sheet.focus();
+          var tableHtml = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Locus / Stratum</th>
+                  <th>Period</th>
+                  <th>Diagnostic Artifacts</th>
+                  <th>Calibrated Date (BP)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Locus 104 (Stratum IV)</td>
+                  <td>Late Bronze IIB</td>
+                  <td>Mycenaean IIIB Sherds, Collar-rim Store Jars</td>
+                  <td>3210 ± 35 BP</td>
+                </tr>
+                <tr>
+                  <td>Locus 105 (Stratum V)</td>
+                  <td>Late Bronze IIA</td>
+                  <td>Bichrome Wheel-made Ware</td>
+                  <td>3350 ± 40 BP</td>
+                </tr>
+              </tbody>
+            </table>
+            <p></p>
+          `;
+          document.execCommand('insertHTML', false, tableHtml);
+          self.triggerAutosave(sheet, projectId);
+        };
+      }
+
+      // Insert Plate / Figure Callout
+      var plateBtn = container.querySelector('#apd-te-insert-plate-btn');
+      if (plateBtn) {
+        plateBtn.onclick = function () {
+          sheet.focus();
+          var calloutHtml = `<div class="apd-plate-callout">[Figure 3.1: Stratigraphic profile across Trench B, illustrating balk section and primary destruction layer.]</div><p></p>`;
+          document.execCommand('insertHTML', false, calloutHtml);
+          self.triggerAutosave(sheet, projectId);
+        };
+      }
+
+      // Inline Help Me Write Button
+      var inlineHelpBtn = container.querySelector('#apd-te-inline-help-write-btn');
+      if (inlineHelpBtn) {
+        inlineHelpBtn.onclick = function () {
+          self.openInlineHelpMeWrite(sheet, projectId);
+        };
+      }
+
+      // Floating Selection AI Toolbar (Appears right above selection like Google Docs)
+      document.addEventListener('selectionchange', function () {
+        var sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sheet.contains(sel.anchorNode)) {
+          if (floatingBar) floatingBar.style.display = 'none';
+          return;
+        }
+
+        var text = sel.toString().trim();
+        if (text.length < 3) {
+          if (floatingBar) floatingBar.style.display = 'none';
+          return;
+        }
+
+        var range = sel.getRangeAt(0);
+        var rect = range.getBoundingClientRect();
+        if (floatingBar) {
+          floatingBar.style.display = 'flex';
+          floatingBar.style.top = (window.scrollY + rect.top - 44) + 'px';
+          floatingBar.style.left = Math.max(10, (window.scrollX + rect.left + (rect.width / 2) - 180)) + 'px';
+        }
+      });
+
+      // Floating Selection AI Actions
+      var selPolish = container.querySelector('#apd-te-sel-polish');
+      if (selPolish) selPolish.onclick = function () { self.runSelectionAi('polish', sheet, projectId); };
+
+      var selCite = container.querySelector('#apd-te-sel-cite');
+      if (selCite) selCite.onclick = function () { self.runSelectionAi('cite', sheet, projectId); };
+
+      var selDefend = container.querySelector('#apd-te-sel-defend');
+      if (selDefend) selDefend.onclick = function () { self.runSelectionAi('defend', sheet, projectId); };
+
+      var selCondense = container.querySelector('#apd-te-sel-condense');
+      if (selCondense) selCondense.onclick = function () { self.runSelectionAi('condense', sheet, projectId); };
+
+      var selExpand = container.querySelector('#apd-te-sel-expand');
+      if (selExpand) selExpand.onclick = function () { self.runSelectionAi('expand', sheet, projectId); };
+
+      // Initial Proofreading Run
+      self.runLiveProofreading(sheet);
+    },
+
+    triggerAutosave: function (sheet, projectId) {
+      var html = sheet.innerHTML;
+      DraftStore.saveDraft(projectId, this.activeChapter, html);
+    },
+
+    /**
+     * Inline "Help Me Write" Prompt Card (like Google Docs Gemini / Copilot)
+     */
+    openInlineHelpMeWrite: function (sheet, projectId) {
+      var self = this;
+      var existing = document.querySelector('.apd-inline-prompt-box');
+      if (existing) { existing.remove(); return; }
+
+      var card = document.createElement('div');
+      card.className = 'apd-inline-prompt-box';
+      card.setAttribute('contenteditable', 'false');
+      card.innerHTML = `
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-primary/20">
+          <span class="text-xs font-bold text-primary flex items-center gap-1.5">
+            ${APD_ICONS.sparkles} Help Me Write (Grounded Archaeological Copilot)
+          </span>
+          <button id="apd-inline-close-btn" class="text-muted-foreground hover:text-foreground text-xs">${APD_ICONS.x}</button>
+        </div>
+        <div class="flex gap-2">
+          <input id="apd-inline-prompt-inp" type="text" placeholder="e.g. Synthesize radiocarbon determinations from Trench B with Kenyon 1957…" class="text-xs h-8 px-2.5 rounded border border-border bg-card flex-1 outline-none focus:border-primary text-foreground" />
+          <button id="apd-inline-generate-btn" class="h-8 px-3 rounded bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1">
+            ${APD_ICONS.sparkles} Generate
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          <button data-inline-preset="synthesize" class="px-2 py-0.5 rounded bg-muted hover:bg-card border border-border text-[10.5px] text-muted-foreground hover:text-foreground">
+            + Synthesize chapter claims
+          </button>
+          <button data-inline-preset="expand" class="px-2 py-0.5 rounded bg-muted hover:bg-card border border-border text-[10.5px] text-muted-foreground hover:text-foreground">
+            + Expand current paragraph
+          </button>
+          <button data-inline-preset="viva" class="px-2 py-0.5 rounded bg-muted hover:bg-card border border-border text-[10.5px] text-muted-foreground hover:text-foreground">
+            + Add examiner defense caveat
+          </button>
+        </div>
+        <div id="apd-inline-result-area" class="hidden mt-3 p-3 rounded bg-card border border-border text-xs font-serif leading-relaxed text-foreground">
+          <div id="apd-inline-result-text" class="whitespace-pre-wrap"></div>
+          <div class="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-border font-sans">
+            <button id="apd-inline-reject-btn" class="px-2.5 py-1 rounded border border-border text-xs font-medium hover:bg-muted">Discard</button>
+            <button id="apd-inline-accept-btn" class="px-3 py-1 rounded bg-primary text-white text-xs font-bold hover:bg-primary/90">Insert in Paper</button>
+          </div>
+        </div>
+      `;
+
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        var range = sel.getRangeAt(0);
+        range.insertNode(card);
+      } else {
+        sheet.appendChild(card);
+      }
+
+      var inp = card.querySelector('#apd-inline-prompt-inp');
+      var genBtn = card.querySelector('#apd-inline-generate-btn');
+      var closeBtn = card.querySelector('#apd-inline-close-btn');
+      var resArea = card.querySelector('#apd-inline-result-area');
+      var resText = card.querySelector('#apd-inline-result-text');
+      var acceptBtn = card.querySelector('#apd-inline-accept-btn');
+      var rejectBtn = card.querySelector('#apd-inline-reject-btn');
+
+      if (inp) inp.focus();
+      if (closeBtn) closeBtn.onclick = function () { card.remove(); };
+      if (rejectBtn) rejectBtn.onclick = function () { card.remove(); };
+
+      var runGen = async function (prompt) {
+        if (!prompt) return;
+        genBtn.innerText = 'Drafting…';
+        genBtn.disabled = true;
+
+        var fullContext = sheet.innerText.slice(-1200);
+        var bridge = window.nativeBridge;
+        var answer = "";
+        try {
+          if (bridge && typeof bridge.call === 'function') {
+            var r = await bridge.call('invoke_llm', {
+              prompt: "You are ArchaeoPhD AI drafting dissertation text. Ground your writing in active archaeological monographs and claims.\n" +
+                      "Task: " + prompt + "\nContext before cursor:\n" + fullContext + "\nOutput scholarly peer-reviewed prose directly."
+            }, projectId);
+            answer = (r && r.answer) ? r.answer : (typeof r === 'string' ? r : JSON.stringify(r));
+          }
+        } catch(e) {
+          answer = "Error generating prose: " + e.message;
+        }
+
+        genBtn.innerText = 'Generate';
+        genBtn.disabled = false;
+
+        resText.innerText = answer;
+        resArea.classList.remove('hidden');
+
+        acceptBtn.onclick = function () {
+          var p = document.createElement('p');
+          p.innerHTML = answer.replace(/\n\n/g, '</p><p>');
+          card.parentNode.replaceChild(p, card);
+          self.triggerAutosave(sheet, projectId);
+        };
+      };
+
+      if (genBtn && inp) {
+        genBtn.onclick = function () { runGen(inp.value.trim()); };
+        inp.onkeydown = function (e) { if (e.key === 'Enter') runGen(inp.value.trim()); };
+      }
+
+      var presets = card.querySelectorAll('[data-inline-preset]');
+      presets.forEach(function (btn) {
+        btn.onclick = function () {
+          var pType = btn.getAttribute('data-inline-preset');
+          if (pType === 'synthesize') runGen("Synthesize all primary locus claims for this chapter into peer-reviewed prose.");
+          else if (pType === 'expand') runGen("Expand the preceding paragraph with stratigraphic and ceramic analysis.");
+          else if (pType === 'viva') runGen("Add an academic caveat anticipating examiner critique regarding radiocarbon calibration.");
+        };
+      });
+    },
+
+    /**
+     * Floating Selection AI Action (Polish, Cite, Defend, Condense, Expand)
+     */
+    runSelectionAi: async function (mode, sheet, projectId) {
+      var self = this;
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      var selectedText = sel.toString().trim();
+      var range = sel.getRangeAt(0);
+
+      var floatingBar = document.getElementById('apd-te-floating-ai-bar');
+      if (floatingBar) floatingBar.style.display = 'none';
+
+      var prompt = "";
+      if (mode === 'polish') {
+        prompt = "Polish this archaeological thesis paragraph for academic tone, impeccable syntax, and active scholarly clarity without altering its factual claims:\n\"" + selectedText + "\"";
+      } else if (mode === 'cite') {
+        prompt = "Recommend and insert an inline academic monograph citation from the active library to ground this assertion:\n\"" + selectedText + "\"";
+      } else if (mode === 'defend') {
+        prompt = "Add a concise viva defense caveat addressing potential examiner skepticism to this paragraph:\n\"" + selectedText + "\"";
+      } else if (mode === 'condense') {
+        prompt = "Condense this text into concise, impactful peer-reviewed dissertation prose:\n\"" + selectedText + "\"";
+      } else if (mode === 'expand') {
+        prompt = "Elaborate upon this archaeological analysis, detailing stratigraphic provenance and locus methodology:\n\"" + selectedText + "\"";
+      }
+
+      var bridge = window.nativeBridge;
+      var replacement = "";
+      try {
+        if (bridge && typeof bridge.call === 'function') {
+          var r = await bridge.call('invoke_llm', { prompt: prompt }, projectId);
+          replacement = (r && r.answer) ? r.answer : (typeof r === 'string' ? r : JSON.stringify(r));
+        }
+      } catch(e) {
+        alert("AI error: " + e.message);
         return;
       }
 
-      var evByClaim = this.getEvidenceByClaim();
-      var claimData = cl.map(function (c) {
-        var ev = evByClaim[c.id] || [];
-        return {
-          claim: c.claim_text,
-          supporting: ev.filter(function(e) { return e.evidence_type === 'supporting'; }).length,
-          contradicting: ev.filter(function(e) { return e.evidence_type === 'contradicting'; }).length,
-          hasSources: ev.some(function(e) { return (e.source_ids || []).length > 0; }) || !!c.scholar_name,
-          status: c.status || 'active'
-        };
-      });
-
-      this.checkingChapter = chapter;
-      this.render();
-
-      var promptText = 
-        "You are reviewing a PhD thesis chapter for evidence quality.\n" +
-        "Do NOT write or rewrite any thesis text. For each claim, flag issues only.\n" +
-        "Categories: \"no_citation\" (no sources linked), \"weak_evidence\" (zero or only weak supporting evidence), \"contradictory_evidence\" (contradicting evidence exists), \"missing_source_connection\" (claim lacks linked sources/sites/artifacts).\n" +
-        "Return a valid JSON object strictly formatted as:\n" +
-        "{ \"results\": [ { \"claim\": string, \"issues\": string[], \"note\": string } ], \"summary\": string }\n\n" +
-        "CLAIMS:\n" + JSON.stringify(claimData, null, 2);
-
-      var bridge = window.nativeBridge;
-      var parsedRes = null;
-
-      try {
-        if (bridge && typeof bridge.call === 'function') {
-          var llmRes = await bridge.call('invoke_llm', { prompt: promptText }, projectId);
-          var raw = "";
-          if (llmRes && llmRes.answer) raw = llmRes.answer;
-          else if (typeof llmRes === 'string') raw = llmRes;
-          else raw = JSON.stringify(llmRes);
-
-          var jsonMatch = raw.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedRes = JSON.parse(jsonMatch[0]);
-          } else {
-            parsedRes = {
-              results: cl.map(function(c) {
-                var ev = evByClaim[c.id] || [];
-                var issues = [];
-                if (!ev.some(function(e) { return (e.source_ids || []).length > 0; }) && !c.scholar_name) issues.push('no_citation');
-                if (ev.filter(function(e) { return e.evidence_type === 'supporting'; }).length === 0) issues.push('weak_evidence');
-                if (ev.filter(function(e) { return e.evidence_type === 'contradicting'; }).length > 0) issues.push('contradictory_evidence');
-                return { claim: c.claim_text, issues: issues, note: raw.slice(0, 150) };
-              }),
-              summary: raw
-            };
-          }
-        }
-      } catch (err) {
-        alert('Check failed: ' + err.message);
+      if (replacement) {
+        range.deleteContents();
+        var node = document.createElement('span');
+        node.innerText = replacement;
+        range.insertNode(node);
+        self.triggerAutosave(sheet, projectId);
       }
-
-      if (parsedRes) {
-        this.checks[chapter] = parsedRes;
-        DraftStore.saveCheck(projectId, chapter, parsedRes);
-      }
-
-      this.checkingChapter = null;
-      this.render();
     },
 
-    runAiQuery: async function (chapter, mode, customQuery) {
+    /**
+     * Real-time Background Proofreading & Evidence Checking
+     * Inspects document text as the researcher writes:
+     * - Finds colloquial/weak language and offers academic substitutions.
+     * - Flags unverified claims lacking citations.
+     * - Detects references to active project contradictions.
+     */
+    runLiveProofreading: function (sheet) {
+      if (!sheet) return;
+      var text = sheet.innerText || '';
+      var self = this;
+      var fixes = [];
+
+      // 1. Academic Phrasing & Style Linter
+      var phrasingRules = [
+        { bad: /\ba lot of\b/gi, fix: "a substantial corpus of", reason: "Informal quantifier in academic writing" },
+        { bad: /\bbasically\b/gi, fix: "fundamentally", reason: "Colloquial filler word" },
+        { bad: /\bproves that\b/gi, fix: "strongly substantiates that", reason: "Archaeological inference is empirical, rarely absolute proof" },
+        { bad: /\bwe can see that\b/gi, fix: "the stratigraphic record demonstrates that", reason: "Prefer objective third-person analysis" },
+        { bad: /\bobviously\b/gi, fix: "evidently", reason: "Avoid dismissive assertion" }
+      ];
+
+      phrasingRules.forEach(function (rule) {
+        var match;
+        while ((match = rule.bad.exec(text)) !== null) {
+          fixes.push({
+            type: 'style',
+            matched: match[0],
+            replacement: rule.fix,
+            reason: rule.reason,
+            snippet: text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + match[0].length + 30))
+          });
+          if (fixes.length > 8) break;
+        }
+      });
+
+      // 2. Missing Citation Warning on specific dates/names
+      var yearMatch = text.match(/\b(1[0-9]{3}|20[0-2][0-9])\s*(BCE|BC|CE|AD)\b/gi);
+      if (yearMatch && text.indexOf('(') === -1 && text.indexOf(')') === -1) {
+        fixes.push({
+          type: 'citation',
+          matched: yearMatch[0],
+          replacement: self.sources.length > 0 ? ' (' + (self.sources[0].author || 'Author') + ' ' + (self.sources[0].year || 'n.d.') + ')' : ' (Citation required)',
+          reason: "Absolute chronometric dates require authoritative monograph citations",
+          snippet: "Asserting date " + yearMatch[0] + " without linked locus calibration"
+        });
+      }
+
+      // 3. Contradiction Detector Integration
+      (self.contradictions || []).forEach(function (con) {
+        var aInDoc = text.toLowerCase().indexOf((con.claim_a || '').slice(0, 20).toLowerCase()) !== -1;
+        var bInDoc = text.toLowerCase().indexOf((con.claim_b || '').slice(0, 20).toLowerCase()) !== -1;
+        if (aInDoc || bInDoc) {
+          fixes.push({
+            type: 'contradiction',
+            matched: con.type || 'Stratigraphic Dispute',
+            replacement: ' (See stratigraphic caveat: ' + (con.claim_b || con.claim_a) + ')',
+            reason: 'Active project contradiction: ' + (con.anomaly_description || 'Disputed layer sequence'),
+            snippet: con.title || con.type
+          });
+        }
+      });
+
+      this.liveFixes = fixes;
+
+      // Update badge
+      var badge = document.getElementById('apd-te-live-status-badge');
+      var countEl = document.getElementById('apd-te-inspector-count');
+      if (badge) {
+        if (fixes.length === 0) {
+          badge.innerText = 'Document Verified';
+        } else {
+          badge.innerText = fixes.length + ' Suggestions Available';
+        }
+      }
+      if (countEl) countEl.innerText = fixes.length;
+
+      // Populate Inspector Tab
+      var listEl = document.getElementById('apd-te-inspector-list');
+      if (listEl) {
+        if (fixes.length === 0) {
+          listEl.innerHTML = `
+            <div class="p-3.5 rounded-lg bg-accent/5 border border-accent/20 text-center text-xs text-foreground/80 space-y-1">
+              <span class="text-accent font-bold">${APD_ICONS.checkCircle} Clean Scholarly Prose</span>
+              <p class="text-[11px] text-muted-foreground">Zero colloquialisms, unreferenced dates, or unhandled stratigraphic disputes detected.</p>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = fixes.map(function (f, idx) {
+            return `
+              <div class="p-2.5 rounded-lg border border-border bg-card text-xs space-y-1.5 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${f.type === 'contradiction' ? 'bg-destructive/15 text-destructive' : f.type === 'citation' ? 'bg-accent/15 text-accent' : 'bg-chart-4/15 text-chart-4'}">
+                    ${f.type === 'contradiction' ? 'Dispute Risk' : f.type === 'citation' ? 'Missing Citation' : 'Academic Style'}
+                  </span>
+                  <button data-apply-fix="${idx}" class="px-2 py-0.5 rounded bg-primary text-white text-[10px] font-semibold hover:bg-primary/90 flex items-center gap-1">
+                    Apply Fix
+                  </button>
+                </div>
+                <div class="text-[11.5px] font-medium text-foreground">
+                  Replace <code class="bg-muted px-1 py-0.2 rounded text-destructive">${f.matched}</code> with <code class="bg-muted px-1 py-0.2 rounded text-accent">${f.replacement}</code>
+                </div>
+                <div class="text-[10.5px] text-muted-foreground leading-snug">
+                  ${f.reason}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          // Bind Apply Fix buttons
+          var applyBtns = listEl.querySelectorAll('[data-apply-fix]');
+          applyBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              var fIdx = parseInt(btn.getAttribute('data-apply-fix'), 10);
+              var fix = fixes[fIdx];
+              if (fix && sheet) {
+                var curHtml = sheet.innerHTML;
+                var re = new RegExp(fix.matched, 'i');
+                sheet.innerHTML = curHtml.replace(re, fix.replacement);
+                self.triggerAutosave(sheet, getActiveProjectId());
+                self.runLiveProofreading(sheet);
+              }
+            };
+          });
+        }
+      }
+    },
+
+    runAiQuery: async function (chapter, mode, customQuery, sheet) {
       var projectId = getActiveProjectId();
       var bridge = window.nativeBridge;
       var loadingEl = document.getElementById('apd-te-ai-loading');
@@ -1205,66 +1766,45 @@
       if (loadingEl) loadingEl.classList.remove('hidden');
       if (outputEl) outputEl.classList.add('hidden');
 
-      var self = this;
+      var currentText = sheet ? sheet.innerText : '';
       var chapterClaims = (this.claims || []).filter(function (c) {
         return (c.chapter || '').toLowerCase() === chapter.toLowerCase();
       });
 
       var librarySources = (this.sources || []).slice(0, 15).map(function (s) {
-        return '"' + s.title + '" by ' + (s.author || 'Author') + ' (' + (s.year || 'n.d.') + '), pp. ' + (s.pages || 'N/A');
+        return '"' + s.title + '" by ' + (s.author || 'Author') + ' (' + (s.year || 'n.d.') + ')';
       });
       var verifiedClaims = chapterClaims.map(function (c) {
-        return '- ' + c.claim_text + ' [Scholar: ' + (c.scholar_name || 'Recorded') + ', Status: ' + (c.status || 'Active') + ']';
+        return '- ' + c.claim_text + ' [' + (c.scholar_name || 'Recorded') + ']';
       });
-      var activeConflicts = (this.contradictions || []).slice(0, 5).map(function (c) {
-        return '- ' + (c.title || c.type) + ': ' + c.claim_a + ' vs ' + c.claim_b + ' (' + (c.anomaly_description || 'Disputed layer sequence') + ')';
-      });
-
-      var currentDraft = DraftStore.getDraft(projectId, chapter);
 
       var instruction = "";
       if (mode === 'synthesize') {
-        instruction = "Synthesize all verified empirical claims, excavation reports, and author monographs into a cohesive, academically rigorous thesis section for this chapter. Tie primary stratigraphy and dates together into peer-reviewed prose.";
+        instruction = "Synthesize all empirical claims and excavation reports into a cohesive, academically rigorous thesis section for this chapter. Ground interpretations in primary stratigraphy and dates.";
       } else if (mode === 'citations') {
-        instruction = "Examine the drafted text and recommend precise inline citations from the researcher's ingested monograph library. Identify exact author names, publication years, and page ranges that substantiate each assertion.";
+        instruction = "Examine the drafted text and recommend precise inline citations from the researcher's monograph library. Provide exact author names and years.";
       } else if (mode === 'viva_check') {
-        instruction = "Conduct a viva examination counter-argument check. Examine whether any statement contradicts other excavation monographs in the library or contested radiocarbon dates. Provide a rigorous defense footnote caveat addressing potential examiner skepticism.";
+        instruction = "Conduct a viva examination counter-argument check. Examine whether any statement contradicts other monographs or radiocarbon calibrations in the library. Provide a defense footnote.";
       } else if (mode === 'expand') {
-        instruction = "Generate the next logical academic paragraph continuing the current draft, advancing the archaeological interpretation with empirical rigor.";
+        instruction = "Generate the next logical academic paragraph continuing the current draft, advancing the archaeological analysis with empirical rigor.";
       } else if (customQuery) {
         instruction = "Researcher Custom Inquiry: " + customQuery;
       }
 
       var promptText = 
         "You are ArchaeoPhD AI, an expert archaeological research and dissertation writing workstation assistant.\n" +
-        "You are assisting an archaeological scientist and PhD researcher with drafting Chapter: \"" + chapter + "\".\n\n" +
-        "ACTIVE PROJECT RESEARCH LIBRARY (Grounded in years of monographs, excavation field reports, and registered claims):\n" +
-        "INGESTED SOURCES:\n" +
-        (librarySources.length > 0 ? librarySources.join('\n') : '(Active library currently contains zero external monograph records.)') + "\n\n" +
-        "VERIFIED CLAIMS ALLOCATED TO THIS CHAPTER:\n" +
-        (verifiedClaims.length > 0 ? verifiedClaims.join('\n') : '(No specific claims tagged to this chapter yet. Base analysis on overall library.)') + "\n\n" +
-        "ACTIVE CONTRADICTIONS & STRATIGRAPHIC DISPUTES:\n" +
-        (activeConflicts.length > 0 ? activeConflicts.join('\n') : '(Zero active stratigraphic contradictions recorded.)') + "\n\n" +
-        "CURRENT CHAPTER DRAFT TEXT (Last 1,500 characters):\n\"\"\"\n" +
-        (currentDraft ? currentDraft.slice(-1500) : "(Draft is currently blank. Provide an introductory thesis chapter opening.)") + "\n\"\"\"\n\n" +
-        "TASK:\n" + instruction + "\n\n" +
-        "ACADEMIC GROUNDING RULES:\n" +
-        "1. Ground your suggestion strictly in the active project sources, authors, and claims listed above.\n" +
-        "2. Maintain rigorous peer-reviewed archaeological standard. Never invent archaeological sites or citations not present in the workspace.\n" +
-        "3. Use standard inline academic citations (Author, Year: p. XX) when referencing sources from the library.\n" +
-        "4. Output the drafted academic text directly, ready for dissertation insertion.";
+        "Assisting researcher with Chapter: \"" + chapter + "\".\n\n" +
+        "INGESTED PROJECT MONOGRAPHS:\n" + (librarySources.join('\n') || 'None recorded') + "\n\n" +
+        "CLAIMS FOR THIS CHAPTER:\n" + (verifiedClaims.join('\n') || 'None assigned') + "\n\n" +
+        "CURRENT CHAPTER DRAFT (End of text):\n\"\"\"\n" + (currentText.slice(-1500) || 'Blank') + "\n\"\"\"\n\n" +
+        "TASK: " + instruction + "\n\n" +
+        "Output peer-reviewed dissertation prose directly.";
 
       var resultText = "";
       try {
         if (bridge && typeof bridge.call === 'function') {
           var res = await bridge.call('invoke_llm', { prompt: promptText }, projectId);
-          if (res && res.answer) {
-            resultText = res.answer;
-          } else if (typeof res === 'string') {
-            resultText = res;
-          } else {
-            resultText = JSON.stringify(res, null, 2);
-          }
+          resultText = (res && res.answer) ? res.answer : (typeof res === 'string' ? res : JSON.stringify(res, null, 2));
         }
       } catch(err) {
         resultText = "Error during AI generation: " + err.message;
