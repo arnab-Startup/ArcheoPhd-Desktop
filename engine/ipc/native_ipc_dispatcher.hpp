@@ -463,9 +463,88 @@ public:
                     schemaObj = payload["schema"];
                 }
 
-                // Check 1: In-App Help Chatbot (FloatingChatbot.jsx)
+                bool isEvidenceMode = (promptStr.find("EVIDENCE MODE") != std::string::npos) || 
+                                     (schemaObj.contains("properties") && schemaObj["properties"].contains("supporting")) || 
+                                     (payload.contains("schema") && payload["schema"].contains("properties") && payload["schema"]["properties"].contains("supporting"));
+
+                bool isDisagreementsQuery = (promptStr.find("DISAGREEMENTS") != std::string::npos || promptStr.find("disagreements") != std::string::npos || promptStr.find("contradiction detector") != std::string::npos ||
+                                            (schemaObj.contains("properties") && schemaObj["properties"].contains("disagreements")));
+
                 bool isHelpAssistant = (promptStr.find("in-app help assistant") != std::string::npos || promptStr.find("ArchaeoPhD help assistant") != std::string::npos ||
                                         promptStr.find("User question:") != std::string::npos);
+
+                // PRIORITY 1: REAL IN-PROCESS NEURAL AI ENGINE (Qwen 2.5 7B)
+                // When GGUF model weights are loaded in memory, all queries route directly to neural inference!
+                if (LlmEngine::instance().is_loaded()) {
+                    std::string systemPrompt;
+                    if (isDisagreementsQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological contradiction detector. Analyze the claims and excavation records provided. Output a JSON object with a 'disagreements' array containing objects with fields: topic, source_a, source_b, claim_a, claim_b. Output valid JSON only.";
+                    } else if (isEvidenceMode) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant operating in Evidence Mode. Synthesize and evaluate the query strictly based on the provided excavation records, site data, and claims.\n"
+                                       "Respond with a valid JSON object matching this schema:\n"
+                                       "{\n"
+                                       "  \"supporting\": [\"evidence point 1\", ...],\n"
+                                       "  \"contradicting\": [\"contradiction point 1\", ...],\n"
+                                       "  \"uncertain\": [\"uncertainty point 1\", ...],\n"
+                                       "  \"missing\": [\"evidence gap 1\", ...]\n"
+                                       "}\n"
+                                       "Output pure JSON only, without markdown fences.";
+                    } else if (isHelpAssistant) {
+                        systemPrompt = "You are the ArchaeoPhD AI workstation assistant. Guide the archaeological researcher on using the software: "
+                                       "how to upload and index monographs in the Library, view stratigraphic sequences in the Archaeological Matrix, "
+                                       "run IntCal20 C-14 calibrations in Chronology, inspect GIS sites on the map, resolve contradictions, and export thesis dossiers. "
+                                       "Provide a concise, helpful, and academically professional response.";
+                    } else {
+                        systemPrompt = "You are ArchaeoPhD AI, an advanced research workstation assistant for archaeological scientists and doctoral researchers. "
+                                       "Provide comprehensive, academically rigorous, grounded analysis based on the archaeological context provided. "
+                                       "If structured JSON is requested by the schema, output valid JSON.";
+                    }
+
+                    std::string rawGen = LlmEngine::instance().generate(promptStr, systemPrompt, 512);
+                    if (!rawGen.empty()) {
+                        std::string cleanJson = rawGen;
+                        size_t jStart = cleanJson.find('{');
+                        size_t jEnd = cleanJson.rfind('}');
+                        if (jStart != std::string::npos && jEnd != std::string::npos && jEnd > jStart) {
+                            cleanJson = cleanJson.substr(jStart, jEnd - jStart + 1);
+                            try {
+                                json parsed = json::parse(cleanJson);
+                                if (isDisagreementsQuery && parsed.contains("disagreements")) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                                if (isEvidenceMode && (parsed.contains("supporting") || parsed.contains("missing"))) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                                if (!isEvidenceMode && (parsed.contains("answer") || parsed.contains("evidence"))) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                            } catch (...) {}
+                        }
+
+                        if (isEvidenceMode) {
+                            json llmRes = json::object();
+                            llmRes["supporting"] = json::array({rawGen});
+                            llmRes["contradicting"] = json::array();
+                            llmRes["uncertain"] = json::array();
+                            llmRes["missing"] = json::array();
+                            res["result"] = llmRes;
+                            return res.dump();
+                        } else {
+                            json llmRes = json::object();
+                            llmRes["answer"] = rawGen;
+                            llmRes["evidence"] = "Neural semantic synthesis via Qwen 2.5 7B.";
+                            llmRes["sources"] = "Ingested Research Library";
+                            llmRes["uncertainty"] = "Grounded in local context.";
+                            res["result"] = llmRes;
+                            return res.dump();
+                        }
+                    }
+                }
+
+                // EMERGENCY BACKUP: Deterministic C++ Heuristic (Only when Neural GGUF weights are not installed)
                 if (isHelpAssistant) {
                     if (question.empty()) {
                         size_t uq = promptStr.find("User question:");
@@ -510,8 +589,6 @@ public:
                 }
 
                 // Check 2: Contradiction Disagreements Query (ContradictionDetector.jsx)
-                bool isDisagreementsQuery = (promptStr.find("DISAGREEMENTS") != std::string::npos || promptStr.find("disagreements") != std::string::npos || promptStr.find("contradiction detector") != std::string::npos ||
-                                            (schemaObj.contains("properties") && schemaObj["properties"].contains("disagreements")));
                 if (isDisagreementsQuery) {
                     json disagreements = json::array();
                     if (contradictions_) {
@@ -552,7 +629,7 @@ public:
                     }
                 }
 
-                bool isEvidenceMode = (promptStr.find("EVIDENCE MODE") != std::string::npos) || (schemaObj.contains("properties") && schemaObj["properties"].contains("supporting")) || 
+                isEvidenceMode = (promptStr.find("EVIDENCE MODE") != std::string::npos) || (schemaObj.contains("properties") && schemaObj["properties"].contains("supporting")) || 
                                      (payload.contains("schema") && payload["schema"].contains("properties") && payload["schema"]["properties"].contains("supporting"));
 
                 std::string lowerQ = question;
@@ -639,67 +716,7 @@ public:
                         llmRes["uncertainty"] = "Awaiting specific research question.";
                     }
                 } else {
-                    // Neural AI Generation: When Qwen 2.5 7B GGUF is loaded, synthesize response via neural inference!
-                    if (LlmEngine::instance().is_loaded()) {
-                        std::string systemPrompt = isEvidenceMode ?
-                            "You are ArchaeoPhD AI, an expert archaeological research assistant. Synthesize and evaluate the user query strictly based on the provided excavation records, site data, and claims.\n"
-                            "Respond with a valid JSON object matching this schema:\n"
-                            "{\n"
-                            "  \"supporting\": [\"evidence point 1\", ...],\n"
-                            "  \"contradicting\": [\"contradiction point 1\", ...],\n"
-                            "  \"uncertain\": [\"uncertainty point 1\", ...],\n"
-                            "  \"missing\": [\"evidence gap 1\", ...]\n"
-                            "}\n"
-                            "Output pure JSON only, without markdown fences."
-                            :
-                            "You are ArchaeoPhD AI, an expert archaeological research assistant. Analyze the archaeological research question based on the provided library context.\n"
-                            "Respond with a valid JSON object matching this schema:\n"
-                            "{\n"
-                            "  \"answer\": \"Comprehensive scholarly answer...\",\n"
-                            "  \"evidence\": \"Specific stratigraphic, chronological, or material evidence...\",\n"
-                            "  \"sources\": \"Cited monographs, reports, or field contexts...\",\n"
-                            "  \"uncertainty\": \"Empirical or methodological uncertainties...\"\n"
-                            "}\n"
-                            "Output pure JSON only, without markdown fences.";
-
-                        std::string rawGen = LlmEngine::instance().generate(promptStr, systemPrompt, 512);
-                        if (!rawGen.empty()) {
-                            std::string cleanJson = rawGen;
-                            size_t jStart = cleanJson.find('{');
-                            size_t jEnd = cleanJson.rfind('}');
-                            if (jStart != std::string::npos && jEnd != std::string::npos && jEnd > jStart) {
-                                cleanJson = cleanJson.substr(jStart, jEnd - jStart + 1);
-                                try {
-                                    json parsed = json::parse(cleanJson);
-                                    if (isEvidenceMode && (parsed.contains("supporting") || parsed.contains("missing"))) {
-                                        res["result"] = parsed;
-                                        return res.dump();
-                                    } else if (!isEvidenceMode && (parsed.contains("answer") || parsed.contains("evidence"))) {
-                                        res["result"] = parsed;
-                                        return res.dump();
-                                    }
-                                } catch (...) {}
-                            }
-
-                            if (isEvidenceMode) {
-                                llmRes["supporting"] = json::array({rawGen});
-                                llmRes["contradicting"] = json::array();
-                                llmRes["uncertain"] = json::array();
-                                llmRes["missing"] = json::array();
-                                res["result"] = llmRes;
-                                return res.dump();
-                            } else {
-                                llmRes["answer"] = rawGen;
-                                llmRes["evidence"] = "Neural semantic synthesis via Qwen 2.5 7B.";
-                                llmRes["sources"] = "Ingested Research Library";
-                                llmRes["uncertainty"] = "Grounded in local context.";
-                                res["result"] = llmRes;
-                                return res.dump();
-                            }
-                        }
-                    }
-
-                    // Deterministic Engine Fallback (Zero Fake Data, Pure Project Reality)
+                    // Deterministic Engine Emergency Backup (Zero Fake Data, Pure Project Reality)
                     bool isContradictionQuery = (lowerQ.find("contradict") != std::string::npos || 
                                                  lowerQ.find("conflict") != std::string::npos || 
                                                  lowerQ.find("disagree") != std::string::npos ||
