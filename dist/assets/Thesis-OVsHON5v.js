@@ -7,7 +7,7 @@ function Z(){
       window.archaeophdThesis.render();
     }
   }, [n]);
-  return n ? e.jsx("div", { id: "apd-thesis-studio-mount", className: "apd-te-container space-y-5" }) : e.jsx(W, {});
+  return e.jsx("div", { id: "apd-thesis-studio-mount", className: "apd-te-container space-y-5" });
 }
 
 export { Z as default };
