@@ -6,8 +6,8 @@
     <script>
       (function(){
         try {
-          if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html' || window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/demo') {
-            try { window.history.replaceState(null, '', '/dashboard'); } catch(e){}
+          if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html') {
+            try { window.history.replaceState(null, '', '/'); } catch(e){}
           }
           var rawMsgs = localStorage.getItem('archaeophd_local_messages');
           if (rawMsgs) {
@@ -214,7 +214,7 @@
               if (r && r.text) return r;
             } catch(e) {}
           }
-          return { text: window.__lastSpeechTranscript || 'Field excavation and stratigraphic record logged.' };
+          return { text: window.__lastSpeechTranscript || '' };
         },
         GenerateSpeech: async function(req) { return { url: '' }; },
         InvokeLLM: async function(req) {
@@ -226,10 +226,10 @@
             } catch(e) {}
           }
           return {
-            answer: 'Hello! Ask your research question, and I will find contradiction evidence in your workspace.',
-            evidence: 'Verified from local workspace.',
-            sources: 'Offline Research Workstation',
-            uncertainty: 'Grounded in local project data.'
+            answer: 'Native AI engine did not return a response. Ensure your local neural model is loaded.',
+            evidence: '',
+            sources: '',
+            uncertainty: ''
           };
         }
       };
@@ -526,6 +526,8 @@
     <script src="/data-root-dialog.js"></script>
 
     <script src="/ingestion-workflow.js"></script>
+
+    <script src="/welcome-screen.js"></script>
 
   </body>
 

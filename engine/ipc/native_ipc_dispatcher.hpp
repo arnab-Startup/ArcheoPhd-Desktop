@@ -463,410 +463,110 @@ public:
                     schemaObj = payload["schema"];
                 }
 
-                // Check 1: In-App Help Chatbot (FloatingChatbot.jsx)
-                bool isHelpAssistant = (promptStr.find("in-app help assistant") != std::string::npos || promptStr.find("ArchaeoPhD help assistant") != std::string::npos ||
-                                        promptStr.find("User question:") != std::string::npos);
-                if (isHelpAssistant) {
-                    if (question.empty()) {
-                        size_t uq = promptStr.find("User question:");
-                        if (uq != std::string::npos) {
-                            question = promptStr.substr(uq + 14);
-                        } else {
-                            question = promptStr;
-                        }
-                    }
-                    while (!question.empty() && (question.front() == ' ' || question.front() == '\t' || question.front() == '\r' || question.front() == '\n')) question.erase(question.begin());
-                    while (!question.empty() && (question.back() == ' ' || question.back() == '\t' || question.back() == '\r' || question.back() == '\n')) question.pop_back();
-
-                    std::string lowerQ = question;
-                    for (char& c : lowerQ) c = (char)std::tolower((unsigned char)c);
-                    while (!lowerQ.empty() && (lowerQ.back() == '!' || lowerQ.back() == '?' || lowerQ.back() == '.' || lowerQ.back() == ',' || lowerQ.back() == ' ')) lowerQ.pop_back();
-
-                    std::string helpAnswer = "";
-                    if (lowerQ == "hi" || lowerQ == "hello" || lowerQ == "hey" || lowerQ == "greetings" || lowerQ.empty()) {
-                        helpAnswer = "Hello! I am your ArchaeoPhD help assistant. Ask me how to upload sources, extract claims, use the Evidence Graph, manage projects, or find contradictions in your workspace.";
-                    } else if (lowerQ.find("upload") != std::string::npos || lowerQ.find("source") != std::string::npos || lowerQ.find("ingest") != std::string::npos || lowerQ.find("pdf") != std::string::npos) {
-                        helpAnswer = "To upload a source:\n1. Click 'Library' or 'Ingestion' in the sidebar navigation.\n2. Click 'Add Source' or drop your excavation monograph / field PDF into the drop zone.\n3. ArchaeoPhD calculates an immutable SHA-256 hash for data integrity, indexes the text, and allows you to optically verify claims against scanned pages.";
-                    } else if (lowerQ.find("evidence graph") != std::string::npos || lowerQ.find("graph") != std::string::npos) {
-                        helpAnswer = "The Evidence Graph visualizes your research claims, stratigraphic layers, and supporting or contradicting citations as an interactive node network. It connects excavation sites, artifacts, and literature so you can identify corroborations and knowledge gaps at a glance.";
-                    } else if (lowerQ.find("project") != std::string::npos || lowerQ.find("create") != std::string::npos) {
-                        helpAnswer = "To create or manage research projects:\n1. Click the active project dropdown in the top bar or sidebar.\n2. Select 'New Project' and enter your project title, region, and chronological focus.\n3. All your uploaded sources, claims, sites, and thesis chapters remain organized within that project container.";
-                    } else if (lowerQ.find("claim") != std::string::npos || lowerQ.find("link") != std::string::npos) {
-                        helpAnswer = "Claims represent specific archaeological assertions (e.g., site chronology, ceramic typology, or stratum sequence). Evidence records link directly to a claim and reference specific sources, page citations, or radiocarbon assays. The engine marks whether evidence supports or disputes each claim.";
-                    } else if (lowerQ.find("contradict") != std::string::npos || lowerQ.find("conflict") != std::string::npos || lowerQ.find("disagree") != std::string::npos) {
-                        helpAnswer = "ArchaeoPhD's Contradiction Engine cross-references stratigraphic ordering, radiocarbon dates, and author assertions across your library. Open 'Contradictions' under Evidence in the sidebar to review detected chronological and layer conflicts, or turn on 'Evidence Mode' in AI Research.";
-                    } else if (lowerQ.find("thesis") != std::string::npos || lowerQ.find("export") != std::string::npos || lowerQ.find("write") != std::string::npos) {
-                        helpAnswer = "Navigate to 'Thesis' or 'Export Center' under Analysis in the sidebar. You can structure dissertation chapters, embed grounded citations from your library, audit citation integrity, and export formatted dossiers in Markdown, LaTeX/BibTeX, or HTML.";
-                    } else if (lowerQ.find("site") != std::string::npos || lowerQ.find("artifact") != std::string::npos || lowerQ.find("chronolog") != std::string::npos || lowerQ.find("map") != std::string::npos) {
-                        helpAnswer = "Use the 'Data' menu in the sidebar to access Sites, Artifacts, Chronology, and the GIS Map. You can record geographic coordinates, stratum associations, and radiocarbon calibrations directly within your project workspace.";
-                    } else {
-                        helpAnswer = "I am your ArchaeoPhD help assistant. Ask me how to upload sources, build claims, use the Evidence Graph, analyze contradictions, manage sites and artifacts, or export your thesis.";
-                    }
-
-                    json llmRes = json::object();
-                    llmRes["answer"] = helpAnswer;
-                    res["result"] = llmRes;
-                    return res.dump();
-                }
-
-                // Check 2: Contradiction Disagreements Query (ContradictionDetector.jsx)
-                bool isDisagreementsQuery = (promptStr.find("DISAGREEMENTS") != std::string::npos || promptStr.find("disagreements") != std::string::npos || promptStr.find("contradiction detector") != std::string::npos ||
-                                            (schemaObj.contains("properties") && schemaObj["properties"].contains("disagreements")));
-                if (isDisagreementsQuery) {
-                    json disagreements = json::array();
-                    if (contradictions_) {
-                        auto conflicts = contradictions_->run_all(projectId);
-                        for (const auto& c : conflicts) {
-                            json item = json::object();
-                            item["topic"] = c.title.empty() ? (c.type.empty() ? "Chronology / Stratigraphy" : c.type) : c.title;
-                            item["source_a"] = c.source_a.empty() ? "Excavation Record A" : c.source_a;
-                            item["source_b"] = c.source_b.empty() ? "Excavation Record B" : c.source_b;
-                            item["claim_a"] = c.claim_a.empty() ? (c.title.empty() ? "Primary stratigraphic sequence" : c.title) : c.claim_a;
-                            item["claim_b"] = c.claim_b.empty() ? (c.anomaly_description.empty() ? "Inverted stratigraphic sequence" : c.anomaly_description) : c.claim_b;
-                            disagreements.push_back(item);
-                        }
-                    }
-                    if (disagreements.empty()) {
-                        disagreements.push_back({
-                            {"topic", "Chronology / Dating"},
-                            {"source_a", "Wheeler, R.E.M. (1946) - Arikamedu: An Indo-Roman Trading Station"},
-                            {"source_b", "Begley, V. (1983) - Arikamedu Reconsidered"},
-                            {"claim_a", "Proposes Arretine ceramic horizon dates strictly between 20-50 CE."},
-                            {"claim_b", "Demonstrates pre-Arretine stratigraphic phase with amphorae dating to 2nd century BCE."}
-                        });
-                        disagreements.push_back({
-                            {"topic", "Stratigraphy / Period II Dating"},
-                            {"source_a", "Lal, B.B. (1955) - Excavations at Hastinapura"},
-                            {"source_b", "Radiocarbon Dating Laboratory Calibration Sequence"},
-                            {"claim_a", "Dates Painted Grey Ware (PGW) Period II between 1100 BCE and 800 BCE based on ceramic seriation."},
-                            {"claim_b", "Calibrated AMS radiocarbon sequences place Period II between 900 BCE and 500 BCE."}
-                        });
-                    }
-                    json llmRes = json::object();
-                    llmRes["disagreements"] = disagreements;
-                    res["result"] = llmRes;
-                    return res.dump();
-                }
-
-                // Check 3: Main AI Research Assistant (AIResearch.jsx)
-                if (question.empty() && promptStr.find("RESEARCHER QUESTION: ") != std::string::npos) {
-                    size_t qPos = promptStr.find("RESEARCHER QUESTION: ");
-                    size_t endPos = promptStr.find("\n", qPos);
-                    if (endPos != std::string::npos) {
-                        question = promptStr.substr(qPos + 21, endPos - (qPos + 21));
-                    } else {
-                        question = promptStr.substr(qPos + 21);
-                    }
-                }
-                while (!question.empty() && (question.front() == ' ' || question.front() == '\t' || question.front() == '\r' || question.front() == '\n')) question.erase(question.begin());
-                while (!question.empty() && (question.back() == ' ' || question.back() == '\t' || question.back() == '\r' || question.back() == '\n')) question.pop_back();
-
-                if (question.empty()) {
-                    if (promptStr.find("You are ArchaeoPhD") == std::string::npos) {
-                        question = promptStr;
-                    }
-                }
-
-                bool isEvidenceMode = (promptStr.find("EVIDENCE MODE") != std::string::npos) || (schemaObj.contains("properties") && schemaObj["properties"].contains("supporting")) || 
+                bool isEvidenceMode = (promptStr.find("EVIDENCE MODE") != std::string::npos) || 
+                                     (schemaObj.contains("properties") && schemaObj["properties"].contains("supporting")) || 
                                      (payload.contains("schema") && payload["schema"].contains("properties") && payload["schema"]["properties"].contains("supporting"));
 
-                std::string lowerQ = question;
-                for (size_t k = 0; k < lowerQ.size(); ++k) lowerQ[k] = (char)std::tolower((unsigned char)lowerQ[k]);
-                while (!lowerQ.empty() && (lowerQ.back() == '!' || lowerQ.back() == '?' || lowerQ.back() == '.' || lowerQ.back() == ',' || lowerQ.back() == ' ')) lowerQ.pop_back();
+                bool isDisagreementsQuery = (promptStr.find("DISAGREEMENTS") != std::string::npos || promptStr.find("disagreements") != std::string::npos || promptStr.find("contradiction detector") != std::string::npos ||
+                                            (schemaObj.contains("properties") && schemaObj["properties"].contains("disagreements")));
 
-                bool isGreeting = (lowerQ == "hi" || lowerQ == "hello" || lowerQ == "hey" || 
-                                   lowerQ == "greetings" || lowerQ == "good morning" || 
-                                   lowerQ == "good afternoon" || lowerQ == "who are you" || 
-                                   lowerQ == "what can you do" || lowerQ == "help" || lowerQ == "test");
+                bool isHelpAssistant = (promptStr.find("in-app help assistant") != std::string::npos || promptStr.find("ArchaeoPhD help assistant") != std::string::npos ||
+                                        promptStr.find("User question:") != std::string::npos);
 
-                // Parse the RESEARCH LIBRARY: context from promptStr
-                std::string libSection = "";
-                size_t libStart = promptStr.find("RESEARCH LIBRARY:");
-                if (libStart != std::string::npos) {
-                    size_t qStart = promptStr.find("RESEARCHER QUESTION:", libStart);
-                    if (qStart != std::string::npos) {
-                        libSection = promptStr.substr(libStart + 17, qStart - (libStart + 17));
+                // PRIORITY 1: REAL IN-PROCESS NEURAL AI ENGINE (Qwen 2.5 7B)
+                // When GGUF model weights are loaded in memory, all queries route directly to neural inference!
+                if (LlmEngine::instance().is_loaded()) {
+                    std::string systemPrompt;
+                    if (isDisagreementsQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological contradiction detector. Analyze the claims and excavation records provided. Output a JSON object with a 'disagreements' array containing objects with fields: topic, source_a, source_b, claim_a, claim_b. Output valid JSON only.";
+                    } else if (isEvidenceMode) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant operating in Evidence Mode. Synthesize and evaluate the query strictly based on the provided excavation records, site data, and claims.\n"
+                                       "Respond with a valid JSON object matching this schema:\n"
+                                       "{\n"
+                                       "  \"supporting\": [\"evidence point 1\", ...],\n"
+                                       "  \"contradicting\": [\"contradiction point 1\", ...],\n"
+                                       "  \"uncertain\": [\"uncertainty point 1\", ...],\n"
+                                       "  \"missing\": [\"evidence gap 1\", ...]\n"
+                                       "}\n"
+                                       "Output pure JSON only, without markdown fences.";
+                    } else if (isHelpAssistant) {
+                        systemPrompt = "You are the ArchaeoPhD AI workstation assistant. Guide the archaeological researcher on using the software: "
+                                       "how to upload and index monographs in the Library, view stratigraphic sequences in the Archaeological Matrix, "
+                                       "run IntCal20 C-14 calibrations in Chronology, inspect GIS sites on the map, resolve contradictions, and export thesis dossiers. "
+                                       "Provide a concise, helpful, and academically professional response.";
                     } else {
-                        libSection = promptStr.substr(libStart + 17);
+                        systemPrompt = "You are ArchaeoPhD AI, an advanced research workstation assistant for archaeological scientists and doctoral researchers. "
+                                       "Provide comprehensive, academically rigorous, grounded analysis based on the archaeological context provided. "
+                                       "If structured JSON is requested by the schema, output valid JSON.";
                     }
-                }
 
-                std::vector<std::string> promptSources;
-                std::vector<std::string> promptSites;
-                std::vector<std::string> promptClaims;
-                std::vector<std::string> promptEvidence;
+                    std::string rawGen = LlmEngine::instance().generate(promptStr, systemPrompt, 512);
+                    if (!rawGen.empty()) {
+                        std::string cleanJson = rawGen;
+                        size_t jStart = cleanJson.find('{');
+                        size_t jEnd = cleanJson.rfind('}');
+                        if (jStart != std::string::npos && jEnd != std::string::npos && jEnd > jStart) {
+                            cleanJson = cleanJson.substr(jStart, jEnd - jStart + 1);
+                            try {
+                                json parsed = json::parse(cleanJson);
+                                if (isDisagreementsQuery && parsed.contains("disagreements")) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                                if (isEvidenceMode && (parsed.contains("supporting") || parsed.contains("missing"))) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                                if (!isEvidenceMode && (parsed.contains("answer") || parsed.contains("evidence"))) {
+                                    res["result"] = parsed;
+                                    return res.dump();
+                                }
+                            } catch (...) {}
+                        }
 
-                if (!libSection.empty() && libSection.find("(The research library is currently empty.)") == std::string::npos) {
-                    std::string currentSec = "";
-                    size_t pos = 0;
-                    while (pos < libSection.size()) {
-                        size_t nextLine = libSection.find("\n", pos);
-                        std::string line = (nextLine != std::string::npos) ? libSection.substr(pos, nextLine - pos) : libSection.substr(pos);
-                        pos = (nextLine != std::string::npos) ? nextLine + 1 : libSection.size();
-
-                        while (!line.empty() && (line.front() == ' ' || line.front() == '\r')) line.erase(line.begin());
-                        while (!line.empty() && (line.back() == ' ' || line.back() == '\r')) line.pop_back();
-
-                        if (line.empty()) continue;
-                        if (line == "SOURCES:") { currentSec = "SOURCES"; continue; }
-                        if (line == "SITES:") { currentSec = "SITES"; continue; }
-                        if (line == "ARTIFACTS:") { currentSec = "ARTIFACTS"; continue; }
-                        if (line == "CLAIMS:") { currentSec = "CLAIMS"; continue; }
-                        if (line == "EVIDENCE:") { currentSec = "EVIDENCE"; continue; }
-                        if (line == "NOTES:") { currentSec = "NOTES"; continue; }
-
-                        if (line.rfind("- ID:", 0) == 0) {
-                            if (currentSec == "SOURCES") promptSources.push_back(line);
-                            else if (currentSec == "SITES") promptSites.push_back(line);
-                            else if (currentSec == "CLAIMS") promptClaims.push_back(line);
-                            else if (currentSec == "EVIDENCE") promptEvidence.push_back(line);
+                        if (isEvidenceMode) {
+                            json llmRes = json::object();
+                            llmRes["supporting"] = json::array({rawGen});
+                            llmRes["contradicting"] = json::array();
+                            llmRes["uncertain"] = json::array();
+                            llmRes["missing"] = json::array();
+                            res["result"] = llmRes;
+                            return res.dump();
+                        } else {
+                            json llmRes = json::object();
+                            llmRes["answer"] = rawGen;
+                            llmRes["evidence"] = "Neural semantic synthesis via Qwen 2.5 7B.";
+                            llmRes["sources"] = "Ingested Research Library";
+                            llmRes["uncertainty"] = "Grounded in local context.";
+                            res["result"] = llmRes;
+                            return res.dump();
                         }
                     }
                 }
 
-                // Also merge native storage data if present
-                auto dbClaims = storage_ ? storage_->get_claims(projectId) : std::vector<Claim>{};
-                auto dbSources = storage_ ? storage_->get_sources(projectId) : std::vector<Source>{};
-                auto dbSites = storage_ ? storage_->get_sites(projectId) : std::vector<Site>{};
-
-                for (const auto& c : dbClaims) {
-                    promptClaims.push_back("- ID:" + c.id + " | " + c.claim_text + " [status: " + c.status + "]");
-                }
-                for (const auto& s : dbSources) {
-                    promptSources.push_back("- ID:" + s.id + " | \"" + s.title + "\" by " + s.author + " (" + s.year + ")");
-                }
-                for (const auto& st : dbSites) {
-                    promptSites.push_back("- ID:" + st.id + " | " + st.site_name + " (" + st.country + "), period: " + st.period);
-                }
-
+                // MANDATORY MODEL REQUIREMENT GATE:
+                // ArchaeoPhD is an AI-native workstation. Zero heuristic fallbacks, zero canned dummy replies.
+                // The local Neural AI Engine (Qwen 2.5 7B) is required to operate.
                 json llmRes = json::object();
-
-                if (isGreeting) {
-                    if (isEvidenceMode) {
-                        llmRes["supporting"] = json::array({"Workspace grounded in active archaeological project.", "Ready to cross-reference excavation monographs, claims, and field records."});
-                        llmRes["contradicting"] = json::array();
-                        llmRes["uncertain"] = json::array();
-                        llmRes["missing"] = json::array();
-                    } else {
-                        llmRes["answer"] = "Hello! Ask your research question, and I will find contradiction evidence in your workspace.";
-                        llmRes["evidence"] = "Active workspace reasoning engine.";
-                        llmRes["sources"] = "Local Research Library";
-                        llmRes["uncertainty"] = "Awaiting specific research question.";
-                    }
+                if (isDisagreementsQuery) {
+                    llmRes["disagreements"] = json::array();
+                    llmRes["error"] = "[MANDATORY SYSTEM REQUIREMENT]: Neural AI model weights (Qwen2.5-7B-Instruct-Q4_K_M.gguf) are required to run contradiction analysis. ArchaeoPhD cannot run without the offline neural model.";
+                } else if (isEvidenceMode) {
+                    llmRes["supporting"] = json::array();
+                    llmRes["contradicting"] = json::array();
+                    llmRes["uncertain"] = json::array();
+                    llmRes["missing"] = json::array({"[MANDATORY SYSTEM REQUIREMENT]: The local Neural AI model weights (Qwen 2.5 7B) are not loaded. ArchaeoPhD requires offline AI model weights to run research synthesis. Please ensure Qwen2.5-7B-Instruct-Q4_K_M.gguf is placed in your models directory."});
                 } else {
-                    bool isContradictionQuery = (lowerQ.find("contradict") != std::string::npos || 
-                                                 lowerQ.find("conflict") != std::string::npos || 
-                                                 lowerQ.find("disagree") != std::string::npos ||
-                                                 lowerQ.find("discrepan") != std::string::npos ||
-                                                 lowerQ.find("difference") != std::string::npos ||
-                                                 lowerQ.find("dispute") != std::string::npos);
-
-                    bool isLackingEvidenceQuery = (lowerQ.find("lack") != std::string::npos || 
-                                                   lowerQ.find("missing evidence") != std::string::npos || 
-                                                   (lowerQ.find("claim") != std::string::npos && lowerQ.find("without") != std::string::npos));
-
-                    bool isNBPWQuery = (lowerQ.find("northern black polished") != std::string::npos || 
-                                        lowerQ.find("nbpw") != std::string::npos || 
-                                        (lowerQ.find("ware") != std::string::npos && lowerQ.find("polished") != std::string::npos));
-
-                    bool isUrbanizationQuery = (lowerQ.find("urban") != std::string::npos || 
-                                                lowerQ.find("300 bce") != std::string::npos || 
-                                                lowerQ.find("after 300") != std::string::npos);
-
-                    bool isDatedSitesQuery = ((lowerQ.find("site") != std::string::npos || lowerQ.find("sites") != std::string::npos) && 
-                                              (lowerQ.find("dated") != std::string::npos || lowerQ.find("between") != std::string::npos || lowerQ.find("300") != std::string::npos || lowerQ.find("100") != std::string::npos));
-
-                    if (isContradictionQuery) {
-                        std::vector<std::string> conflictPoints;
-                        if (contradictions_) {
-                            auto conflicts = contradictions_->run_all(projectId);
-                            for (const auto& c : conflicts) {
-                                std::string pt = c.title;
-                                if (!c.anomaly_description.empty()) pt += ": " + c.anomaly_description;
-                                conflictPoints.push_back(pt);
-                            }
-                        }
-                        for (const auto& clm : promptClaims) {
-                            if (clm.find("status: Contested") != std::string::npos || clm.find("disagree") != std::string::npos) {
-                                conflictPoints.push_back(clm);
-                            }
-                        }
-                        if (conflictPoints.empty()) {
-                            conflictPoints.push_back("Wheeler (1946) vs Begley (1983): Wheeler dates Arikamedu Arretine ware to 20-50 CE, whereas Begley's re-examination demonstrates pre-Arretine occupation from the 2nd century BCE.");
-                            conflictPoints.push_back("Lal (1955) vs AMS C14 calibration: Lal dates Hastinapura Period II (PGW) to 1100-800 BCE, whereas calibrated AMS dates indicate 900-500 BCE.");
-                        }
-
-                        if (isEvidenceMode) {
-                            json contrArr = json::array();
-                            for (const auto& pt : conflictPoints) contrArr.push_back(pt);
-                            llmRes["supporting"] = json::array({"Stratigraphic continuity confirmed between Period II and Period III at Hastinapura.", "Both Wheeler and Begley confirm presence of Mediterranean amphorae sherds in maritime warehouse contexts."});
-                            llmRes["contradicting"] = contrArr;
-                            llmRes["uncertain"] = json::array({"Disputed boundary of early maritime trade horizon pending high-precision AMS series."});
-                            llmRes["missing"] = json::array({"Direct stratigraphic cross-trench correlation between northern and southern sectors."});
-                        } else {
-                            std::string ans = "The following disagreements and contradictions exist across sources in your library:\n\n";
-                            for (size_t i = 0; i < conflictPoints.size(); ++i) {
-                                ans += std::to_string(i + 1) + ". " + conflictPoints[i] + "\n\n";
-                            }
-                            llmRes["answer"] = ans;
-                            llmRes["evidence"] = "Trench IV layer 4 ceramic seriation vs Trench VII pre-structural deposit AMS assays; stratigraphic cycle detection in excavation logs.";
-                            llmRes["sources"] = "Wheeler (1946); Begley (1983); Lal (1955)";
-                            llmRes["uncertainty"] = "Stratigraphic correlation across disjoint excavation seasons remains contested without new micro-stratigraphic sampling.";
-                        }
-                    } else if (isLackingEvidenceQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array();
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Claims marked with status: Contested or Under Review."});
-                            llmRes["missing"] = json::array({
-                                "Claim #clm_prestructural: Pre-structural stratum absolute dating lacks direct radiocarbon samples.",
-                                "Claim #clm_coarse_ware: Ceramic provenance for Trench IX coarse red ware lacks petrographic thin-section analysis.",
-                                "Claim #clm_flood_abandonment: Direct stratigraphic evidence linking the flood horizon to total site abandonment is currently missing."
-                            });
-                        } else {
-                            llmRes["answer"] = "The following claims in your research library currently lack supporting evidence records:\n1. Pre-structural stratum absolute dating (lacks direct radiocarbon samples).\n2. Ceramic provenance for Trench IX coarse red ware (lacks petrographic analysis).\n3. Stratigraphic correlation linking the flood horizon to total site abandonment.";
-                            llmRes["evidence"] = "Knowledge graph audit: 3 unverified claims identified with 0 linked primary excavation citations.";
-                            llmRes["sources"] = "Claims Register (Active Project)";
-                            llmRes["uncertainty"] = "Requires field verification or additional monograph ingestion.";
-                        }
-                    } else if (isNBPWQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Lal, B.B. (1955): Identifies NBPW in Hastinapura Period III stratified directly above the flood deposit.",
-                                "Monograph records: High-gloss black slip ceramic sherds associated with punch-marked silver currency.",
-                                "Regional survey: Documents NBPW distribution along major northern trade routes (Uttarapatha)."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Early origin date (700 BCE vs 500 BCE) across central vs eastern Gangetic sites."});
-                            llmRes["missing"] = json::array({"Thermoluminescence dating on fine black slip sherds."});
-                        } else {
-                            llmRes["answer"] = "The following sources in your research library discuss Northern Black Polished Ware (NBPW):\n1. Lal, B.B. (1955) - 'Excavations at Hastinapura and other Explorations in the Upper Ganga and Sutlej Basins 1950-52' (documents NBPW transition from PGW in Period III).\n2. Wheeler, R.E.M. (1946) - 'Arikamedu: An Indo-Roman Trading Station' (identifies deluxe black slip wares and trade links).\n3. Excavation monographs and regional site surveys in your active project library.";
-                            llmRes["evidence"] = "Stratified NBPW deluxe ceramic sherds from Hastinapura Period III; fine metallic luster ware associations.";
-                            llmRes["sources"] = "Lal (1955); Wheeler (1946)";
-                            llmRes["uncertainty"] = "Regional onset dates of NBPW range from 700 BCE in eastern Gangetic sites to 400 BCE in southern outliers.";
-                        }
-                    } else if (isUrbanizationQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Monumental Architecture: First widespread appearance of burnt-brick residential structures and public buildings (Lal 1955, Period III).",
-                                "Economic Specialization: Abundant punch-marked silver and copper coinage indicating standardized monetized exchange.",
-                                "Sanitation Infrastructure: Dense networks of terracotta ring-wells and brick soakage drains.",
-                                "Civic Defenses: Construction of massive mud-brick defensive ramparts and moats."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Rural demographic density during early urban transition."});
-                            llmRes["missing"] = json::array({"Epigraphic administrative records prior to the 3rd century BCE Maurya period."});
-                        } else {
-                            llmRes["answer"] = "Evidence in your library supporting increasing urbanization after 300 BCE includes:\n1. Monumental burnt-brick architecture replacing wattle-and-daub construction.\n2. Widespread circulation of punch-marked silver and copper coinage.\n3. Advanced urban sanitation including terracotta ring wells and soak-pits.\n4. Fortified ramparts and organized civic grid layouts across Gangetic and Deccan sites.";
-                            llmRes["evidence"] = "Hastinapura Period III structural levels; ring-well clusters; stratified punch-marked coin hoards.";
-                            llmRes["sources"] = "Lal (1955); Active Research Library";
-                            llmRes["uncertainty"] = "Pace of urbanization differs markedly between riverine arterial centers and peripheral upland sites.";
-                        }
-                    } else if (isDatedSitesQuery) {
-                        if (isEvidenceMode) {
-                            llmRes["supporting"] = json::array({
-                                "Arikamedu: Early Historic port phase with Mediterranean amphorae, dated c. 200 BCE - 100 CE.",
-                                "Hastinapura: Period III early historic transition with burnt-brick structures and punch-marked coins (c. 6th - 3rd century BCE).",
-                                "Sringaverapura: Period IV settlement and hydraulic complex dated c. 200 BCE - 100 CE."
-                            });
-                            llmRes["contradicting"] = json::array();
-                            llmRes["uncertain"] = json::array({"Exact century of transition between NBPW terminal levels and Early Historic red wares."});
-                            llmRes["missing"] = json::array({"Paleo-environmental pollen cores for late 1st-millennium BCE climate correlation."});
-                        } else {
-                            llmRes["answer"] = "The following sites in your research library have stratigraphic phases dated between 300 BCE and 100 CE:\n1. Arikamedu (Puducherry, India) - Early Historic port and trading station (c. 200 BCE - 200 CE).\n2. Hastinapura (Uttar Pradesh, India) - Period III Early Historic occupation (c. 6th century BCE - 3rd century BCE).\n3. Sringaverapura (Uttar Pradesh, India) - Early Historic tank and settlement horizon (c. 200 BCE - 200 CE).";
-                            llmRes["evidence"] = "Ceramic horizons (NBPW to Red Polished Ware), Arretine imports, and calibrated radiocarbon series.";
-                            llmRes["sources"] = "Excavation records and site catalog in active library.";
-                            llmRes["uncertainty"] = "Transitional phase dates calibrated at 68% vs 95.4% confidence intervals.";
-                        }
-                    } else {
-                        // General dynamic token match across library
-                        std::vector<std::string> matchingSources;
-                        std::vector<std::string> matchingClaims;
-                        std::vector<std::string> matchingSites;
-
-                        std::vector<std::string> queryTokens;
-                        size_t wstart = 0;
-                        while (wstart < lowerQ.size()) {
-                            while (wstart < lowerQ.size() && !std::isalnum((unsigned char)lowerQ[wstart])) ++wstart;
-                            size_t wend = wstart;
-                            while (wend < lowerQ.size() && std::isalnum((unsigned char)lowerQ[wend])) ++wend;
-                            if (wend - wstart >= 3) {
-                                std::string word = lowerQ.substr(wstart, wend - wstart);
-                                if (word != "what" && word != "which" && word != "where" && word != "sources" && word != "sites" && word != "your" && word != "library") {
-                                    queryTokens.push_back(word);
-                                }
-                            }
-                            wstart = wend;
-                        }
-
-                        auto matchesAnyToken = [&](const std::string& text) {
-                            std::string lowerText = text;
-                            for (char& ch : lowerText) ch = (char)std::tolower((unsigned char)ch);
-                            for (const auto& tok : queryTokens) {
-                                if (lowerText.find(tok) != std::string::npos) return true;
-                            }
-                            return false;
-                        };
-
-                        for (const auto& s : promptSources) {
-                            if (!queryTokens.empty() && matchesAnyToken(s)) matchingSources.push_back(s);
-                        }
-                        for (const auto& c : promptClaims) {
-                            if (!queryTokens.empty() && matchesAnyToken(c)) matchingClaims.push_back(c);
-                        }
-                        for (const auto& st : promptSites) {
-                            if (!queryTokens.empty() && matchesAnyToken(st)) matchingSites.push_back(st);
-                        }
-
-                        if (matchingSources.empty() && matchingClaims.empty() && matchingSites.empty()) {
-                            // Invariant from GROUNDING_RULES
-                            if (isEvidenceMode) {
-                                llmRes["supporting"] = json::array();
-                                llmRes["contradicting"] = json::array();
-                                llmRes["uncertain"] = json::array();
-                                llmRes["missing"] = json::array({"Insufficient evidence in your research library for '" + question + "'."});
-                            } else {
-                                llmRes["answer"] = "Insufficient evidence in your research library.";
-                                llmRes["evidence"] = "Zero matching records in active research library.";
-                                llmRes["sources"] = "None";
-                                llmRes["uncertainty"] = "Requires additional document ingestion or project seeding.";
-                            }
-                        } else {
-                            if (isEvidenceMode) {
-                                json suppArr = json::array();
-                                for (const auto& s : matchingSources) suppArr.push_back(s);
-                                for (const auto& c : matchingClaims) suppArr.push_back(c);
-                                for (const auto& st : matchingSites) suppArr.push_back(st);
-
-                                llmRes["supporting"] = suppArr;
-                                llmRes["contradicting"] = json::array();
-                                llmRes["uncertain"] = json::array();
-                                llmRes["missing"] = json::array();
-                            } else {
-                                std::string ans = "The following records in your research library address this inquiry:\n";
-                                for (size_t i = 0; i < std::min<size_t>(3, matchingSources.size()); ++i) {
-                                    ans += "• " + matchingSources[i] + "\n";
-                                }
-                                for (size_t i = 0; i < std::min<size_t>(3, matchingClaims.size()); ++i) {
-                                    ans += "• " + matchingClaims[i] + "\n";
-                                }
-                                for (size_t i = 0; i < std::min<size_t>(3, matchingSites.size()); ++i) {
-                                    ans += "• " + matchingSites[i] + "\n";
-                                }
-                                llmRes["answer"] = ans;
-                                llmRes["evidence"] = matchingClaims.empty() ? (matchingSources.empty() ? "Grounded workspace library" : matchingSources[0]) : matchingClaims[0];
-                                llmRes["sources"] = matchingSources.empty() ? "Research Library" : matchingSources[0];
-                                llmRes["uncertainty"] = "Grounded strictly in active workspace data without extrapolation.";
-                            }
-                        }
-                    }
+                    llmRes["answer"] = "[MANDATORY SYSTEM REQUIREMENT]: The local Neural AI Engine (Qwen 2.5 7B) is required to run ArchaeoPhD. The software cannot operate AI research features without the neural model weights. Please download or place Qwen2.5-7B-Instruct-Q4_K_M.gguf into your models folder to activate the workspace.";
+                    llmRes["evidence"] = "Offline Neural Model Required";
+                    llmRes["sources"] = "System Gate";
+                    llmRes["uncertainty"] = "Cannot run without offline neural weights.";
                 }
-
                 res["result"] = llmRes;
                 return res.dump();
             } else if (action == "transcribe_audio") {
                 res["result"] = {
-                    {"text", "Field excavation and stratigraphic record logged."}
+                    {"text", ""}
                 };
                 return res.dump();
             }
