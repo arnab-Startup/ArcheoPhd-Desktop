@@ -878,7 +878,7 @@ public:
                 return res.dump();
             } else if (action == "transcribe_audio") {
                 res["result"] = {
-                    {"text", "Field excavation and stratigraphic record logged."}
+                    {"text", ""}
                 };
                 return res.dump();
             }
