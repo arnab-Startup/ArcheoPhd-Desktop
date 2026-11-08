@@ -475,6 +475,15 @@ public:
                                            promptStr.find("poorly_represented") != std::string::npos ||
                                            (schemaObj.contains("properties") && schemaObj["properties"].contains("frequently_studied")));
 
+                bool isThesisReviewQuery = (promptStr.find("thesis chapter") != std::string::npos || promptStr.find("reviewing a PhD thesis") != std::string::npos ||
+                                           (schemaObj.contains("properties") && schemaObj["properties"].contains("results")));
+
+                bool isClaimSuggestQuery = (promptStr.find("suggest up to 3 pieces of evidence") != std::string::npos ||
+                                           (schemaObj.contains("properties") && schemaObj["properties"].contains("suggestions")));
+
+                bool isSiteDetailQuery = (promptStr.find("suggest factual site information") != std::string::npos ||
+                                         (schemaObj.contains("properties") && schemaObj["properties"].contains("artifacts")));
+
                 bool isHelpAssistant = (promptStr.find("in-app help assistant") != std::string::npos || promptStr.find("ArchaeoPhD help assistant") != std::string::npos ||
                                         promptStr.find("User question:") != std::string::npos);
 
@@ -482,7 +491,7 @@ public:
                 // When GGUF model weights are loaded in memory, all queries route directly to neural inference!
                 if (LlmEngine::instance().is_loaded()) {
                     std::string systemPrompt;
-                    int maxTokens = 512;
+                    int maxTokens = 1536;
                     if (isResearchGapQuery) {
                         systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research librarian and doctoral gap analysis engine. "
                                        "Analyze the provided archaeological research library and excavation records to identify empirical gaps, thin scholarship, underrepresented sites/periods, and scholarly disputes.\n"
@@ -495,9 +504,14 @@ public:
                                        "  \"contradictory_interpretations\": [\"active debate or conflicting dating between sources\", ...]\n"
                                        "}\n"
                                        "Base findings strictly on the library provided. Never claim a gap is definitive. Output valid JSON only without markdown fences.";
-                        maxTokens = 1536;
                     } else if (isDisagreementsQuery) {
                         systemPrompt = "You are ArchaeoPhD AI, an expert archaeological contradiction detector. Analyze the claims and excavation records provided. Output a JSON object with a 'disagreements' array containing objects with fields: topic, source_a, source_b, claim_a, claim_b. Output valid JSON only.";
+                    } else if (isThesisReviewQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert academic examiner and doctoral thesis reviewer. Review the provided chapter claims for evidence quality, missing citations, weak support, and contradictory evidence. Return valid JSON only with keys 'results' (array of objects with claim, issues, note) and 'summary'.";
+                    } else if (isClaimSuggestQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant. Suggest supporting or contradicting evidence for the researcher's claim based strictly on the provided library. Return valid JSON only with key 'suggestions' (array of objects with text, type, source, date, uncertainty).";
+                    } else if (isSiteDetailQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological site intelligence engine. Synthesize factual site descriptions, chronology, and artifact assemblages from the provided sources. Return valid JSON only with keys 'description', 'chronology', and 'artifacts'.";
                     } else if (isEvidenceMode) {
                         systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant operating in Evidence Mode. Synthesize and evaluate the query strictly based on the provided excavation records, site data, and claims.\n"
                                        "Respond with a valid JSON object matching this schema:\n"
@@ -513,6 +527,7 @@ public:
                                        "how to upload and index monographs in the Library, view stratigraphic sequences in the Archaeological Matrix, "
                                        "run IntCal20 C-14 calibrations in Chronology, inspect GIS sites on the map, resolve contradictions, and export thesis dossiers. "
                                        "Provide a concise, helpful, and academically professional response.";
+                        maxTokens = 512;
                     } else {
                         systemPrompt = "You are ArchaeoPhD AI, an advanced research workstation assistant for archaeological scientists and doctoral researchers. "
                                        "Provide comprehensive, academically rigorous, grounded analysis based on the archaeological context provided. "
@@ -528,24 +543,14 @@ public:
                             cleanJson = cleanJson.substr(jStart, jEnd - jStart + 1);
                             try {
                                 json parsed = json::parse(cleanJson);
-                                if (isResearchGapQuery && (parsed.contains("frequently_studied") || parsed.contains("poorly_represented") || parsed.contains("underrepresented_sites") || parsed.contains("contradictory_interpretations"))) {
-                                    if (!parsed.contains("frequently_studied") || !parsed["frequently_studied"].is_array()) parsed["frequently_studied"] = json::array();
-                                    if (!parsed.contains("poorly_represented") || !parsed["poorly_represented"].is_array()) parsed["poorly_represented"] = json::array();
-                                    if (!parsed.contains("underrepresented_sites") || !parsed["underrepresented_sites"].is_array()) parsed["underrepresented_sites"] = json::array();
-                                    if (!parsed.contains("underrepresented_periods") || !parsed["underrepresented_periods"].is_array()) parsed["underrepresented_periods"] = json::array();
-                                    if (!parsed.contains("contradictory_interpretations") || !parsed["contradictory_interpretations"].is_array()) parsed["contradictory_interpretations"] = json::array();
-                                    res["result"] = parsed;
-                                    return res.dump();
-                                }
-                                if (isDisagreementsQuery && parsed.contains("disagreements")) {
-                                    res["result"] = parsed;
-                                    return res.dump();
-                                }
-                                if (isEvidenceMode && (parsed.contains("supporting") || parsed.contains("missing"))) {
-                                    res["result"] = parsed;
-                                    return res.dump();
-                                }
-                                if (!isEvidenceMode && !isResearchGapQuery && (parsed.contains("answer") || parsed.contains("evidence"))) {
+                                if (parsed.is_object() && !parsed.empty()) {
+                                    if (isResearchGapQuery) {
+                                        if (!parsed.contains("frequently_studied") || !parsed["frequently_studied"].is_array()) parsed["frequently_studied"] = json::array();
+                                        if (!parsed.contains("poorly_represented") || !parsed["poorly_represented"].is_array()) parsed["poorly_represented"] = json::array();
+                                        if (!parsed.contains("underrepresented_sites") || !parsed["underrepresented_sites"].is_array()) parsed["underrepresented_sites"] = json::array();
+                                        if (!parsed.contains("underrepresented_periods") || !parsed["underrepresented_periods"].is_array()) parsed["underrepresented_periods"] = json::array();
+                                        if (!parsed.contains("contradictory_interpretations") || !parsed["contradictory_interpretations"].is_array()) parsed["contradictory_interpretations"] = json::array();
+                                    }
                                     res["result"] = parsed;
                                     return res.dump();
                                 }
