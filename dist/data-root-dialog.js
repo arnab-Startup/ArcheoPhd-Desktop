@@ -42,38 +42,38 @@
       .apd-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(15, 12, 10, 0.65);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
+        background: rgba(10, 8, 7, 0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         z-index: 999999;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 24px;
         font-family: var(--font-body, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-        color: hsl(var(--foreground, 30 10% 12%));
-        animation: apdFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        color: #f5f0e8;
+        animation: apdFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       }
       @keyframes apdFadeIn {
-        from { opacity: 0; transform: scale(0.97); }
-        to { opacity: 1; transform: scale(1); }
+        from { opacity: 0; transform: scale(0.96) translateY(4px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
       }
       .apd-modal {
-        background: hsl(var(--card, 40 33% 99%));
-        border: 1px solid hsl(var(--border, 36 16% 87%));
-        border-radius: calc(var(--radius, 10px) + 6px);
+        background: #171311;
+        border: 1px solid rgba(212, 163, 89, 0.28);
+        border-radius: 16px;
         width: 100%;
-        max-width: 600px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px hsl(var(--border, 36 16% 87%) / 0.5);
+        max-width: 580px;
+        box-shadow: 0 25px 65px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(212, 163, 89, 0.15);
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        color: hsl(var(--card-foreground, 30 10% 12%));
+        color: #f5f0e8;
       }
       .apd-header {
         padding: 24px 28px 18px;
-        border-bottom: 1px solid hsl(var(--border, 36 16% 87%));
-        background: hsl(var(--muted, 38 20% 94%) / 0.4);
+        border-bottom: 1px solid rgba(212, 163, 89, 0.18);
+        background: #201a17;
       }
       .apd-badge {
         display: inline-flex;
@@ -83,26 +83,26 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: hsl(var(--primary, 18 58% 28%));
-        background: hsl(var(--primary, 18 58% 28%) / 0.1);
-        border: 1px solid hsl(var(--primary, 18 58% 28%) / 0.25);
+        color: #d4a359;
+        background: rgba(212, 163, 89, 0.12);
+        border: 1px solid rgba(212, 163, 89, 0.3);
         padding: 4px 10px;
         border-radius: 999px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         font-family: var(--font-body, inherit);
       }
       .apd-title {
         font-family: var(--font-heading, "Fraunces", Georgia, serif);
         font-size: 22px;
         font-weight: 600;
-        color: hsl(var(--foreground, 30 10% 12%));
+        color: #ffffff;
         margin: 0 0 6px 0;
         line-height: 1.25;
         letter-spacing: -0.015em;
       }
       .apd-subtitle {
         font-size: 13.5px;
-        color: hsl(var(--muted-foreground, 30 8% 42%));
+        color: #a89f91;
         margin: 0;
         line-height: 1.5;
         font-family: var(--font-body, inherit);
@@ -114,29 +114,35 @@
         gap: 18px;
         max-height: 70vh;
         overflow-y: auto;
+        background: #171311;
       }
       .apd-structure-box {
-        background: hsl(var(--muted, 38 20% 94%) / 0.5);
-        border: 1px solid hsl(var(--border, 36 16% 87%));
-        border-radius: var(--radius, 10px);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(212, 163, 89, 0.22);
+        border-radius: 10px;
         padding: 14px 16px;
-        font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+        font-family: var(--font-mono, ui-monospace, monospace);
         font-size: 12px;
-        color: hsl(var(--foreground, 30 10% 12%));
+        color: #f5f0e8;
         line-height: 1.6;
       }
       .apd-structure-box span.hl {
-        color: hsl(var(--primary, 18 58% 28%));
+        color: #d4a359;
         font-weight: 600;
       }
       .apd-label {
         font-size: 12.5px;
         font-weight: 600;
-        color: hsl(var(--foreground, 30 10% 12%));
+        color: #f5f0e8;
         margin-bottom: 6px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+      .apd-label-sub {
+        font-weight: 400;
+        font-size: 11px;
+        color: #d4a359;
       }
       .apd-input-row {
         display: flex;
@@ -144,25 +150,25 @@
       }
       .apd-input {
         flex: 1;
-        background: hsl(var(--background, 40 30% 98%));
-        border: 1px solid hsl(var(--input, 36 16% 87%));
-        border-radius: var(--radius, 8px);
+        background: #0d0a08;
+        border: 1.5px solid rgba(212, 163, 89, 0.28);
+        border-radius: 8px;
         padding: 10px 14px;
         font-size: 13px;
-        color: hsl(var(--foreground, 30 10% 12%));
+        color: #ffffff;
         outline: none;
         transition: border-color 0.15s, box-shadow 0.15s;
-        font-family: inherit;
+        font-family: var(--font-mono, monospace);
       }
       .apd-input:focus {
-        border-color: hsl(var(--ring, 18 58% 28%));
-        box-shadow: 0 0 0 3px hsl(var(--ring, 18 58% 28%) / 0.2);
+        border-color: #d4a359;
+        box-shadow: 0 0 0 3px rgba(212, 163, 89, 0.2);
       }
       .apd-btn {
         padding: 9px 18px;
         font-size: 13px;
         font-weight: 600;
-        border-radius: var(--radius, 8px);
+        border-radius: 8px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
@@ -171,67 +177,80 @@
         transition: all 0.15s ease;
         border: 1px solid transparent;
         font-family: inherit;
+        user-select: none;
       }
       .apd-btn-primary {
-        background: hsl(var(--primary, 18 58% 28%));
-        color: hsl(var(--primary-foreground, 40 30% 98%));
-        border-color: hsl(var(--primary, 18 58% 28%));
+        background: linear-gradient(135deg, #9e4429 0%, #71321d 100%);
+        color: #ffffff;
+        border: 1px solid #b85435;
+        box-shadow: 0 3px 12px rgba(113, 50, 29, 0.45);
       }
       .apd-btn-primary:hover {
-        filter: brightness(1.08);
+        filter: brightness(1.12);
         transform: translateY(-1px);
-        box-shadow: 0 3px 10px hsl(var(--primary, 18 58% 28%) / 0.25);
+        box-shadow: 0 5px 16px rgba(113, 50, 29, 0.55);
       }
       .apd-btn-secondary {
-        background: hsl(var(--secondary, 38 22% 93%));
-        color: hsl(var(--secondary-foreground, 30 10% 14%));
-        border-color: hsl(var(--border, 36 16% 87%));
+        background: rgba(255, 255, 255, 0.07);
+        color: #f5f0e8;
+        border: 1px solid rgba(212, 163, 89, 0.3);
       }
       .apd-btn-secondary:hover {
-        background: hsl(var(--muted, 38 20% 94%));
+        background: rgba(212, 163, 89, 0.18);
+        border-color: #d4a359;
+        color: #ffffff;
       }
       .apd-warning-box {
-        background: hsl(38 92% 50% / 0.1);
-        border: 1px solid hsl(38 92% 50% / 0.3);
-        border-radius: var(--radius, 10px);
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 8px;
         padding: 14px 16px;
         display: flex;
         gap: 12px;
-        color: hsl(var(--foreground, 30 10% 12%));
+        color: #f5f0e8;
         font-size: 12.5px;
         line-height: 1.5;
       }
       .apd-warning-icon {
+        color: #fbbf24;
         font-size: 20px;
         flex-shrink: 0;
       }
       .apd-warning-title {
         font-weight: 700;
-        color: hsl(32 75% 38%);
+        color: #fbbf24;
         margin-bottom: 2px;
-      }
-      .dark .apd-warning-title {
-        color: hsl(38 92% 60%);
       }
       .apd-footer {
         padding: 16px 28px;
-        border-top: 1px solid hsl(var(--border, 36 16% 87%));
-        background: hsl(var(--muted, 38 20% 94%) / 0.25);
+        border-top: 1px solid rgba(212, 163, 89, 0.18);
+        background: #1c1714;
         display: flex;
         justify-content: flex-end;
         gap: 10px;
       }
+      .apd-privacy-note {
+        font-size: 12px;
+        color: #a89f91;
+        line-height: 1.5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .apd-privacy-note svg {
+        color: #d4a359;
+        flex-shrink: 0;
+      }
       .apd-settings-card {
-        background: hsl(var(--card, 40 33% 99%));
-        border: 1px solid hsl(var(--border, 36 16% 87%));
+        background: rgba(22, 18, 16, 0.95);
+        border: 1px solid rgba(212, 163, 89, 0.24);
         border-radius: 12px;
         padding: 20px 24px;
         margin-top: 24px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-        color: hsl(var(--card-foreground, 30 10% 12%));
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        color: #f5f0e8;
         font-family: var(--font-body, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-      }
-    `;
+      }`;
     document.head.appendChild(style);
   }
 
@@ -283,13 +302,10 @@
           </p>
         </div>
         <div class="apd-body">
-          </div>
-          </div>
-
           <div>
             <div class="apd-label">
               <span>Data Root Directory:</span>
-              <span style="font-weight:400; font-size:11px; color:hsl(var(--muted-foreground, 30 8% 42%));">Choose fast internal drive or external SSD</span>
+              <span class="apd-label-sub">Choose fast internal drive or external SSD</span>
             </div>
             <div class="apd-input-row">
               <input type="text" id="apd-path-input" class="apd-input" value="${initialPath}">
@@ -299,25 +315,25 @@
             </div>
           </div>
 
-          
-          <div id="apd-init-error" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 12px; margin-bottom: 12px; gap: 10px; align-items: flex-start;">
+          <div id="apd-init-error" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 12px; margin-bottom: 12px; gap: 10px; align-items: flex-start;">
             <div style="color: #ef4444; flex-shrink: 0; margin-top: 1px;">${APD_ICONS.warning}</div>
             <div>
-              <div style="font-weight: 600; font-size: 13px; color: #b91c1c;">Storage Initialization Notice</div>
-              <div id="apd-init-error-msg" style="font-size: 12px; color: #7f1d1d; margin-top: 2px; line-height: 1.4;"></div>
+              <div style="font-weight: 600; font-size: 13px; color: #f87171;">Storage Initialization Notice</div>
+              <div id="apd-init-error-msg" style="font-size: 12px; color: #fca5a5; margin-top: 2px; line-height: 1.4;"></div>
             </div>
           </div>
+
           <div id="apd-cloud-alert" style="display: ${cloudWarning ? 'flex' : 'none'};" class="apd-warning-box">
             <div class="apd-warning-icon">${APD_ICONS.warning}</div>
             <div>
               <div class="apd-warning-title">Cloud Storage Detected (<span id="apd-cloud-service">${cloudWarning}</span>)</div>
               <div>
-                Storing multi-gigabyte models and raw research data inside a cloud-synced folder can consume cloud quota and risk unintentionally syncing unpublished archaeological findings. A dedicated local drive (e.g. <code>D:\\ArchaeoPhD-Data</code>) is strongly recommended.
+                Storing multi-gigabyte models and raw research data inside a cloud-synced folder can consume cloud quota and risk unintentionally syncing unpublished archaeological findings. A dedicated local drive (e.g. <code>D:\\\\ArchaeoPhD-Data</code>) is strongly recommended.
               </div>
             </div>
           </div>
 
-          <div style="font-size: 12px; color: hsl(var(--muted-foreground, 30 8% 42%)); line-height: 1.5; display:flex; align-items:center; gap:8px;">
+          <div class="apd-privacy-note">
             <span>${APD_ICONS.lock}</span>
             <span>Your selection is saved locally in your user profile settings. Zero telemetry or research data leaves your PC.</span>
           </div>
@@ -330,8 +346,7 @@
             Confirm &amp; Initialize Workstation
           </button>
         </div>
-      </div>
-    `;
+      </div>`;
 
     document.body.appendChild(backdrop);
 
@@ -421,23 +436,23 @@
 
     backdrop.innerHTML = `
       <div class="apd-modal">
-        <div class="apd-header" style="background: hsl(var(--destructive, 0 65% 44%) / 0.08); border-bottom: 1px solid hsl(var(--destructive, 0 65% 44%) / 0.25);">
-          <div class="apd-badge" style="color: hsl(var(--destructive, 0 65% 44%)); background: hsl(var(--destructive, 0 65% 44%) / 0.12); border-color: hsl(var(--destructive, 0 65% 44%) / 0.3);">
+        <div class="apd-header" style="background: rgba(220, 38, 38, 0.12); border-bottom: 1px solid rgba(220, 38, 38, 0.25);">
+          <div class="apd-badge" style="color: #f87171; background: rgba(220, 38, 38, 0.15); border-color: rgba(220, 38, 38, 0.35);">
             <span>${APD_ICONS.warning}</span> Storage Disconnected
           </div>
-          <h1 class="apd-title" style="color: hsl(var(--foreground, 30 10% 12%));">Research Data Root Unavailable</h1>
+          <h1 class="apd-title" style="color: #ffffff;">Research Data Root Unavailable</h1>
           <p class="apd-subtitle">
             The configured research storage location cannot be accessed.
           </p>
         </div>
         <div class="apd-body">
-          <div style="background: hsl(var(--destructive, 0 65% 44%) / 0.06); border: 1px solid hsl(var(--destructive, 0 65% 44%) / 0.2); border-radius: var(--radius, 10px); padding: 14px 16px;">
-            <div style="font-size: 12px; color: hsl(var(--destructive, 0 65% 44%)); margin-bottom: 4px; font-weight: 600;">Configured Data Root:</div>
-            <div style="font-family: var(--font-mono, monospace); font-size: 13px; color: hsl(var(--foreground, 30 10% 12%)); word-break: break-all; font-weight: 600;">${status.data_root}</div>
+          <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.25); border-radius: 8px; padding: 14px 16px;">
+            <div style="font-size: 12px; color: #f87171; margin-bottom: 4px; font-weight: 600;">Configured Data Root:</div>
+            <div style="font-family: var(--font-mono, monospace); font-size: 13px; color: #ffffff; word-break: break-all; font-weight: 600;">${status.data_root}</div>
           </div>
 
-          <div style="font-size: 13px; color: hsl(var(--muted-foreground, 30 8% 42%)); line-height: 1.6;">
-            If your research data is stored on an <strong>external SSD or USB drive</strong>, please plug it into your computer. ArchaeoPhD never writes to a fallback drive to protect against fragmenting your research graphs.
+          <div style="font-size: 13px; color: #d1c7bc; line-height: 1.6;">
+            If your research data is stored on an <strong style="color: #ffffff;">external SSD or USB drive</strong>, please plug it into your computer. ArchaeoPhD never writes to a fallback drive to protect against fragmenting your research graphs.
           </div>
         </div>
         <div class="apd-footer" style="justify-content: space-between;">
@@ -509,21 +524,21 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px;">
         <div>
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <span style="color:hsl(var(--primary, 18 58% 28%)); display:flex; align-items:center;">${APD_ICONS.hardDrive}</span>
-            <h3 style="margin:0; font-family:var(--font-body, 'Inter', -apple-system, sans-serif); font-size:14px; font-weight:600; color:hsl(var(--foreground, 30 10% 12%)); letter-spacing:-0.01em;">
+            <span style="color:#d4a359; display:flex; align-items:center;">${APD_ICONS.hardDrive}</span>
+            <h3 style="margin:0; font-family:var(--font-body, 'Inter', -apple-system, sans-serif); font-size:14px; font-weight:600; color:#ffffff; letter-spacing:-0.01em;">
               Workstation Storage Location
             </h3>
           </div>
-          <p style="margin:0; font-size:13px; color:hsl(var(--muted-foreground, 30 8% 42%)); line-height:1.4;">
+          <p style="margin:0; font-size:13px; color:#a89f91; line-height:1.4;">
             Local filesystem location for offline AI neural weights (4.8 GB) and research database.
           </p>
         </div>
         <div style="flex-shrink:0;">${cloudBadge}</div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; background:hsl(var(--muted, 38 20% 94%)/0.45); border:1px solid hsl(var(--border, 36 16% 87%)); border-radius:8px; padding:10px 14px;">
-        <span style="color:hsl(var(--muted-foreground, 30 8% 42%)); display:flex; align-items:center;">${APD_ICONS.folder}</span>
-        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:13px; font-weight:500; color:hsl(var(--foreground, 30 10% 12%)); word-break:break-all; user-select:text;">${currentStatus.data_root}</code>
+      <div style="display:flex; align-items:center; gap:10px; background:rgba(255, 255, 255, 0.04); border:1px solid rgba(212, 163, 89, 0.22); border-radius:8px; padding:10px 14px;">
+        <span style="color:#d4a359; display:flex; align-items:center;">${APD_ICONS.folder}</span>
+        <code style="flex:1; font-family:var(--font-mono, monospace); font-size:13px; font-weight:500; color:#ffffff; word-break:break-all; user-select:text;">${currentStatus.data_root}</code>
         <button id="apd-settings-change-btn" type="button" class="apd-btn apd-btn-secondary" style="padding:6px 14px; font-size:12px; font-weight:500; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">
           ${APD_ICONS.folderOpen} Relocate...
         </button>
