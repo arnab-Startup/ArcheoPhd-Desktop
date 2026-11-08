@@ -616,7 +616,7 @@ inline void RunLiveUiClickthroughTest(ICoreWebView2* sender) {
         L"    const gapPass = !!(gapRes && (Array.isArray(gapRes.frequently_studied) || gapRes.error || gapRes.answer));"
         L"    record('14. Research Gap Explorer Pure AI Synthesis',"
         L"           gapPass,"
-        L"           '5-dimensional research gap schema evaluated: ' + gapPass);\""
+        L"           '5-dimensional research gap schema evaluated: ' + gapPass);"
         L"    "
         L"    window.chrome.webview.postMessage({"
         L"      id: 'req_live_ui_test',"
