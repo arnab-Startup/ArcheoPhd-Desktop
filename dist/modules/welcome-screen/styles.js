@@ -20,14 +20,14 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        background-color: #0b0807;
+        background-color: var(--apd-obsidian-deep, #0b0807);
         background-image: 
           radial-gradient(ellipse at 50% 45%, rgba(16, 11, 9, 0.55) 0%, rgba(12, 8, 7, 0.78) 60%, rgba(8, 6, 5, 0.94) 100%),
           url('/assets/welcome-bg.jpg');
         background-size: cover;
         background-position: center bottom;
         background-repeat: no-repeat;
-        color: #f5f0e8;
+        color: var(--apd-parchment, #f5f0e8);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         overflow-y: auto;
         overflow-x: hidden;
@@ -50,7 +50,7 @@
         padding: 12px 32px;
         background: rgba(12, 8, 7, 0.65);
         backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(212, 163, 89, 0.16);
+        border-bottom: 1px solid var(--apd-gold-border-muted, rgba(212, 163, 89, 0.16));
       }
       .apd-w-brand-pill {
         display: inline-flex;
@@ -58,14 +58,14 @@
         gap: 10px;
         font-size: 13.5px;
         letter-spacing: 0.02em;
-        color: #f5f0e8;
+        color: var(--apd-parchment, #f5f0e8);
       }
       .apd-w-brand-pill svg {
         width: 22px;
         height: 22px;
       }
       .apd-w-version {
-        color: #d4a359;
+        color: var(--apd-gold, #d4a359);
         font-size: 11.5px;
         font-weight: 600;
         margin-left: 6px;
@@ -77,8 +77,8 @@
         align-items: center;
         gap: 6px;
         background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(212, 163, 89, 0.35);
-        color: #f5f0e8;
+        border: 1px solid var(--apd-gold-border, rgba(212, 163, 89, 0.35));
+        color: var(--apd-parchment, #f5f0e8);
         padding: 6px 16px;
         border-radius: 6px;
         font-size: 12px;
@@ -87,9 +87,9 @@
         transition: all 0.2s ease;
       }
       .apd-w-skip-btn:hover {
-        background: rgba(212, 163, 89, 0.22);
-        border-color: #d4a359;
-        color: #ffffff;
+        background: var(--apd-gold-bg, rgba(212, 163, 89, 0.22));
+        border-color: var(--apd-gold, #d4a359);
+        color: var(--apd-parchment-white, #ffffff);
       }
 
       /* Center Hero Container */
@@ -205,26 +205,26 @@
       .apd-w-card-glass {
         background: rgba(22, 16, 14, 0.78);
         backdrop-filter: blur(14px);
-        border: 1px solid rgba(212, 163, 89, 0.24);
+        border: 1px solid var(--apd-gold-border, rgba(212, 163, 89, 0.24));
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
       }
       .apd-w-card-glass:hover {
-        background: rgba(36, 26, 23, 0.92);
-        border-color: rgba(212, 163, 89, 0.7);
+        background: var(--apd-obsidian-hover, rgba(36, 26, 23, 0.92));
+        border-color: var(--apd-gold, #d4a359);
         transform: translateY(-3px);
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(212, 163, 89, 0.25);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 16px var(--apd-gold-glow, rgba(212, 163, 89, 0.25));
       }
 
       .apd-w-card-featured {
         background: linear-gradient(145deg, #7b1827 0%, #460d16 100%);
-        border: 1px solid rgba(245, 190, 100, 0.7);
-        box-shadow: 0 8px 26px -2px rgba(123, 24, 39, 0.55), 0 0 18px rgba(212, 163, 89, 0.35);
+        border: 1px solid var(--apd-gold, rgba(245, 190, 100, 0.7));
+        box-shadow: 0 8px 26px -2px rgba(123, 24, 39, 0.55), 0 0 18px var(--apd-gold-glow, rgba(212, 163, 89, 0.35));
       }
       .apd-w-card-featured:hover {
         background: linear-gradient(145deg, #911e2f 0%, #520f1a 100%);
-        border-color: #fcd34d;
+        border-color: var(--apd-gold-hover, #fcd34d);
         transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 34px rgba(123, 24, 39, 0.75), 0 0 24px rgba(245, 190, 100, 0.5);
+        box-shadow: 0 12px 34px rgba(123, 24, 39, 0.75), 0 0 24px var(--apd-gold-glow, rgba(245, 190, 100, 0.5));
       }
 
       .apd-w-card-icon-wrap {
@@ -234,23 +234,23 @@
         align-items: center;
         justify-content: center;
         margin-bottom: 12px;
-        color: #fef08a;
+        color: var(--apd-gold-hover, #fef08a);
       }
       .apd-w-card-title {
         font-size: 16px;
         font-weight: 600;
-        color: #ffffff;
+        color: var(--apd-parchment-white, #ffffff);
         margin-bottom: 6px;
         letter-spacing: 0.01em;
       }
       .apd-w-card-desc {
         font-size: 12.5px;
         line-height: 1.4;
-        color: #d1c7bc;
+        color: var(--apd-parchment-subtle, #d1c7bc);
         opacity: 0.92;
       }
       .apd-w-card-featured .apd-w-card-desc {
-        color: #fae8d4;
+        color: var(--apd-parchment, #fae8d4);
       }
 
       /* Feature Ribbon */
@@ -260,7 +260,7 @@
         margin-bottom: 24px;
         position: relative;
         padding-top: 18px;
-        border-top: 1px solid rgba(212, 163, 89, 0.28);
+        border-top: 1px solid var(--apd-gold-border, rgba(212, 163, 89, 0.28));
       }
       .apd-w-ribbon-node {
         position: absolute;
@@ -269,8 +269,8 @@
         transform: translateX(-50%) rotate(45deg);
         width: 9px;
         height: 9px;
-        background: #d4a359;
-        box-shadow: 0 0 8px #d4a359;
+        background: var(--apd-gold, #d4a359);
+        box-shadow: 0 0 8px var(--apd-gold, #d4a359);
       }
       .apd-w-ribbon-items {
         display: flex;
