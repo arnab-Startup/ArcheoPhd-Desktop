@@ -470,6 +470,20 @@ public:
                 bool isDisagreementsQuery = (promptStr.find("DISAGREEMENTS") != std::string::npos || promptStr.find("disagreements") != std::string::npos || promptStr.find("contradiction detector") != std::string::npos ||
                                             (schemaObj.contains("properties") && schemaObj["properties"].contains("disagreements")));
 
+                bool isResearchGapQuery = (promptStr.find("research gaps") != std::string::npos ||
+                                           promptStr.find("frequently_studied") != std::string::npos ||
+                                           promptStr.find("poorly_represented") != std::string::npos ||
+                                           (schemaObj.contains("properties") && schemaObj["properties"].contains("frequently_studied")));
+
+                bool isThesisReviewQuery = (promptStr.find("thesis chapter") != std::string::npos || promptStr.find("reviewing a PhD thesis") != std::string::npos ||
+                                           (schemaObj.contains("properties") && schemaObj["properties"].contains("results")));
+
+                bool isClaimSuggestQuery = (promptStr.find("suggest up to 3 pieces of evidence") != std::string::npos ||
+                                           (schemaObj.contains("properties") && schemaObj["properties"].contains("suggestions")));
+
+                bool isSiteDetailQuery = (promptStr.find("suggest factual site information") != std::string::npos ||
+                                         (schemaObj.contains("properties") && schemaObj["properties"].contains("artifacts")));
+
                 bool isHelpAssistant = (promptStr.find("in-app help assistant") != std::string::npos || promptStr.find("ArchaeoPhD help assistant") != std::string::npos ||
                                         promptStr.find("User question:") != std::string::npos);
 
@@ -477,8 +491,27 @@ public:
                 // When GGUF model weights are loaded in memory, all queries route directly to neural inference!
                 if (LlmEngine::instance().is_loaded()) {
                     std::string systemPrompt;
-                    if (isDisagreementsQuery) {
+                    int maxTokens = 1536;
+                    if (isResearchGapQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research librarian and doctoral gap analysis engine. "
+                                       "Analyze the provided archaeological research library and excavation records to identify empirical gaps, thin scholarship, underrepresented sites/periods, and scholarly disputes.\n"
+                                       "Strictly return a valid JSON object matching the requested schema with exactly these keys:\n"
+                                       "{\n"
+                                       "  \"frequently_studied\": [\"frequently studied topic/site/period\", ...],\n"
+                                       "  \"poorly_represented\": [\"topic that appears rarely or lacks corroboration\", ...],\n"
+                                       "  \"underrepresented_sites\": [\"site with minimal stratigraphic or material evidence\", ...],\n"
+                                       "  \"underrepresented_periods\": [\"chronological period with sparse dating or sources\", ...],\n"
+                                       "  \"contradictory_interpretations\": [\"active debate or conflicting dating between sources\", ...]\n"
+                                       "}\n"
+                                       "Base findings strictly on the library provided. Never claim a gap is definitive. Output valid JSON only without markdown fences.";
+                    } else if (isDisagreementsQuery) {
                         systemPrompt = "You are ArchaeoPhD AI, an expert archaeological contradiction detector. Analyze the claims and excavation records provided. Output a JSON object with a 'disagreements' array containing objects with fields: topic, source_a, source_b, claim_a, claim_b. Output valid JSON only.";
+                    } else if (isThesisReviewQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert academic examiner and doctoral thesis reviewer. Review the provided chapter claims for evidence quality, missing citations, weak support, and contradictory evidence. Return valid JSON only with keys 'results' (array of objects with claim, issues, note) and 'summary'.";
+                    } else if (isClaimSuggestQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant. Suggest supporting or contradicting evidence for the researcher's claim based strictly on the provided library. Return valid JSON only with key 'suggestions' (array of objects with text, type, source, date, uncertainty).";
+                    } else if (isSiteDetailQuery) {
+                        systemPrompt = "You are ArchaeoPhD AI, an expert archaeological site intelligence engine. Synthesize factual site descriptions, chronology, and artifact assemblages from the provided sources. Return valid JSON only with keys 'description', 'chronology', and 'artifacts'.";
                     } else if (isEvidenceMode) {
                         systemPrompt = "You are ArchaeoPhD AI, an expert archaeological research assistant operating in Evidence Mode. Synthesize and evaluate the query strictly based on the provided excavation records, site data, and claims.\n"
                                        "Respond with a valid JSON object matching this schema:\n"
@@ -494,13 +527,14 @@ public:
                                        "how to upload and index monographs in the Library, view stratigraphic sequences in the Archaeological Matrix, "
                                        "run IntCal20 C-14 calibrations in Chronology, inspect GIS sites on the map, resolve contradictions, and export thesis dossiers. "
                                        "Provide a concise, helpful, and academically professional response.";
+                        maxTokens = 512;
                     } else {
                         systemPrompt = "You are ArchaeoPhD AI, an advanced research workstation assistant for archaeological scientists and doctoral researchers. "
                                        "Provide comprehensive, academically rigorous, grounded analysis based on the archaeological context provided. "
                                        "If structured JSON is requested by the schema, output valid JSON.";
                     }
 
-                    std::string rawGen = LlmEngine::instance().generate(promptStr, systemPrompt, 512);
+                    std::string rawGen = LlmEngine::instance().generate(promptStr, systemPrompt, maxTokens);
                     if (!rawGen.empty()) {
                         std::string cleanJson = rawGen;
                         size_t jStart = cleanJson.find('{');
@@ -509,22 +543,30 @@ public:
                             cleanJson = cleanJson.substr(jStart, jEnd - jStart + 1);
                             try {
                                 json parsed = json::parse(cleanJson);
-                                if (isDisagreementsQuery && parsed.contains("disagreements")) {
-                                    res["result"] = parsed;
-                                    return res.dump();
-                                }
-                                if (isEvidenceMode && (parsed.contains("supporting") || parsed.contains("missing"))) {
-                                    res["result"] = parsed;
-                                    return res.dump();
-                                }
-                                if (!isEvidenceMode && (parsed.contains("answer") || parsed.contains("evidence"))) {
+                                if (parsed.is_object() && !parsed.empty()) {
+                                    if (isResearchGapQuery) {
+                                        if (!parsed.contains("frequently_studied") || !parsed["frequently_studied"].is_array()) parsed["frequently_studied"] = json::array();
+                                        if (!parsed.contains("poorly_represented") || !parsed["poorly_represented"].is_array()) parsed["poorly_represented"] = json::array();
+                                        if (!parsed.contains("underrepresented_sites") || !parsed["underrepresented_sites"].is_array()) parsed["underrepresented_sites"] = json::array();
+                                        if (!parsed.contains("underrepresented_periods") || !parsed["underrepresented_periods"].is_array()) parsed["underrepresented_periods"] = json::array();
+                                        if (!parsed.contains("contradictory_interpretations") || !parsed["contradictory_interpretations"].is_array()) parsed["contradictory_interpretations"] = json::array();
+                                    }
                                     res["result"] = parsed;
                                     return res.dump();
                                 }
                             } catch (...) {}
                         }
 
-                        if (isEvidenceMode) {
+                        if (isResearchGapQuery) {
+                            json llmRes = json::object();
+                            llmRes["frequently_studied"] = json::array({rawGen});
+                            llmRes["poorly_represented"] = json::array();
+                            llmRes["underrepresented_sites"] = json::array();
+                            llmRes["underrepresented_periods"] = json::array();
+                            llmRes["contradictory_interpretations"] = json::array();
+                            res["result"] = llmRes;
+                            return res.dump();
+                        } else if (isEvidenceMode) {
                             json llmRes = json::object();
                             llmRes["supporting"] = json::array({rawGen});
                             llmRes["contradicting"] = json::array();
@@ -548,7 +590,14 @@ public:
                 // ArchaeoPhD is an AI-native workstation. Zero heuristic fallbacks, zero canned dummy replies.
                 // The local Neural AI Engine (Qwen 2.5 7B) is required to operate.
                 json llmRes = json::object();
-                if (isDisagreementsQuery) {
+                if (isResearchGapQuery) {
+                    llmRes["frequently_studied"] = json::array({"[NEURAL AI REQUIRED]: Qwen2.5-7B neural model weights must be loaded in the models directory to perform grounded research gap analysis across your library."});
+                    llmRes["poorly_represented"] = json::array();
+                    llmRes["underrepresented_sites"] = json::array();
+                    llmRes["underrepresented_periods"] = json::array();
+                    llmRes["contradictory_interpretations"] = json::array();
+                    llmRes["error"] = "[MANDATORY SYSTEM REQUIREMENT]: The local Neural AI model weights (Qwen 2.5 7B) are required to run Research Gap Analysis. ArchaeoPhD requires offline AI model weights to run deep research synthesis.";
+                } else if (isDisagreementsQuery) {
                     llmRes["disagreements"] = json::array();
                     llmRes["error"] = "[MANDATORY SYSTEM REQUIREMENT]: Neural AI model weights (Qwen2.5-7B-Instruct-Q4_K_M.gguf) are required to run contradiction analysis. ArchaeoPhD cannot run without the offline neural model.";
                 } else if (isEvidenceMode) {

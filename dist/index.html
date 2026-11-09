@@ -510,8 +510,31 @@
 
       /* Reserve bottom 26px for native status bar */
       #root {
-        height: calc(100vh - 26px);
+        height: calc(100vh - 26px) !important;
+        max-height: calc(100vh - 26px) !important;
         overflow-y: auto;
+      }
+
+      /* Desktop Workstation Sidebar Resilience */
+      aside.bg-sidebar {
+        height: calc(100vh - 26px) !important;
+        max-height: calc(100vh - 26px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+      }
+      aside.bg-sidebar > nav {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+      }
+      aside.bg-sidebar > div:last-child {
+        flex-shrink: 0 !important;
+        padding-top: 10px !important;
+        padding-bottom: 16px !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box !important;
       }
 
       </style>
@@ -528,6 +551,8 @@
     <script src="/ingestion-workflow.js"></script>
 
     <script src="/welcome-screen.js"></script>
+
+    <script src="/thesis-editor.js"></script>
 
   </body>
 
