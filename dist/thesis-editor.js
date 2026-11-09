@@ -43,6 +43,7 @@
     checkCircle: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
     alert: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>',
     refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>',
     x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>',
     plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>',
     minus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></svg>',
@@ -341,6 +342,33 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
       }
+
+      /* Chapter Creation Modal */
+      .apd-te-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        animation: apdTeFadeIn 0.15s ease-out;
+      }
+      .apd-te-modal-card {
+        width: 100%;
+        max-width: 520px;
+        background: hsl(var(--card, 38 28% 97%));
+        border: 1px solid hsl(var(--border, 36 16% 87%));
+        border-radius: 12px;
+        box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+      @keyframes apdTeFadeIn {
+        from { opacity: 0; transform: scale(0.98); }
+        to { opacity: 1; transform: scale(1); }
+      }
       
       @media print {
         body * { visibility: hidden; }
@@ -412,6 +440,12 @@
     saveStatus: function(projectId, chapter, status) {
       try {
         localStorage.setItem('archaeophd_thesis_status_' + projectId + '_' + encodeURIComponent(chapter), status);
+      } catch(e) {}
+    },
+    deleteDraft: function(projectId, chapter) {
+      try {
+        localStorage.removeItem('archaeophd_thesis_draft_' + projectId + '_' + encodeURIComponent(chapter));
+        localStorage.removeItem('archaeophd_thesis_status_' + projectId + '_' + encodeURIComponent(chapter));
       } catch(e) {}
     }
   };
@@ -651,14 +685,19 @@ ${body}
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border shrink-0 self-start md:self-center">
-            <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-foreground shadow-sm border border-border font-bold">
-              ${APD_ICONS.layers} All Chapters (${chapters.length})
+          <div class="flex items-center gap-2 shrink-0 self-start md:self-center">
+            <button id="apd-te-btn-new-chapter" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-all shadow-sm">
+              ${APD_ICONS.plus} New Chapter
             </button>
-            <button id="apd-te-tab-audit" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground">
-              ${APD_ICONS.shieldCheck} Defense Audit
-              ${this.auditData ? `<span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-bold">${this.auditData.defense_readiness_score || 85}%</span>` : ''}
-            </button>
+            <div class="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border">
+              <button id="apd-te-tab-workspace" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-foreground shadow-sm border border-border font-bold">
+                ${APD_ICONS.layers} All Chapters (${chapters.length})
+              </button>
+              <button id="apd-te-tab-audit" class="apd-te-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground">
+                ${APD_ICONS.shieldCheck} Defense Audit
+                ${this.auditData ? `<span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-bold">${this.auditData.defense_readiness_score || 85}%</span>` : ''}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -689,9 +728,16 @@ ${body}
                       </div>
                     </div>
 
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${status === 'ready' ? 'bg-accent/15 text-accent' : status === 'review' ? 'bg-chart-4/15 text-chart-4' : 'bg-muted text-muted-foreground'}">
-                      ${status === 'ready' ? 'Defense Ready' : status === 'review' ? 'In Review' : 'Drafting'}
-                    </span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${status === 'ready' ? 'bg-accent/15 text-accent' : status === 'review' ? 'bg-chart-4/15 text-chart-4' : 'bg-muted text-muted-foreground'}">
+                        ${status === 'ready' ? 'Defense Ready' : status === 'review' ? 'In Review' : 'Drafting'}
+                      </span>
+                      ${chapters.length > 1 ? `
+                        <button data-delete-chapter="${encodeURIComponent(ch)}" class="text-muted-foreground/50 hover:text-destructive p-1 rounded-md hover:bg-destructive/10 transition-colors" title="Delete chapter">
+                          ${APD_ICONS.trash}
+                        </button>
+                      ` : ''}
+                    </div>
                   </div>
                 </div>
 
@@ -706,6 +752,16 @@ ${body}
               </div>
             `;
           }).join('')}
+
+          <div id="apd-te-card-new-chapter" class="rounded-xl border-2 border-dashed border-border hover:border-primary/60 bg-card/40 hover:bg-muted/30 p-5 flex flex-col items-center justify-center space-y-2 text-center cursor-pointer transition-all min-h-[140px] group">
+            <span class="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+              ${APD_ICONS.plus}
+            </span>
+            <div>
+              <h3 class="font-display text-sm font-bold text-foreground group-hover:text-primary transition-colors">Add New Chapter</h3>
+              <p class="text-xs text-muted-foreground mt-0.5">Create custom empirical chapter, methodology, or appendix</p>
+            </div>
+          </div>
         </div>
       `;
     },
@@ -788,6 +844,9 @@ ${body}
               </button>
             `;
           }).join('')}
+          <button id="apd-te-ribbon-new-chapter" class="px-2.5 py-0.5 rounded-md text-xs whitespace-nowrap transition-all flex items-center gap-1 border border-dashed border-border hover:border-primary text-muted-foreground hover:text-foreground shrink-0 bg-transparent hover:bg-muted/40 cursor-pointer" title="Add New Chapter">
+            ${APD_ICONS.plus} <span>New Chapter</span>
+          </button>
         </div>
 
         <!-- Main Workspace: Google Docs Ribbon + Canvas + Side Intelligence -->
@@ -1224,6 +1283,46 @@ ${body}
 
       var backBtn = container.querySelector('#apd-te-back-to-workspace');
       if (backBtn) backBtn.onclick = function () { self.viewMode = 'workspace'; self.render(); };
+
+      var newChapterBtn = container.querySelector('#apd-te-btn-new-chapter');
+      if (newChapterBtn) {
+        newChapterBtn.onclick = function () {
+          self.showCreateChapterModal(projectId);
+        };
+      }
+
+      var newChapterCard = container.querySelector('#apd-te-card-new-chapter');
+      if (newChapterCard) {
+        newChapterCard.onclick = function () {
+          self.showCreateChapterModal(projectId);
+        };
+      }
+
+      var ribbonNewChapterBtn = container.querySelector('#apd-te-ribbon-new-chapter');
+      if (ribbonNewChapterBtn) {
+        ribbonNewChapterBtn.onclick = function () {
+          self.showCreateChapterModal(projectId);
+        };
+      }
+
+      var deleteBtns = container.querySelectorAll('button[data-delete-chapter]');
+      deleteBtns.forEach(function (btn) {
+        btn.onclick = function (e) {
+          e.stopPropagation();
+          var targetCh = decodeURIComponent(btn.getAttribute('data-delete-chapter'));
+          var confirmMsg = 'Are you sure you want to delete chapter "' + targetCh + '"? All draft text and allocated claims for this chapter will be unlinked.';
+          if (window.confirm(confirmMsg)) {
+            var currentChapters = DraftStore.getChapters(projectId);
+            var filtered = currentChapters.filter(function (c) { return c !== targetCh; });
+            DraftStore.saveChapters(projectId, filtered);
+            DraftStore.deleteDraft(projectId, targetCh);
+            if (self.activeChapter === targetCh) {
+              self.activeChapter = filtered[0] || DEFAULT_CHAPTERS[0];
+            }
+            self.render();
+          }
+        };
+      });
 
       var chapterCards = container.querySelectorAll('[data-open-chapter]');
       chapterCards.forEach(function (card) {
@@ -1982,6 +2081,163 @@ ${body}
       if (loadingEl) loadingEl.classList.add('hidden');
       if (bodyEl) bodyEl.innerText = resultText;
       if (outputEl) outputEl.classList.remove('hidden');
+    },
+
+    showCreateChapterModal: function (projectId) {
+      var self = this;
+      var existingModal = document.getElementById('apd-te-modal-overlay');
+      if (existingModal) existingModal.remove();
+
+      var overlay = document.createElement('div');
+      overlay.id = 'apd-te-modal-overlay';
+      overlay.className = 'apd-te-modal-overlay';
+
+      var templateChips = [
+        'Methodology, Stratigraphy & Chronometric Dating',
+        'Excavation Data, Loci & Ceramic Typology',
+        'Spatial Distribution, GIS & Regional Context',
+        'Synthesis, Inter-Site Synchronization & Discussion',
+        'Epigraphy, Numismatics & Material Culture',
+        'Appendix: Radiocarbon Determinations & Calibrations'
+      ];
+
+      overlay.innerHTML = `
+        <div class="apd-te-modal-card p-6 space-y-4">
+          <div class="flex items-start justify-between pb-3 border-b border-border">
+            <div class="flex items-center gap-2.5">
+              <span class="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">${APD_ICONS.book}</span>
+              <div>
+                <h2 class="text-base font-bold font-display text-foreground">Create New Thesis Chapter</h2>
+                <p class="text-xs text-muted-foreground">Add a structured dissertation chapter to your research outline</p>
+              </div>
+            </div>
+            <button id="apd-te-modal-close" class="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors">
+              ${APD_ICONS.x}
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label for="apd-te-modal-chapter-input" class="block text-xs font-semibold text-foreground mb-1.5">
+                Chapter Title
+              </label>
+              <input 
+                id="apd-te-modal-chapter-input" 
+                type="text" 
+                placeholder="e.g. Chapter 4: Petrographic Analysis & Ceramic Typology" 
+                class="w-full h-9 px-3 rounded-lg border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium transition-all" 
+              />
+            </div>
+
+            <div id="apd-te-modal-error" class="hidden text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-2.5 py-1.5 font-medium"></div>
+
+            <div>
+              <span class="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                Or Select an Academic Template:
+              </span>
+              <div class="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto">
+                ${templateChips.map(function (chip) {
+                  return `
+                    <button type="button" data-template-chip="${encodeURIComponent(chip)}" class="apd-te-chip text-[11px] px-2.5 py-1 rounded-md border border-border bg-muted/40 hover:bg-primary/10 hover:border-primary/40 hover:text-primary text-muted-foreground transition-all text-left">
+                      ${chip}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-border">
+            <button id="apd-te-modal-cancel" type="button" class="px-3.5 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              Cancel
+            </button>
+            <button id="apd-te-modal-submit" type="button" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-sm">
+              ${APD_ICONS.plus} Create Chapter
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      var input = overlay.querySelector('#apd-te-modal-chapter-input');
+      var errEl = overlay.querySelector('#apd-te-modal-error');
+      var closeBtn = overlay.querySelector('#apd-te-modal-close');
+      var cancelBtn = overlay.querySelector('#apd-te-modal-cancel');
+      var submitBtn = overlay.querySelector('#apd-te-modal-submit');
+      var chips = overlay.querySelectorAll('[data-template-chip]');
+
+      function closeModal() {
+        overlay.remove();
+      }
+
+      function submitChapter() {
+        var title = (input.value || '').trim();
+        if (!title) {
+          errEl.textContent = 'Please enter a chapter title.';
+          errEl.classList.remove('hidden');
+          input.focus();
+          return;
+        }
+
+        var chapters = DraftStore.getChapters(projectId);
+        var exists = chapters.some(function (c) {
+          return c.toLowerCase() === title.toLowerCase();
+        });
+
+        if (exists) {
+          errEl.textContent = 'A chapter with this title already exists in your thesis outline.';
+          errEl.classList.remove('hidden');
+          input.focus();
+          return;
+        }
+
+        chapters.push(title);
+        DraftStore.saveChapters(projectId, chapters);
+
+        var existingDraft = DraftStore.getDraft(projectId, title);
+        if (!existingDraft) {
+          DraftStore.saveDraft(projectId, title, textToHtml('', title));
+        }
+
+        closeModal();
+        self.activeChapter = title;
+        self.viewMode = 'chapter';
+        self.render();
+      }
+
+      closeBtn.onclick = closeModal;
+      cancelBtn.onclick = closeModal;
+      submitBtn.onclick = submitChapter;
+
+      chips.forEach(function (btn) {
+        btn.onclick = function () {
+          var val = decodeURIComponent(btn.getAttribute('data-template-chip'));
+          input.value = val;
+          errEl.classList.add('hidden');
+          input.focus();
+        };
+      });
+
+      overlay.onclick = function (e) {
+        if (e.target === overlay) closeModal();
+      };
+
+      input.onkeydown = function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitChapter();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+        } else {
+          errEl.classList.add('hidden');
+        }
+      };
+
+      setTimeout(function () {
+        input.focus();
+      }, 50);
     }
   };
 
