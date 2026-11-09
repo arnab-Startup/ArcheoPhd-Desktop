@@ -7,6 +7,7 @@ src/resource.res
 
 # Test binaries & build folders
 tests/bin/
+tests/test_*/
 build/
 *.exe
 !release/ArchaeoPhD.exe
