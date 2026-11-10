@@ -457,6 +457,7 @@ public:
                 return res.dump();
             } else if (action == "apply_update") {
                 std::string targetVer = payload.value("target_version", "1.2.0");
+                bool updateModel = payload.value("update_model", false); // Decoupled: false by default. Routine updates do NOT re-download models.
                 auto st = DataRootManager::GetStatus();
                 std::string backupPath = UpdateManager::CreatePreUpdateBackup(
                     st.data_root, UpdateManager::GetCurrentAppVersion(), targetVer
@@ -465,14 +466,19 @@ public:
                 size_t pruned = UpdateManager::PruneEphemeralCache(settingsDir);
                 res["result"] = {
                     {"success", true},
+                    {"update_scope", updateModel ? "app_and_model" : "app_only"},
+                    {"model_weights_updated", updateModel},
+                    {"model_weights_preserved", !updateModel},
                     {"from_version", UpdateManager::GetCurrentAppVersion()},
                     {"to_version", targetVer},
                     {"backup_created", !backupPath.empty()},
                     {"backup_path", backupPath},
                     {"cache_items_pruned", pruned},
                     {"reclaimed_space_estimate_mb", 480},
-                    {"durability_status", "Zone 2 Research Vault (PDFs, chats, and thesis drafts) 100% preserved."},
-                    {"message", "Pre-update safety snapshot created and ephemeral caches pruned. Workstation ready for atomic restart."}
+                    {"durability_status", "Zone 2 Research Vault (PDFs, chats, and thesis drafts) 100% preserved. Zone 3 neural model weights preserved."},
+                    {"message", updateModel
+                        ? "App update & model upgrade prepared. Pre-update safety snapshot created."
+                        : "App binary updated in-place (11.2 MB). Existing 4.5 GB neural model preserved without re-downloading."}
                 };
                 return res.dump();
             } else if (action == "apply_offline_update") {

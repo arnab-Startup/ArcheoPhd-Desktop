@@ -85,6 +85,12 @@ struct VersionReleaseInfo {
     std::string download_filename;
     std::string download_url;
     std::string minimum_os;
+
+    // Granular Update Flags (Decoupled App vs Model)
+    bool includes_model_update = false;    // Default: false! Routine updates do NOT re-download models.
+    bool model_update_optional = true;     // If a model is included, is it optional or mandatory?
+    std::string target_model_id = "";      // Specific new model ID if flagged
+    std::string model_update_note = "Routine software update. Existing 4.5 GB neural weights in Zone 3 are preserved.";
 };
 
 struct ModelWeightDescriptor {
@@ -127,6 +133,8 @@ public:
         v120.download_filename = "ArchaeoPhD-Setup.exe";
         v120.download_url = "/downloads/ArchaeoPhD-Setup.exe";
         v120.minimum_os = "Windows 10 Build 19041+ / Windows 11 (64-bit)";
+        v120.includes_model_update = false;
+        v120.model_update_note = "Routine software update (11.2 MB). Existing 4.5 GB neural weights in Zone 3 are preserved.";
         list.push_back(v120);
 
         // v1.1.0 (Spatial Intelligence & Chronology)
@@ -147,6 +155,8 @@ public:
         v110.download_filename = "ArchaeoPhD-v1.1.0-Setup.exe";
         v110.download_url = "/downloads/ArchaeoPhD-v1.1.0-Setup.exe";
         v110.minimum_os = "Windows 10 Build 19041+ / Windows 11 (64-bit)";
+        v110.includes_model_update = false;
+        v110.model_update_note = "Routine software update (9.52 MB). Existing neural weights in Zone 3 preserved.";
         list.push_back(v110);
 
         // v1.0.1 (Knowledge Graph & Harris Matrix Patch)
@@ -167,6 +177,8 @@ public:
         v101.download_filename = "ArchaeoPhD-v1.0.1-Setup.exe";
         v101.download_url = "/downloads/ArchaeoPhD-v1.0.1-Setup.exe";
         v101.minimum_os = "Windows 10 / 11 (64-bit)";
+        v101.includes_model_update = false;
+        v101.model_update_note = "Routine software update (9.45 MB). Existing neural weights in Zone 3 preserved.";
         list.push_back(v101);
 
         // v1.0.0 (Initial GA Release)
@@ -221,7 +233,10 @@ public:
                 {"sha256", rel.sha256},
                 {"download_filename", rel.download_filename},
                 {"download_url", rel.download_url},
-                {"minimum_os", rel.minimum_os}
+                {"minimum_os", rel.minimum_os},
+                {"includes_model_update", rel.includes_model_update},
+                {"update_scope", rel.includes_model_update ? "app_and_model" : "app_only"},
+                {"model_update_note", rel.model_update_note}
             });
         }
 
@@ -236,6 +251,15 @@ public:
             {"download_filename", latestRelease.download_filename},
             {"sha256", latestRelease.sha256},
             {"size_human", latestRelease.size_human},
+            {"update_scope", latestRelease.includes_model_update ? "app_and_model" : "app_only"},
+            {"includes_model_update", latestRelease.includes_model_update},
+            {"model_flags", {
+                {"requires_model_download", latestRelease.includes_model_update},
+                {"model_update_optional", latestRelease.model_update_optional},
+                {"target_model_id", latestRelease.target_model_id},
+                {"note", latestRelease.model_update_note},
+                {"existing_weights_preserved", true}
+            }},
             {"reclaimed_space_estimate_mb", 480},
             {"storage_durability_guarantee", "100% Zero-Data-Loss In-Place Update: Research PDFs, optical crops, chat history, and relational databases in Zone 2 are never modified."},
             {"version_history", histArray}

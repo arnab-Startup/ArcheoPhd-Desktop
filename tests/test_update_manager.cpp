@@ -48,6 +48,10 @@ int main() {
         assert(chk["current_version"] == "1.0.0");
         assert(chk["latest_version"] == "1.2.0");
         assert(chk["update_available"] == true);
+        assert(chk["update_scope"] == "app_only");
+        assert(chk["includes_model_update"] == false);
+        assert(chk["model_flags"]["requires_model_download"] == false);
+        assert(chk["model_flags"]["existing_weights_preserved"] == true);
         assert(chk["reclaimed_space_estimate_mb"] == 480);
         assert(chk.contains("version_history"));
         assert(chk["version_history"].is_array() && chk["version_history"].size() >= 4);

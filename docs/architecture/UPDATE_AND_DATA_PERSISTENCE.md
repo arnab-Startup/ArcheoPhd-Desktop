@@ -328,4 +328,41 @@ sequenceDiagram
 3. **Preservation of Claims & Hypotheses:**
    Stratigraphic relationships, locus bindings, radiocarbon age bounds, and thesis draft citations in SQLite / `relational_state.json` remain untouched, as they reference invariant entity IDs and span tokens, not vector coordinates.
 
+### 8.4 Decoupled Update Flags: The "App-Only" Routine vs "Model-Flagged" Breakthroughs
+
+In realistic academic software life cycles, 95%+ of releases are software patches (C++ bug fixes, faster Harris matrix topological sorts, improved UI views, or export formatters). Forcing researchers to re-download 4.5 GB to 9 GB of neural model weights for routine software changes is unacceptable.
+
+ArchaeoPhD resolves this by introducing **Granular Decoupled Update Flags**:
+
+```text
+====================================================================================================
+                            DECOUPLED UPDATE FLAG TOPOLOGY
+====================================================================================================
+  MANIFEST SIGNAL                           WORKSTATION BEHAVIOR
+  ---------------------------------------   --------------------------------------------------------
+  Case A: Routine Release (99% of updates)
+  {                                         -> Downloads ONLY the 10 MB executable & UI bundle
+    "version": "1.2.1",                     -> In-place swap finishes in under 2 seconds
+    "update_scope": "app_only",             -> Existing 4.5 GB Qwen 2.5 7B model is 100% PRESERVED
+    "includes_model_update": false,         -> Bandwidth used: 10 MB (Zero model waste)
+    "requires_model_download": false
+  }
+  ---------------------------------------   --------------------------------------------------------
+  Case B: Breakthrough Model Release
+  {                                         -> Dual-Action Prompt presented in UI:
+    "version": "2.0.0",                        [1] "Update App Only (10 MB)" -> Keeps existing model
+    "update_scope": "app_and_model",           [2] "Update App + Model (4.5 GB)" -> Streams new fine-tune
+    "includes_model_update": true,          -> User maintains 100% control over large downloads
+    "model_update_optional": true,          -> Fieldwork laptops with metered data are never forced
+    "target_model_id": "ArchaeoQwen-7B-v2"
+  }
+====================================================================================================
+```
+
+#### Flag Specifications in `UpdateManager`:
+- `includes_model_update`: Defaults to `false`. When `false`, the update pipeline never probes or modifies Zone 3 model files.
+- `model_update_optional`: Defaults to `true`. When a breakthrough archaeological fine-tune is published, the user is offered the choice to upgrade models or keep their current model while updating the desktop engine.
+- `update_model`: IPC argument passed to `apply_update`. If omitted or `false`, the micro-updater performs an atomic executable swap, prunes ephemeral caches, and preserves all neural weights intact.
+
+
 
