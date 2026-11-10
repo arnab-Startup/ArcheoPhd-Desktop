@@ -432,7 +432,6 @@ public:
 
                 return res.dump();
 
-            }
             } else if (action == "check_for_updates") {
                 res["result"] = UpdateManager::CheckForUpdate();
                 return res.dump();

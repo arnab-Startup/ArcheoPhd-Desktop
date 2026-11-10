@@ -43,6 +43,7 @@ The `desktop/` directory has its own Git repository (separate from the monorepo 
 | **Phase 3** | **Step 5** | Master Verification Audit & Workstation Hardening | [x] COMPLETE (Report 20 — Phase 3 Formally Closed) |
 | **Phase 3** | **Optimization** | Research Analytics Engine (`analytics_engine.hpp`), Dashboard IPC & Air-Gapped GIS Audit | [x] COMPLETE (Report 21) |
 | **Phase 3** | **Beta Hardening**| UI Color/Layout Harmonization, Offline Auth & Ed25519 Licensing, Beta Demo Dataset | [x] COMPLETE |
+| **Phase 3** | **Update Engine** | Zero-Data-Loss In-Place Update & State Persistence (`update_manager.hpp`) | [x] COMPLETE (Spec APD-ARCH-004) |
 
 ---
 
