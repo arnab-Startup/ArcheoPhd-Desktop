@@ -515,6 +515,55 @@ public:
                     {"message", "Ephemeral WebView2 shader caches, V8 bytecode caches, and temporary staging files successfully pruned."}
                 };
                 return res.dump();
+            } else if (action == "get_installed_models") {
+                auto st = DataRootManager::GetStatus();
+                auto models = UpdateManager::ScanInstalledModels(st.data_root);
+                json arr = json::array();
+                uint64_t totalBytes = 0;
+                uint64_t deprecatedBytes = 0;
+                for (const auto& m : models) {
+                    totalBytes += m.size_bytes;
+                    if (m.is_deprecated) deprecatedBytes += m.size_bytes;
+                    arr.push_back({
+                        {"id", m.id},
+                        {"filename", m.filename},
+                        {"category", m.category},
+                        {"full_path", m.full_path},
+                        {"size_bytes", m.size_bytes},
+                        {"size_human", m.size_human},
+                        {"is_active", m.is_active},
+                        {"is_deprecated", m.is_deprecated},
+                        {"embedding_dim", m.embedding_dim}
+                    });
+                }
+                res["result"] = {
+                    {"models", arr},
+                    {"total_model_space_bytes", totalBytes},
+                    {"total_model_space_human", UpdateManager::FormatBytesHuman(totalBytes)},
+                    {"reclaimable_deprecated_bytes", deprecatedBytes},
+                    {"reclaimable_deprecated_human", UpdateManager::FormatBytesHuman(deprecatedBytes)}
+                };
+                return res.dump();
+            } else if (action == "prune_deprecated_models") {
+                std::string filePath = payload.value("file_path", "");
+                if (filePath.empty()) {
+                    res["error"] = "File path to prune cannot be empty.";
+                    return res.dump();
+                }
+                uint64_t reclaimed = UpdateManager::PruneModelWeight(filePath);
+                res["result"] = {
+                    {"success", reclaimed > 0},
+                    {"reclaimed_bytes", reclaimed},
+                    {"reclaimed_human", UpdateManager::FormatBytesHuman(reclaimed)},
+                    {"file_path", filePath}
+                };
+                return res.dump();
+            } else if (action == "check_embedding_compatibility") {
+                auto st = DataRootManager::GetStatus();
+                std::string targetModel = payload.value("model_id", "nomic-embed-text-v1.5.Q4_K_M.gguf");
+                int targetDim = payload.value("dimension", 128);
+                res["result"] = UpdateManager::CheckEmbeddingModelCompatibility(st.data_root, targetModel, targetDim);
+                return res.dump();
             }
 
         } catch (const std::exception& e) {

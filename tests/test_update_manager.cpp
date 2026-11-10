@@ -159,6 +159,77 @@ int main() {
         std::cout << "  [PASS] Ephemeral cache pruning (WebView2 Cache & shaders) verified\n";
     }
 
+    // 7. Model Evolution, Model Switching & Vector Space Compatibility Verification
+    {
+        std::string testModelRoot = "test_run_model_store";
+        fs_compat::cleanup_tmp_files(testModelRoot);
+        fs_compat::create_directories(testModelRoot + "\\models\\llm");
+        fs_compat::create_directories(testModelRoot + "\\models\\embedding");
+        fs_compat::create_directories(testModelRoot + "\\libraries\\default\\chunks");
+
+        std::string activeLlm = testModelRoot + "\\models\\llm\\Qwen2.5-7B-Instruct-Q4_K_M.gguf";
+        std::string deprecatedLlm = testModelRoot + "\\models\\llm\\Qwen2-7B-Instruct-Q4_K_M.gguf";
+        std::string activeEmbed = testModelRoot + "\\models\\embedding\\nomic-embed-text-v1.5.Q4_K_M.gguf";
+
+        {
+            std::ofstream out(activeLlm);
+            out << std::string(1024, 'A');
+        }
+        {
+            std::ofstream out(deprecatedLlm);
+            out << std::string(2048, 'B');
+        }
+        {
+            std::ofstream out(activeEmbed);
+            out << std::string(512, 'C');
+        }
+
+        {
+            std::ofstream c1(testModelRoot + "\\libraries\\default\\chunks\\chunk_1.zst");
+            c1 << "Stratum III pottery shard";
+            std::ofstream c2(testModelRoot + "\\libraries\\default\\chunks\\chunk_2.zst");
+            c2 << "Locus 42 radiocarbon date 1200 BCE";
+            std::ofstream c3(testModelRoot + "\\libraries\\default\\chunks\\chunk_3.zst");
+            c3 << "Harris matrix unit 104 cuts 105";
+        }
+
+        auto models = UpdateManager::ScanInstalledModels(testModelRoot);
+        assert(models.size() == 3);
+        bool foundActive = false;
+        bool foundDeprecated = false;
+        for (const auto& m : models) {
+            if (m.filename == "Qwen2.5-7B-Instruct-Q4_K_M.gguf") {
+                assert(m.is_active == true);
+                assert(m.is_deprecated == false);
+                foundActive = true;
+            }
+            if (m.filename == "Qwen2-7B-Instruct-Q4_K_M.gguf") {
+                assert(m.is_active == false);
+                assert(m.is_deprecated == true);
+                foundDeprecated = true;
+            }
+        }
+        assert(foundActive && foundDeprecated);
+
+        json compatSame = UpdateManager::CheckEmbeddingModelCompatibility(testModelRoot, "nomic-embed-text-v1.5.Q4_K_M.gguf", 128);
+        assert(compatSame["is_compatible"] == true);
+        assert(compatSame["requires_reindexing"] == false);
+        assert(compatSame["available_chunks_for_reindexing"] == 3);
+
+        json compatDifferent = UpdateManager::CheckEmbeddingModelCompatibility(testModelRoot, "bge-m3-large.gguf", 768);
+        assert(compatDifferent["is_compatible"] == false);
+        assert(compatDifferent["requires_reindexing"] == true);
+        assert(compatDifferent["available_chunks_for_reindexing"] == 3);
+
+        uint64_t reclaimed = UpdateManager::PruneModelWeight(deprecatedLlm);
+        assert(reclaimed == 2048);
+        assert(!fs_compat::exists(deprecatedLlm));
+        assert(fs_compat::exists(activeLlm));
+
+        UpdateManager::DeleteDirectoryRecursive(DataRootManager::Utf8ToWide(testModelRoot));
+        std::cout << "  [PASS] Model discovery, deprecated weight pruning & embedding compatibility verified\n";
+    }
+
     std::cout << "\n================================================================================\n";
     std::cout << "  ALL UPDATE MANAGER VERIFICATION TESTS PASSED (100% SUCCESS)\n";
     std::cout << "================================================================================\n";

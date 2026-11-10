@@ -248,3 +248,84 @@ Because archaeological expeditions often operate in remote environments (e.g. de
 3. **Subproject Isolation:** All update routines are contained strictly within `desktop/` and the user's configured `<DataRoot>`.
 4. **Single-File Integrity:** The production artifact remains a self-contained executable with embedded updater and extraction capabilities.
 
+---
+
+## 8. Neural Model Evolution, Model Switching & Vector Space Compatibility
+
+### 8.1 The Model Lifecycle Problem
+
+As the software evolves across releases (e.g., advancing from Qwen 2.5 7B to Qwen 3 8B, or providing multi-tier model options such as a 3B model for mobile fieldwork laptops and 14B for laboratory workstations), neural model updates present two distinct architectural risks:
+
+1. **Massive Disk Bloat (Zone 3 Proliferation):**
+   GGUF model weights are large:
+   - 7B LLM (Q4_K_M): **~4.48 GB**
+   - 14B LLM (Q4_K_M): **~8.98 GB**
+   - 3B LLM (Q4_K_M): **~1.92 GB**
+   - Embedding weights (Nomic Embed / BGE-M3): **~270 MB to 1.1 GB**
+   If an update silently downloads a new model without managing the existing one, the user's SSD loses 4.5 GB to 10 GB of disk space to an orphaned, unreferenced file (`models\llm\Qwen2.5-7B-Instruct-Q4_K_M.gguf`).
+2. **The Vector Space Incompatibility Invariant (Catastrophic Retrieval Corruption):**
+   - When an **LLM model** changes: The reasoning dialect and prompt adherence may improve, but stored factual assertions, bibliographic references, and stratigraphic matrices remain mathematically valid.
+   - When an **Embedding Model** changes: The underlying vector geometry changes entirely. A query encoded with Model B cannot be mathematically compared via cosine similarity with document embeddings created with Model A:
+     $$\cos(\theta) = \frac{\mathbf{q}_{B} \cdot \mathbf{d}_{A}}{\|\mathbf{q}_{B}\| \|\mathbf{d}_{A}\|} \quad \text{(Mathematically Invalid)}$$
+     Querying disparate latent spaces produces random or garbage retrieval scores.
+
+### 8.2 Dynamic Model Discovery & Deprecated Weight Pruning
+
+ArchaeoPhD's `UpdateManager` actively inventories Zone 3 (`<DataRoot>\models\`) on launch and update:
+
+```text
+====================================================================================================
+                        ZONE 3 MODEL REGISTRY & RETENTION ENGINE
+====================================================================================================
+  <DataRoot>\models\
+    ├── models_config.json                 (Declares active LLM & Embedding models)
+    ├── llm\
+    │     ├── Qwen2.5-7B-Instruct.gguf     [ACTIVE] 4.48 GB -> Preserved
+    │     └── Qwen2-7B-Instruct.gguf       [DEPRECATED] 4.48 GB -> Flagged for Pruning (Reclaims 4.48 GB)
+    └── embedding\
+          └── nomic-embed-text-v1.5.gguf   [ACTIVE] 274 MB -> Matches vectors_meta.json
+====================================================================================================
+```
+
+#### Pruning Protocol:
+1. **Automated Discovery:** `UpdateManager::ScanInstalledModels(dataRoot)` lists all `.gguf` weights in `<DataRoot>\models\llm\` and `<DataRoot>\models\embedding\`.
+2. **Deprecation Tagging:** Files not designated as active in `models_config.json` are marked with `is_deprecated = true`.
+3. **User-Controlled Reclamation:** The settings interface exposes an actionable disk reclamation control:
+   `[MODEL_HYGIENE] Active: Qwen 2.5 7B (4.48 GB). Obsolete model detected: Qwen 2 7B (4.48 GB). Reclaim 4.48 GB disk space? [Prune Obsolete Model] [Keep Archive]`
+4. **Physical Erasure:** Calling `UpdateManager::PruneModelWeight(path)` deletes the obsolete `.gguf` container via `DeleteFileW`, immediately reclaiming gigabytes of disk capacity.
+
+### 8.3 Zero-Data-Loss Background Re-Embedding Pipeline
+
+To support changing embedding models (or upgrading dimensionality from 128 to 768) without data loss, ArchaeoPhD enforces the **Automated Zero-Data-Loss Re-Embedding Protocol**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as ArchaeoPhD Workstation
+    participant UM as UpdateManager
+    participant Vault as Zone 2 Research Vault
+    participant Embed as EmbeddingEngine (New Model)
+    participant VIndex as VectorIndex (vectors.bin)
+
+    App->>UM: CheckEmbeddingModelCompatibility(dataRoot, new_model_id, new_dim)
+    UM->>VIndex: Read vectors_meta.json
+    Note over UM,VIndex: Incompatibility detected (model_id mismatch or dim mismatch)
+    UM-->>App: Return {is_compatible: false, requires_reindexing: true, available_chunks: 1420}
+    App->>Vault: Stream raw monograph chunks (chunks/*.zst)
+    Note over Vault,Embed: Zero Loss: Raw OCR and PDF text chunks are 100% persistent in Zone 2!
+    loop For each existing chunk
+        Embed->>Embed: Compute embedding vector (new_dim)
+    end
+    Embed->>VIndex: Write temporary vectors.new.bin & vectors_meta.new.json
+    Embed->>VIndex: Atomic swap (MoveFileExW replaces vectors.bin)
+    Note over App,VIndex: Search index fully upgraded to new model without re-uploading PDFs!
+```
+
+1. **Zero Monograph Re-Upload Required:**
+   Because Zone 2 permanently stores the compressed text chunks (`libraries\default\chunks\*.zst`) and original monograph archives (`libraries\default\archives\*.zst`), the user **never needs to re-upload or re-OCR their archaeological monographs**.
+2. **Atomic Index Replacement:**
+   Re-embedding streams in the background and writes to `vectors.new.bin`. Once the pass completes and validates, `MoveFileExW` atomically replaces the old `vectors.bin`.
+3. **Preservation of Claims & Hypotheses:**
+   Stratigraphic relationships, locus bindings, radiocarbon age bounds, and thesis draft citations in SQLite / `relational_state.json` remain untouched, as they reference invariant entity IDs and span tokens, not vector coordinates.
+
+
