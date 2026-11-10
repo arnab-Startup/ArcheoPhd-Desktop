@@ -247,3 +247,4 @@ Because archaeological expeditions often operate in remote environments (e.g. de
 2. **Zero-Emoji Compliance:** All log output, updater messages, and UI indicators strictly use vector SVG icons and ASCII formatting (`[UPDATE_OK]`, `[BACKUP_SUCCESS]`, `[ROLLBACK]`).
 3. **Subproject Isolation:** All update routines are contained strictly within `desktop/` and the user's configured `<DataRoot>`.
 4. **Single-File Integrity:** The production artifact remains a self-contained executable with embedded updater and extraction capabilities.
+
