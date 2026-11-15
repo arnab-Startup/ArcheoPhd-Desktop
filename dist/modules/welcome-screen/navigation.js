@@ -21,14 +21,21 @@
   }
 
   function attachEvents() {
+    function openPersonalDashboard() {
+      try {
+        localStorage.setItem('archaeo_active_project', 'default');
+      } catch (e) {}
+      navigateTo('/dashboard');
+    }
+
     var btnEnter = document.getElementById('apd-w-enter-workspace');
     if (btnEnter) {
-      btnEnter.onclick = function () { navigateTo('/dashboard'); };
+      btnEnter.onclick = openPersonalDashboard;
     }
 
     var emblem = document.getElementById('apd-w-emblem');
     if (emblem) {
-      emblem.onclick = function () { navigateTo('/dashboard'); };
+      emblem.onclick = openPersonalDashboard;
     }
 
     var cardDemo = document.getElementById('apd-card-demo');
@@ -43,12 +50,12 @@
 
     var cardWorkspace = document.getElementById('apd-card-workspace');
     if (cardWorkspace) {
-      cardWorkspace.onclick = function () { navigateTo('/dashboard'); };
+      cardWorkspace.onclick = openPersonalDashboard;
     }
 
     var cardSignin = document.getElementById('apd-card-signin');
     if (cardSignin) {
-      cardSignin.onclick = function () { navigateTo('/dashboard'); };
+      cardSignin.onclick = openPersonalDashboard;
     }
 
     var ribbonBtns = document.querySelectorAll('.apd-w-ribbon-btn');

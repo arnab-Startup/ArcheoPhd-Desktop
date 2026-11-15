@@ -10,7 +10,7 @@ function ge(){
     return e.jsx("div", {className: "flex items-center justify-center py-20", children: e.jsx(z, {className: "w-6 h-6 animate-spin text-muted-foreground"})});
   }
 
-  const isProject = c && c.id && c.id !== "default";
+  const isProject = Boolean(c && c.id && c.id !== "default" && c.id !== "null" && c.id !== "");
 
   // Disputed claims & contradictory evidence
   const contradictingEv = n.filter(s => s.evidence_type === "contradicting");
@@ -19,246 +19,261 @@ function ge(){
   const claimsNeedingEvidence = l.filter(s => !n.some(t => t.claim_id === s.id));
   const coveragePercent = l.length ? Math.round((claimsWithEvidence.length / l.length) * 100) : 0;
 
-  // ---------------------------------------------------------------------------
-  // TIER 1: PERSONAL RESEARCHER DOSSIER & DOCTORAL PORTAL (When in default/global)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // COMMON PERSONAL RESEARCHER DASHBOARD (For every researcher: MA / PhD / Prof)
+  // ===========================================================================
   if (!isProject) {
-    const candidateName = (a && a.full_name) ? a.full_name : "Lead Researcher";
-    const nonDefaultProjects = i.filter(p => p.id !== "default");
+    const researcherName = (a && a.full_name) ? a.full_name : "Lead Researcher";
+    const nonDefaultProjects = i.filter(p => p.id !== "default" && p.id !== "null");
 
     return e.jsxs("div", {className: "space-y-6", children: [
-      // Academic Portal Header
+      // Personal Researcher Portal Header
       e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
         e.jsxs("div", {className: "flex flex-col md:flex-row md:items-center justify-between gap-4", children: [
           e.jsxs("div", {children: [
-            e.jsx("div", {className: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/10 text-primary mb-2", children: "Doctoral Academic Dossier"}),
-            e.jsx("h1", {className: "font-display text-2xl font-700 text-foreground tracking-tight", children: candidateName + " — Research Portal"}),
-            e.jsx("p", {className: "text-xs text-muted-foreground mt-1", children: "Doctor of Philosophy in Archaeology · Department of Ancient History & Field Excavations"})
+            e.jsx("div", {className: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/10 text-primary mb-2", children: "Researcher Portal"}),
+            e.jsx("h1", {className: "font-display text-2xl font-700 text-foreground tracking-tight", children: researcherName + " — Research Home"}),
+            e.jsx("p", {className: "text-xs text-muted-foreground mt-1", children: "Archaeological Research Portfolio & Fieldwork Management Workstation"})
           ]}),
           e.jsxs("div", {className: "flex items-center gap-2", children: [
-            e.jsxs(r, {to: "/projects/new", className: "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-500 hover:bg-primary/90 transition-all shadow-xs", children: [
+            e.jsxs(r, {to: "/projects/new", className: "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-500 hover:bg-primary/90 transition-all shadow-xs", children: [
               e.jsx(P, {className: "w-3.5 h-3.5"}),
               "New Research Project"
             ]}),
             e.jsxs(r, {to: "/thesis", className: "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted text-xs font-500 text-foreground transition-all shadow-xs", children: [
               e.jsx(Z, {className: "w-3.5 h-3.5"}),
-              "Thesis Editor"
+              "Thesis & Writing Studio"
             ]})
           ]})
         ]})
       ]}),
 
-      // Dissertation Progress Tracker Card
-      e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
-        e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
-          e.jsxs("div", {className: "flex items-center gap-2.5", children: [
-            e.jsx(ce, {className: "w-5 h-5 text-primary"}),
-            e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Dissertation Progression: Early Historic Maritime & Settlement Archaeology"})
+      // Common Research Portfolio Statistics
+      e.jsxs("div", {className: "grid grid-cols-2 md:grid-cols-4 gap-4", children: [
+        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between text-muted-foreground mb-1", children: [
+            e.jsx("span", {className: "text-xs font-500", children: "Active Projects"}),
+            e.jsx(P, {className: "w-4 h-4 text-foreground"})
           ]}),
-          e.jsx("span", {className: "text-xs font-600 text-primary bg-primary/10 px-2.5 py-0.5 rounded-full", children: "Chapter IV in progress · 72% Complete"})
+          e.jsx("div", {className: "text-2xl font-700 text-foreground", children: nonDefaultProjects.length}),
+          e.jsx("div", {className: "text-[11px] text-muted-foreground mt-1", children: "Excavations & Surveys"})
         ]}),
-        e.jsxs("div", {className: "grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4", children: [
-          e.jsxs("div", {className: "rounded-xl border border-border bg-muted/20 p-3.5", children: [
-            e.jsx("div", {className: "text-[11px] text-muted-foreground", children: "Chapter I: Historiography"}),
-            e.jsx("div", {className: "text-sm font-600 text-accent mt-1", children: "Finalized & Approved"}),
-            e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "12,400 words · 48 citations"})
+        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between text-muted-foreground mb-1", children: [
+            e.jsx("span", {className: "text-xs font-500", children: "Monograph Library"}),
+            e.jsx(R, {className: "w-4 h-4 text-accent"})
           ]}),
-          e.jsxs("div", {className: "rounded-xl border border-border bg-muted/20 p-3.5", children: [
-            e.jsx("div", {className: "text-[11px] text-muted-foreground", children: "Chapter II: C-14 Methodology"}),
-            e.jsx("div", {className: "text-sm font-600 text-accent mt-1", children: "IntCal20 Calibrated"}),
-            e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "8,900 words · 32 radio-dates"})
-          ]}),
-          e.jsxs("div", {className: "rounded-xl border border-border bg-muted/20 p-3.5", children: [
-            e.jsx("div", {className: "text-[11px] text-muted-foreground", children: "Chapter III: Stratigraphy"}),
-            e.jsx("div", {className: "text-sm font-600 text-chart-4 mt-1", children: "Under Supervisor Review"}),
-            e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "14,800 words · 7-phase matrix"})
-          ]}),
-          e.jsxs("div", {className: "rounded-xl border border-primary/30 bg-primary/5 p-3.5", children: [
-            e.jsx("div", {className: "text-[11px] text-primary font-500", children: "Chapter IV: Trade & Epigraphy"}),
-            e.jsx("div", {className: "text-sm font-600 text-primary mt-1", children: "Currently Drafting"}),
-            e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "12,400 words · Kharosthi seals"})
-          ]})
+          e.jsx("div", {className: "text-2xl font-700 text-foreground", children: g.length}),
+          e.jsx("div", {className: "text-[11px] text-muted-foreground mt-1", children: "Catalogued Primary Sources"})
         ]}),
-        e.jsxs("div", {className: "flex items-center justify-between text-xs text-muted-foreground pt-1", children: [
-          e.jsx("span", {children: "Overall Thesis Draft: 48,500 of 65,000 words"}),
-          e.jsx("span", {className: "font-mono font-600 text-foreground", children: "72%"})
+        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between text-muted-foreground mb-1", children: [
+            e.jsx("span", {className: "text-xs font-500", children: "Fieldnotes & Logs"}),
+            e.jsx(C, {className: "w-4 h-4 text-chart-5"})
+          ]}),
+          e.jsx("div", {className: "text-2xl font-700 text-foreground", children: $.length}),
+          e.jsx("div", {className: "text-[11px] text-muted-foreground mt-1", children: "Trench Logs & Fieldnotes"})
         ]}),
-        e.jsx("div", {className: "h-2 rounded-full bg-muted overflow-hidden mt-1.5", children: e.jsx("div", {className: "h-full bg-primary", style: {width: "72%"}})})
+        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between text-muted-foreground mb-1", children: [
+            e.jsx("span", {className: "text-xs font-500", children: "Empirical Claims"}),
+            e.jsx(E, {className: "w-4 h-4 text-chart-3"})
+          ]}),
+          e.jsx("div", {className: "text-2xl font-700 text-foreground", children: l.length}),
+          e.jsx("div", {className: "text-[11px] text-muted-foreground mt-1", children: claimsWithDispute.length + " Disputed in Evidence"})
+        ]})
       ]}),
 
-      // Archaeological Excavation Projects Portfolio
+      // Research Projects Portfolio (The Core Container)
       e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
-        e.jsxs("div", {className: "flex items-center justify-between mb-4", children: [
+        e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
           e.jsxs("div", {children: [
-            e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Archaeological Excavation Projects"}),
-            e.jsx("p", {className: "text-xs text-muted-foreground mt-0.5", children: "Select an excavation project to enter its dedicated archaeological workstation."})
+            e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Research Projects Portfolio"}),
+            e.jsx("p", {className: "text-xs text-muted-foreground mt-0.5", children: "Each research project maintains its own isolated artifacts, stratigraphy, and fieldnotes."})
           ]}),
-          e.jsxs(r, {to: "/projects", className: "text-xs font-500 text-primary hover:underline inline-flex items-center gap-1", children: ["All Projects", e.jsx(S, {className: "w-3 h-3"})]})
+          e.jsxs(r, {to: "/projects", className: "text-xs font-500 text-primary hover:underline inline-flex items-center gap-1", children: ["Manage Projects", e.jsx(S, {className: "w-3 h-3"})]})
         ]}),
-        e.jsx("div", {className: "grid md:grid-cols-2 gap-4", children: nonDefaultProjects.map(proj => {
+        nonDefaultProjects.length === 0 ? e.jsxs("div", {className: "py-12 text-center", children: [
+          e.jsx(P, {className: "w-8 h-8 text-muted-foreground/40 mx-auto mb-2"}),
+          e.jsx("p", {className: "text-sm text-foreground font-500", children: "No research projects catalogued yet."}),
+          e.jsx("p", {className: "text-xs text-muted-foreground mt-1", children: "Create your first excavation or survey project to begin recording fieldwork."}),
+          e.jsxs(r, {to: "/projects/new", className: "inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-600 hover:bg-primary/90 transition-all", children: [
+            e.jsx(P, {className: "w-3.5 h-3.5"}),
+            "Create New Project"
+          ]})
+        ]}) : e.jsx("div", {className: "grid md:grid-cols-2 gap-4", children: nonDefaultProjects.map(proj => {
           return e.jsxs("div", {key: proj.id, className: "rounded-xl border border-border bg-muted/20 p-5 hover:border-primary/50 transition-all flex flex-col justify-between", children: [
             e.jsxs("div", {children: [
-              e.jsxs("div", {className: "flex items-start justify-between gap-3 mb-2", children: [
-                e.jsx("div", {className: "w-9 h-9 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0", children: e.jsx(P, {className: "w-4 h-4"})}),
-                proj.is_demo ? e.jsx("span", {className: "px-2 py-0.5 rounded-full bg-accent/20 text-accent text-[10px] font-700 uppercase", children: "Benchmark Dataset"}) : null
+              e.jsxs("div", {className: "flex items-center justify-between gap-2 mb-2", children: [
+                proj.is_demo ? e.jsx("span", {className: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-accent/20 text-accent", children: "Benchmark Dataset"}) : e.jsx("span", {className: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/10 text-primary", children: "Field Project"}),
+                e.jsx("span", {className: "text-[11px] font-mono text-muted-foreground", children: proj.research_period || "Multi-Period"})
               ]}),
-              e.jsx("h3", {className: "font-display text-base font-600 text-foreground", children: proj.title}),
-              proj.research_question ? e.jsx("p", {className: "text-xs text-muted-foreground mt-1.5 line-clamp-2 italic", children: proj.research_question}) : null,
-              e.jsxs("div", {className: "flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground", children: [
-                proj.research_region ? e.jsxs("span", {className: "inline-flex items-center gap-1", children: [e.jsx(J, {className: "w-3 h-3"}), proj.research_region]}) : null,
-                proj.research_period ? e.jsxs("span", {className: "inline-flex items-center gap-1", children: [e.jsx(q, {className: "w-3 h-3"}), proj.research_period]}) : null
+              e.jsx("h3", {className: "font-display text-base font-600 text-foreground leading-snug", children: proj.title}),
+              proj.research_question ? e.jsx("p", {className: "text-xs text-muted-foreground mt-2 line-clamp-2", children: proj.research_question}) : null,
+              e.jsxs("div", {className: "flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground", children: [
+                proj.research_region ? e.jsxs("span", {className: "inline-flex items-center gap-1 font-500", children: [
+                  e.jsx(J, {className: "w-3 h-3 text-chart-2"}),
+                  proj.research_region
+                ]}) : null
               ]})
             ]}),
-            e.jsx("div", {className: "mt-4 pt-3 border-t border-border flex items-center justify-between", children: [
+            e.jsxs("div", {className: "flex items-center justify-between pt-4 mt-4 border-t border-border", children: [
               e.jsxs("button", {
-                onClick: () => { if (typeof o === "function") o(proj.id); },
-                className: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-600 hover:bg-primary/90 transition-all shadow-xs",
-                children: ["Enter Excavation Workstation", e.jsx(S, {className: "w-3 h-3"})]
+                type: "button",
+                onClick: () => {
+                  try {
+                    localStorage.setItem("archaeo_active_project", proj.id);
+                  } catch (e) {}
+                  if (typeof o === "function") o(proj.id);
+                },
+                className: "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-600 hover:bg-primary/90 transition-all shadow-xs cursor-pointer",
+                children: [
+                  "Open Project Workspace",
+                  e.jsx(S, {className: "w-3 h-3"})
+                ]
               }),
-              e.jsxs(r, {
-                to: "/evidence-graph",
-                onClick: () => { if (typeof o === "function") o(proj.id); },
-                className: "text-xs text-muted-foreground hover:text-foreground hover:underline",
-                children: ["View Graph →"]
-              })
+              e.jsxs(r, {to: "/projects/" + proj.id + "/settings", className: "text-xs text-muted-foreground hover:text-foreground", children: ["Settings"]})
             ]})
           ]});
         })})
       ]}),
 
-      // Offline Workstation Architecture & Health
-      e.jsxs("div", {className: "grid sm:grid-cols-3 gap-4", children: [
-        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4", children: [
-          e.jsxs("div", {className: "flex items-center gap-2 text-xs font-600 text-foreground mb-1", children: [
-            e.jsx(d, {className: "w-4 h-4 text-accent"}),
-            "Neural Engine (Qwen 2.5 7B)"
+      // Global Literature & Fieldnotes Quick Access
+      e.jsxs("div", {className: "grid lg:grid-cols-2 gap-6", children: [
+        e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
+            e.jsxs("div", {className: "flex items-center gap-2", children: [
+              e.jsx(R, {className: "w-4 h-4 text-accent"}),
+              e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Recent Monographs & Excavation Reports"})
+            ]}),
+            e.jsx(r, {to: "/library", className: "text-xs font-500 text-primary hover:underline", children: "View All (" + g.length + ")"})
           ]}),
-          e.jsx("p", {className: "text-[11px] text-muted-foreground", children: "4-bit quantized local LLM loaded in memory. Zero cloud transmission."})
+          g.length === 0 ? e.jsx("p", {className: "text-xs text-muted-foreground py-6 text-center", children: "No monographs catalogued yet."}) : e.jsx("div", {className: "space-y-2.5", children: g.slice(0, 4).map(s => {
+            return e.jsxs(r, {key: s.id, to: "/library/" + s.id, className: "block group rounded-lg p-2 hover:bg-muted/40 transition-colors", children: [
+              e.jsx("div", {className: "text-xs font-600 text-foreground group-hover:text-primary truncate", children: s.title}),
+              e.jsxs("div", {className: "text-[11px] text-muted-foreground truncate mt-0.5", children: [
+                s.author || "ASI Survey",
+                s.year ? " · " + s.year : ""
+              ]})
+            ]});
+          })})
         ]}),
-        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4", children: [
-          e.jsxs("div", {className: "flex items-center gap-2 text-xs font-600 text-foreground mb-1", children: [
-            e.jsx(I, {className: "w-4 h-4 text-primary"}),
-            "Vector Engine (Nomic 128-dim)"
+        e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
+          e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
+            e.jsxs("div", {className: "flex items-center gap-2", children: [
+              e.jsx(C, {className: "w-4 h-4 text-chart-5"}),
+              e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Recent Research Fieldnotes & Logs"})
+            ]}),
+            e.jsx(r, {to: "/notes", className: "text-xs font-500 text-primary hover:underline", children: "View All (" + $.length + ")"})
           ]}),
-          e.jsx("p", {className: "text-[11px] text-muted-foreground", children: "Dense archaeological embeddings & IntCal20 radiocarbon splines active."})
-        ]}),
-        e.jsxs("div", {className: "rounded-xl border border-border bg-card p-4", children: [
-          e.jsxs("div", {className: "flex items-center gap-2 text-xs font-600 text-foreground mb-1", children: [
-            e.jsx(Y, {className: "w-4 h-4 text-accent"}),
-            "LevelDB Storage Vault"
-          ]}),
-          e.jsx("p", {className: "text-[11px] text-muted-foreground", children: "Air-gapped data persistence. Strict project-level isolation active."})
+          $.length === 0 ? e.jsx("p", {className: "text-xs text-muted-foreground py-6 text-center", children: "No fieldnotes recorded yet."}) : e.jsx("div", {className: "space-y-2.5", children: $.slice(0, 4).map(note => {
+            return e.jsxs(r, {key: note.id, to: "/notes?focus=" + note.id, className: "block group rounded-lg p-2 hover:bg-muted/40 transition-colors", children: [
+              e.jsx("div", {className: "text-xs font-600 text-foreground group-hover:text-primary truncate", children: note.title}),
+              e.jsx("div", {className: "text-[11px] text-muted-foreground truncate mt-0.5", children: (note.content || "").replace(/<[^>]+>/g, "").slice(0, 85)})
+            ]});
+          })})
         ]})
       ]})
     ]});
   }
 
-  // ---------------------------------------------------------------------------
-  // TIER 2: DEDICATED ARCHAEOLOGICAL PROJECT WORKSTATION (When project is active)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // UNIVERSAL ARCHAEOLOGICAL PROJECT WORKSPACE (Identical for MA / PhD / Prof)
+  // ===========================================================================
   return e.jsxs("div", {className: "space-y-6", children: [
-    // Project Workstation Header Banner
-    e.jsxs("div", {className: "rounded-2xl border border-primary/30 bg-gradient-to-r from-card via-card to-primary/5 p-6 shadow-sm", children: [
+    // Project Workstation Header with Back to Personal Dashboard Button
+    e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
       e.jsxs("div", {className: "flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4 mb-4", children: [
         e.jsxs("div", {children: [
           e.jsxs("div", {className: "flex items-center gap-2 mb-1.5", children: [
-            e.jsx("span", {className: "inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/15 text-primary", children: "Archaeological Excavation Workstation"}),
-            c.is_demo ? e.jsx("span", {className: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-accent/20 text-accent", children: "Benchmark Dataset"}) : null
+            e.jsx("button", {
+              type: "button",
+              onClick: () => {
+                try {
+                  localStorage.setItem("archaeo_active_project", "default");
+                } catch (err) {}
+                if (typeof o === "function") o("default");
+              },
+              className: "inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-600 bg-muted hover:bg-muted/80 text-foreground transition-all cursor-pointer mr-1",
+              children: [
+                e.jsx(S, {className: "w-3 h-3 rotate-180"}),
+                "Personal Dashboard"
+              ]
+            }),
+            e.jsx("span", {className: "inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/15 text-primary", children: "Archaeological Project Workspace"}),
+            c.is_demo ? e.jsx("span", {className: "inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-accent/20 text-accent", children: "Benchmark Dataset"}) : null
           ]}),
           e.jsx("h1", {className: "font-display text-2xl font-700 text-foreground tracking-tight", children: c.title}),
-          c.research_question ? e.jsx("p", {className: "text-xs italic text-muted-foreground mt-1.5 max-w-3xl", children: '"' + c.research_question + '"'}) : null,
-          e.jsxs("div", {className: "flex flex-wrap items-center gap-3 mt-2.5 text-xs text-muted-foreground", children: [
-            c.research_region ? e.jsxs("span", {className: "inline-flex items-center gap-1 font-500", children: [e.jsx("span", {className: "text-foreground font-600", children: "Region:"}), " ", c.research_region]}) : null,
-            c.research_period ? e.jsxs("span", {className: "inline-flex items-center gap-1 font-500", children: [e.jsx("span", {className: "text-foreground font-600", children: "Horizon:"}), " ", c.research_period]}) : null,
+          c.research_question ? e.jsx("p", {className: "text-xs italic text-muted-foreground mt-1.5 max-w-3xl", children: c.research_question}) : null,
+          e.jsxs("div", {className: "flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground", children: [
+            c.research_region ? e.jsxs("span", {className: "inline-flex items-center gap-1 font-500", children: [
+              e.jsx("span", {className: "text-foreground/80 font-600", children: "Region:"}),
+              " ",
+              c.research_region
+            ]}) : null,
+            c.research_period ? e.jsxs("span", {className: "inline-flex items-center gap-1 font-500", children: [
+              e.jsx("span", {className: "text-foreground/80 font-600", children: "Period:"}),
+              " ",
+              c.research_period
+            ]}) : null,
             e.jsx("span", {className: "text-muted-foreground/40", children: "•"}),
-            e.jsx("span", {className: "font-mono text-[11px] text-muted-foreground", children: "Harris Matrix Sequence · IntCal20 Calibrated"})
+            e.jsx("span", {className: "font-mono text-[11px] text-muted-foreground", children: "Stratigraphic Context · IntCal20 Calibrated"})
           ]})
         ]}),
-        e.jsxs("button", {
-          onClick: () => { if (typeof o === "function") o("default"); },
-          className: "inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-500 text-foreground transition-all shrink-0 self-start md:self-center shadow-xs",
-          children: ["← Return to Researcher Portal"]
-        })
+        e.jsxs("div", {className: "flex items-center gap-2", children: [
+          e.jsxs("button", {
+            type: "button",
+            onClick: () => {
+              try {
+                localStorage.setItem("archaeo_active_project", "default");
+              } catch (err) {}
+              if (typeof o === "function") o("default");
+            },
+            className: "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-500 text-foreground transition-all shadow-xs cursor-pointer",
+            children: [
+              e.jsx(S, {className: "w-3 h-3 rotate-180"}),
+              "Switch Project"
+            ]
+          }),
+          e.jsxs(r, {to: "/claims", className: "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-500 hover:bg-primary/90 transition-all shadow-xs", children: [
+            "Audit Claims",
+            e.jsx(S, {className: "w-3 h-3"})
+          ]})
+        ]})
       ]}),
 
-      // 6-Tool Archaeological Domain Action Grid
-      e.jsxs("div", {className: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5", children: [
-        e.jsxs(r, {to: "/evidence-graph", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-center group", children: [
-          e.jsx(I, {className: "w-5 h-5 text-primary mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Evidence Graph"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: n.length + " links · " + contradictingEv.length + " disputes"})
+      // Project Context Health Summary
+      e.jsxs("div", {className: "grid grid-cols-2 md:grid-cols-4 gap-4", children: [
+        e.jsxs("div", {className: "p-3 rounded-xl bg-muted/30 border border-border/50", children: [
+          e.jsx("div", {className: "text-[11px] font-500 text-muted-foreground", children: "Excavation Sites & Loci"}),
+          e.jsx("div", {className: "text-xl font-700 text-foreground mt-0.5", children: T.length}),
+          e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "Stratigraphic Trenches"})
         ]}),
-        e.jsxs(r, {to: "/chronology", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-chart-5 hover:bg-chart-5/5 transition-all text-center group", children: [
-          e.jsx(q, {className: "w-5 h-5 text-chart-5 mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Stratigraphy & Matrix"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: "Harris sequence"})
+        e.jsxs("div", {className: "p-3 rounded-xl bg-muted/30 border border-border/50", children: [
+          e.jsx("div", {className: "text-[11px] font-500 text-muted-foreground", children: "Catalogued Finds"}),
+          e.jsx("div", {className: "text-xl font-700 text-chart-4 mt-0.5", children: D.length}),
+          e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "Artifacts & Typology"})
         ]}),
-        e.jsxs(r, {to: "/artifacts", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-chart-4 hover:bg-chart-4/5 transition-all text-center group", children: [
-          e.jsx(K, {className: "w-5 h-5 text-chart-4 mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Finds & Typology"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: D.length + " catalogued finds"})
+        e.jsxs("div", {className: "p-3 rounded-xl bg-muted/30 border border-border/50", children: [
+          e.jsx("div", {className: "text-[11px] font-500 text-muted-foreground", children: "Field Reports & Sources"}),
+          e.jsx("div", {className: "text-xl font-700 text-accent mt-0.5", children: g.length}),
+          e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: "Primary Monographs"})
         ]}),
-        e.jsxs(r, {to: "/sites", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-chart-2 hover:bg-chart-2/5 transition-all text-center group", children: [
-          e.jsx(J, {className: "w-5 h-5 text-chart-2 mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Excavation Sites"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: T.length + " surveyed ports/mounds"})
-        ]}),
-        e.jsxs(r, {to: "/ai-research", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-accent hover:bg-accent/5 transition-all text-center group", children: [
-          e.jsx(d, {className: "w-5 h-5 text-accent mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Dialectic AI"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: "Hypothesis verification"})
-        ]}),
-        e.jsxs(r, {to: "/library", className: "flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-center group", children: [
-          e.jsx(R, {className: "w-5 h-5 text-primary mb-1 group-hover:scale-110 transition-transform"}),
-          e.jsx("span", {className: "text-xs font-600 text-foreground", children: "Field Reports & Sources"}),
-          e.jsx("span", {className: "text-[10px] text-muted-foreground", children: g.length + " monographs & papers"})
+        e.jsxs("div", {className: "p-3 rounded-xl bg-muted/30 border border-border/50", children: [
+          e.jsx("div", {className: "text-[11px] font-500 text-muted-foreground", children: "Empirical Evidence"}),
+          e.jsx("div", {className: "text-xl font-700 text-chart-3 mt-0.5", children: n.length}),
+          e.jsx("div", {className: "text-[10px] text-muted-foreground mt-0.5", children: claimsWithDispute.length + " Disputed Claims"})
         ]})
       ]})
     ]}),
 
-    // Project Empirical Assemblage Metrics
-    e.jsxs("div", {className: "grid grid-cols-2 lg:grid-cols-4 gap-3", children: [
-      e.jsxs(r, {to: "/artifacts", className: "rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-all", children: [
-        e.jsxs("div", {className: "flex items-center justify-between", children: [
-          e.jsx(K, {className: "w-5 h-5 text-chart-4"}),
-          e.jsx(S, {className: "w-4 h-4 text-muted-foreground"})
-        ]}),
-        e.jsx("div", {className: "mt-3 font-display text-3xl font-600 text-foreground", children: D.length}),
-        e.jsx("div", {className: "text-xs text-muted-foreground mt-0.5", children: "Catalogued Artifacts (NBPW, Coins, Seals)"})
-      ]}),
-      e.jsxs(r, {to: "/sites", className: "rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-all", children: [
-        e.jsxs("div", {className: "flex items-center justify-between", children: [
-          e.jsx(J, {className: "w-5 h-5 text-chart-2"}),
-          e.jsx(S, {className: "w-4 h-4 text-muted-foreground"})
-        ]}),
-        e.jsx("div", {className: "mt-3 font-display text-3xl font-600 text-foreground", children: T.length}),
-        e.jsx("div", {className: "text-xs text-muted-foreground mt-0.5", children: "Surveyed Sites & Estuarine Ports"})
-      ]}),
-      e.jsxs(r, {to: "/library", className: "rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-all", children: [
-        e.jsxs("div", {className: "flex items-center justify-between", children: [
-          e.jsx(R, {className: "w-5 h-5 text-accent"}),
-          e.jsx(S, {className: "w-4 h-4 text-muted-foreground"})
-        ]}),
-        e.jsx("div", {className: "mt-3 font-display text-3xl font-600 text-foreground", children: g.length}),
-        e.jsx("div", {className: "text-xs text-muted-foreground mt-0.5", children: "Primary Excavation Monographs"})
-      ]}),
-      e.jsxs(r, {to: "/claims", className: "rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-all", children: [
-        e.jsxs("div", {className: "flex items-center justify-between", children: [
-          e.jsx(E, {className: "w-5 h-5 text-chart-3"}),
-          e.jsx(S, {className: "w-4 h-4 text-muted-foreground"})
-        ]}),
-        e.jsx("div", {className: "mt-3 font-display text-3xl font-600 text-foreground", children: l.length}),
-        e.jsx("div", {className: "text-xs text-muted-foreground mt-0.5", children: "Empirical Stratigraphic Claims"})
-      ]})
-    ]}),
-
-    // Contradictions & Disputed Hypotheses in this Project
+    // Disputed Claims in this Project
     e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
-      e.jsxs("div", {className: "flex items-center justify-between mb-4", children: [
+      e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
         e.jsxs("div", {className: "flex items-center gap-2", children: [
           e.jsx(V, {className: "w-4 h-4 text-chart-4"}),
-          e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Active Archaeological Disputes & Contradictions"}),
-          e.jsx("span", {className: "text-[11px] font-600 px-2 py-0.5 rounded-full bg-chart-4/15 text-chart-4", children: claimsWithDispute.length + " Disputed Claims"})
+          e.jsx("h2", {className: "font-display text-base font-600 text-foreground", children: "Disputed Claims & Contradictory Evidence"}),
+          e.jsx("span", {className: "ml-2 px-2 py-0.5 rounded text-[10px] font-600 bg-chart-4/15 text-chart-4", children: claimsWithDispute.length + " Disputed Claims"})
         ]}),
         e.jsxs(r, {to: "/evidence-graph", className: "text-xs font-500 text-primary hover:underline inline-flex items-center gap-1", children: ["Open Evidence Graph", e.jsx(S, {className: "w-3 h-3"})]})
       ]}),
@@ -285,7 +300,6 @@ function ge(){
 
     // Project Fieldnotes & Recent Sources Grid
     e.jsxs("div", {className: "grid lg:grid-cols-2 gap-6", children: [
-      // Primary Sources
       e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
         e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
           e.jsxs("div", {className: "flex items-center gap-2", children: [
@@ -299,14 +313,11 @@ function ge(){
             e.jsx("div", {className: "text-xs font-600 text-foreground group-hover:text-primary truncate", children: s.title}),
             e.jsxs("div", {className: "text-[11px] text-muted-foreground truncate mt-0.5", children: [
               s.author || "ASI Survey",
-              s.year ? " · " + s.year : "",
-              s.source_type ? " · " + s.source_type : ""
+              s.year ? " · " + s.year : ""
             ]})
           ]});
         })})
       ]}),
-
-      // Trench Notes
       e.jsxs("div", {className: "rounded-2xl border border-border bg-card p-6 shadow-xs", children: [
         e.jsxs("div", {className: "flex items-center justify-between mb-4 border-b border-border pb-3", children: [
           e.jsxs("div", {className: "flex items-center gap-2", children: [
