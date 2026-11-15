@@ -6,9 +6,6 @@
     <script>
       (function(){
         try {
-          if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/index.html') {
-            try { window.history.replaceState(null, '', '/'); } catch(e){}
-          }
           var rawMsgs = localStorage.getItem('archaeophd_local_messages');
           if (rawMsgs) {
             try {
