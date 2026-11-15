@@ -31,22 +31,10 @@
               if (Array.isArray(projs)) {
                 var filtered = projs.filter(function(p) {
                   var t = (p.title || '') + ' ' + (p.name || '');
-                  return !p.is_demo && !p.is_system_demo &&
-                         t.indexOf('Southern Levant') === -1 &&
-                         t.indexOf('Bengal') === -1 &&
-                         t.indexOf('Demo') === -1;
+                  return t.indexOf('Southern Levant') === -1;
                 });
                 if (filtered.length !== projs.length) {
                   localStorage.setItem('archaeophd_local_projects', JSON.stringify(filtered));
-                  var active = localStorage.getItem('archaeo_active_project');
-                  var exists = filtered.some(function(p) { return p.id === active; });
-                  if (!exists) {
-                    if (filtered.length > 0) {
-                      localStorage.setItem('archaeo_active_project', filtered[0].id);
-                    } else {
-                      localStorage.removeItem('archaeo_active_project');
-                    }
-                  }
                 }
               }
             } catch(e){}
@@ -123,6 +111,7 @@
         get: function(target, entityName) {
           var keyMap = {
             Project: 'projects',
+            ResearchProject: 'projects',
             Claim: 'claims',
             Evidence: 'evidence',
             Source: 'sources',
