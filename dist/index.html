@@ -144,7 +144,7 @@
               query = query || {};
               if (query.project_id) {
                 items = items.filter(function(x) {
-                  return x.project_id === query.project_id || x.project_id === 'default';
+                  return x.project_id === query.project_id;
                 });
               }
               if (entityKey === 'messages' || sort === 'created_date') {
@@ -170,6 +170,23 @@
               items.push(record);
               saveAll(items);
               return record;
+            },
+            bulkCreate: async function(batch) {
+              if (!batch) return [];
+              var batchArr = Array.isArray(batch) ? batch : [batch];
+              var items = getAll();
+              var created = [];
+              for (var i = 0; i < batchArr.length; i++) {
+                var d = batchArr[i];
+                var record = Object.assign({
+                  id: d.id || ('local-' + Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 6)),
+                  created_date: new Date().toISOString()
+                }, d);
+                items.push(record);
+                created.push(record);
+              }
+              saveAll(items);
+              return created;
             },
             update: async function(id, patch) {
               var items = getAll();
