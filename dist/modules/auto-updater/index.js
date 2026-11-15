@@ -60,14 +60,22 @@
 
     try {
       var controller = new AbortController();
-      var tid = setTimeout(function () { controller.abort(); }, 1200);
-      var resp = await fetch('/downloads/manifest.json', { signal: controller.signal });
+      var tid = setTimeout(function () { controller.abort(); }, 3000);
+      var resp = await fetch('https://archeophd.vercel.app/downloads/manifest.json', { signal: controller.signal });
       clearTimeout(tid);
       if (resp && resp.ok) {
         var m = await resp.json();
         if (m && m.version) targetVer = m.version;
       }
-    } catch (e) {}
+    } catch (e) {
+      try {
+        var localResp = await fetch('/downloads/manifest.json');
+        if (localResp && localResp.ok) {
+          var lm = await localResp.json();
+          if (lm && lm.version) targetVer = lm.version;
+        }
+      } catch (err) {}
+    }
 
     var hasUpdate = isNewer(targetVer, currentVer);
     updateState.checked = true;
