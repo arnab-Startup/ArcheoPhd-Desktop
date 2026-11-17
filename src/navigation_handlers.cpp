@@ -34,6 +34,41 @@ HRESULT STDMETHODCALLTYPE NavigationStartingHandler::Invoke(ICoreWebView2* sende
         std::wstring uriStr(uri);
         CoTaskMemFree(uri);
         LogDebug("[NAV] NavigationStarting: " + archaeophd::DataRootManager::WideToUtf8(uriStr));
+
+        // Intercept SPA subroutes on virtual hosts (e.g. https://appassets.example/projects)
+        // SetVirtualHostNameToFolderMapping serves static files but does not rewrite non-existent subpaths,
+        // which causes a white-screen 404 void if navigated at the browser document level.
+        size_t hostPos = uriStr.find(L"appassets.example");
+        if (hostPos == std::wstring::npos) {
+            hostPos = uriStr.find(L"app.archaeophd.local");
+        }
+
+        if (hostPos != std::wstring::npos) {
+            size_t slashPos = uriStr.find(L"/", hostPos);
+            std::wstring subpath = (slashPos != std::wstring::npos) ? uriStr.substr(slashPos) : L"/";
+
+            size_t dotPos = subpath.rfind(L'.');
+            bool hasExtension = (dotPos != std::wstring::npos && dotPos > subpath.rfind(L'/'));
+
+            if (!hasExtension && subpath != L"/" && subpath != L"/index.html") {
+                LogDebug("[NAV] Intercepting SPA subroute navigation to: " + archaeophd::DataRootManager::WideToUtf8(subpath));
+                args->put_Cancel(TRUE);
+
+                std::wstring js = L"(function() { "
+                                  L"  var path = '" + subpath + L"'; "
+                                  L"  if (typeof window.__appNavigate === 'function') { "
+                                  L"    window.__appNavigate(path); "
+                                  L"  } else if (window.__historyNavigator && typeof window.__historyNavigator.push === 'function') { "
+                                  L"    window.__historyNavigator.push(path); "
+                                  L"  } else { "
+                                  L"    var link = document.querySelector('a[href=\"' + path + '\"]'); "
+                                  L"    if (link) link.click(); "
+                                  L"  } "
+                                  L"})()";
+                sender->ExecuteScript(js.c_str(), nullptr);
+                return S_OK;
+            }
+        }
     }
     return S_OK;
 }

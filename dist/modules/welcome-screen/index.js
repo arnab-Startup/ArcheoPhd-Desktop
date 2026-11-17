@@ -31,7 +31,7 @@
 
   function checkRoute() {
     var p = window.location.pathname;
-    var isWelcome = (p === '/' || p === '/welcome' || p === '/index.html' || p.endsWith('/index.html'));
+    var isWelcome = (p === '/welcome');
     if (isWelcome) {
       showWelcome();
     } else {
@@ -44,10 +44,9 @@
     window.addEventListener('pushstate', checkRoute);
 
     document.addEventListener('click', function (e) {
-      var logoLink = e.target.closest('a[href="/"], .apd-nav-welcome');
+      var logoLink = e.target.closest('.apd-nav-welcome');
       if (logoLink) {
         e.preventDefault();
-        window.history.pushState(null, '', '/');
         showWelcome();
       }
     });
@@ -60,6 +59,7 @@
     hide: hideWelcome,
     navigate: function (path) {
       if (window.WelcomeNavigation) window.WelcomeNavigation.navigateTo(path);
+      else if (typeof window.__appNavigate === 'function') window.__appNavigate(path);
       else window.location.href = path;
     }
   };

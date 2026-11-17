@@ -39,48 +39,64 @@ HRESULT STDMETHODCALLTYPE WebMessageReceivedHandler::Invoke(ICoreWebView2* sende
     // Intercept UI test completion message and JS diagnostic errors
     try {
         json req = json::parse(rawJson);
-        if (req.value("action", "") == "js_error") {
-            json p = req.value("payload", json::object());
-            LogDebug("[JS_ERROR] " + p.dump());
-            return S_OK;
+        if (req.is_string()) {
+            try {
+                req = json::parse(req.get<std::string>());
+            } catch (...) {}
         }
-        if (req.value("action", "") == "ui_test_step") {
-            json p = req.value("payload", json::object());
-            LogDebug("[TEST_STEP] " + p.value("step", "") + " -> " + (p.value("ok", false) ? "PASS" : "FAIL") + " (" + p.value("details", "") + ")");
-            return S_OK;
-        }
-        if (req.value("action", "") == "ui_test_complete") {
-            json payload = req.value("payload", json::object());
-            bool ok = payload.value("success", false);
-            LogDebug("[TEST_COMPLETE] Final result: " + std::string(ok ? "ALL PASSED" : "FAILED") + " err=" + payload.value("error", "none"));
-            std::ofstream out("live_ui_test_results.log");
-            out << payload.dump(2) << std::endl;
-            out.close();
-            std::ofstream outRel("release/live_ui_test_results.log");
-            if (outRel.is_open()) {
-                outRel << payload.dump(2) << std::endl;
-                outRel.close();
+        if (req.is_object()) {
+            std::string action = req.value("action", "");
+            if (action == "js_error") {
+                json p = req.value("payload", json::object());
+                LogDebug("[JS_ERROR] " + p.dump());
+                return S_OK;
             }
-            std::cout << "\n================================================================================\n";
-            std::cout << "  LIVE WEBVIEW2 DOM CLICK-THROUGH TEST RESULTS                                  \n";
-            std::cout << "================================================================================\n";
-            for (const auto& r : payload.value("results", json::array())) {
-                std::cout << "  " << (r.value("ok", false) ? "[PASS] " : "[FAIL] ") 
-                          << r.value("step", "") << "\n        " 
-                          << r.value("details", "") << "\n";
+            if (action == "ui_test_step") {
+                json p = req.value("payload", json::object());
+                LogDebug("[TEST_STEP] " + p.value("step", "") + " -> " + (p.value("ok", false) ? "PASS" : "FAIL") + " (" + p.value("details", "") + ")");
+                return S_OK;
             }
-            std::cout << "================================================================================\n";
-            std::cout << "  OVERALL LIVE DOM VERDICT: " << (ok ? "ALL " + std::to_string(payload.value("results", json::array()).size()) + " DOM CHECKS PASSED (100%)" : "FAILED") << "\n";
-            std::cout << "================================================================================\n\n";
-            std::cout.flush();
-            PostQuitMessage(ok ? 0 : 1);
-            return S_OK;
+            if (action == "ui_test_complete") {
+                json payload = req.value("payload", json::object());
+                bool ok = payload.value("success", false);
+                LogDebug("[TEST_COMPLETE] Final result: " + std::string(ok ? "ALL PASSED" : "FAILED") + " err=" + payload.value("error", "none"));
+                std::ofstream out("live_ui_test_results.log");
+                out << payload.dump(2) << std::endl;
+                out.close();
+                std::ofstream outRel("release/live_ui_test_results.log");
+                if (outRel.is_open()) {
+                    outRel << payload.dump(2) << std::endl;
+                    outRel.close();
+                }
+                std::cout << "\n================================================================================\n";
+                std::cout << "  LIVE WEBVIEW2 DOM CLICK-THROUGH TEST RESULTS                                  \n";
+                std::cout << "================================================================================\n";
+                for (const auto& r : payload.value("results", json::array())) {
+                    std::cout << "  " << (r.value("ok", false) ? "[PASS] " : "[FAIL] ") 
+                              << r.value("step", "") << "\n        " 
+                              << r.value("details", "") << "\n";
+                }
+                std::cout << "================================================================================\n";
+                std::cout << "  OVERALL LIVE DOM VERDICT: " << (ok ? "ALL " + std::to_string(payload.value("results", json::array()).size()) + " DOM CHECKS PASSED (100%)" : "FAILED") << "\n";
+                std::cout << "================================================================================\n\n";
+                std::cout.flush();
+                PostQuitMessage(ok ? 0 : 1);
+                return S_OK;
+            }
         }
     } catch (const std::exception& ex) {
-        LogDebug("[IPC_JSON_PARSE_ERROR] " + std::string(ex.what()));
+        LogDebug("[IPC_JSON_PARSE_ERROR] " + std::string(ex.what()) + " raw=" + rawJson);
     }
 
-    std::string replyJson = DispatchNativeMessage(rawJson);
+    std::string unescapedJson = rawJson;
+    try {
+        json jTest = json::parse(rawJson);
+        if (jTest.is_string()) {
+            unescapedJson = jTest.get<std::string>();
+        }
+    } catch (...) {}
+
+    std::string replyJson = DispatchNativeMessage(unescapedJson);
 
     int wideLen = MultiByteToWideChar(CP_UTF8, 0, replyJson.c_str(), -1, nullptr, 0);
     std::wstring wideReply(wideLen, L'\0');

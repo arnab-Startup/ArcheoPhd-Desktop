@@ -36,13 +36,21 @@
       } catch (e) {}
     }
 
-    // 3. Fallback: history push with valid state object (never pass null state to avoid React Router crash)
-    try {
-      window.history.pushState({ key: 'apd_' + Date.now(), idx: 1 }, '', path);
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    } catch (e) {
-      window.location.href = path;
-    }
+    // 3. Fallback: retry with __appNavigate once router is mounted
+    var attempts = 0;
+    var pollTimer = setInterval(function() {
+      attempts++;
+      if (typeof window.__appNavigate === 'function') {
+        clearInterval(pollTimer);
+        try { window.__appNavigate(path); } catch(e) {}
+      } else if (attempts >= 10) {
+        clearInterval(pollTimer);
+        try {
+          var link = document.querySelector('aside a[href="' + path + '"], a[href="' + path + '"]');
+          if (link) link.click();
+        } catch(e) {}
+      }
+    }, 50);
   }
 
   function attachEvents() {
