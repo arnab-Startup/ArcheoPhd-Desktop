@@ -179,14 +179,18 @@
           return {
             list: async function(opts, limit) {
               var items = getAll();
+              opts = opts || {};
+              if (opts.project_id && entityKey !== 'projects') {
+                items = items.filter(function(x) { return (x.project_id || 'default') === opts.project_id; });
+              }
               return limit ? items.slice(0, limit) : items;
             },
             filter: async function(query, sort, limit) {
               var items = getAll();
               query = query || {};
-              if (query.project_id) {
+              if (query.project_id && entityKey !== 'projects') {
                 items = items.filter(function(x) {
-                  return x.project_id === query.project_id;
+                  return (x.project_id || 'default') === query.project_id;
                 });
               }
               if (entityKey === 'messages' || sort === 'created_date') {
@@ -205,8 +209,10 @@
             },
             create: async function(data) {
               var items = getAll();
+              var activeProj = (window.APD_PROJECT && window.APD_PROJECT.getActiveId()) || 'default';
               var record = Object.assign({
                 id: data.id || ('local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6)),
+                project_id: data.project_id || (entityKey === 'projects' ? undefined : activeProj),
                 created_date: new Date().toISOString()
               }, data);
               items.push(record);
@@ -218,10 +224,12 @@
               var batchArr = Array.isArray(batch) ? batch : [batch];
               var items = getAll();
               var created = [];
+              var activeProj = (window.APD_PROJECT && window.APD_PROJECT.getActiveId()) || 'default';
               for (var i = 0; i < batchArr.length; i++) {
                 var d = batchArr[i];
                 var record = Object.assign({
                   id: d.id || ('local-' + Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 6)),
+                  project_id: d.project_id || (entityKey === 'projects' ? undefined : activeProj),
                   created_date: new Date().toISOString()
                 }, d);
                 items.push(record);

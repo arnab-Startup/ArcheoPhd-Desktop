@@ -8,6 +8,9 @@
   'use strict';
 
   function navigateTo(path) {
+    try {
+      sessionStorage.setItem('archaeo_workspace_entered', 'true');
+    } catch (e) {}
     var screen = document.getElementById('apd-welcome-screen');
     if (screen) {
       screen.classList.add('hidden');

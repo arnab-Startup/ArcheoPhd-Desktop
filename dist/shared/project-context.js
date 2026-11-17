@@ -12,10 +12,18 @@
       return localStorage.getItem('archaeo_active_project') || 'default';
     },
 
+    getActiveProjectId: function () {
+      return this.getActiveId();
+    },
+
     setActiveId: function (id) {
       if (!id) return;
       localStorage.setItem('archaeo_active_project', id);
       window.dispatchEvent(new CustomEvent('archaeo_project_changed', { detail: { projectId: id } }));
+    },
+
+    setActiveProjectId: function (id) {
+      return this.setActiveId(id);
     },
 
     getActiveTitle: function () {
@@ -26,6 +34,10 @@
         if (found && (found.title || found.name)) return found.title || found.name;
       } catch(e) {}
       return "Archaeological Project";
+    },
+
+    getActiveProjectTitle: function () {
+      return this.getActiveTitle();
     },
 
     getAllProjects: function () {

@@ -30,8 +30,13 @@
   }
 
   function checkRoute() {
-    var p = window.location.pathname;
-    var isWelcome = (p === '/welcome');
+    var p = window.location.pathname || '/';
+    var entered = false;
+    try {
+      entered = sessionStorage.getItem('archaeo_workspace_entered') === 'true';
+    } catch (e) {}
+
+    var isWelcome = (p === '/welcome') || (!entered && (p === '/' || p === '/index.html' || p.endsWith('/index.html') || p === ''));
     if (isWelcome) {
       showWelcome();
     } else {
@@ -44,9 +49,10 @@
     window.addEventListener('pushstate', checkRoute);
 
     document.addEventListener('click', function (e) {
-      var logoLink = e.target.closest('.apd-nav-welcome');
+      var logoLink = e.target.closest('.apd-nav-welcome, a[href="/"], a[href="/welcome"], a[href="/index.html"]');
       if (logoLink) {
         e.preventDefault();
+        try { sessionStorage.removeItem('archaeo_workspace_entered'); } catch(e) {}
         showWelcome();
       }
     });
