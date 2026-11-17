@@ -678,23 +678,7 @@ public:
         if (uri) {
             std::wstring uriStr(uri);
             CoTaskMemFree(uri);
-
-            // Intercept virtual host requests that do not specify a static file
-            if (uriStr.find(L"appassets.example") != std::wstring::npos || uriStr.find(L"app.archaeophd.local") != std::wstring::npos) {
-                size_t hostPos = uriStr.find(L"appassets.example");
-                if (hostPos == std::wstring::npos) hostPos = uriStr.find(L"app.archaeophd.local");
-                size_t slashPos = uriStr.find(L'/', hostPos);
-                if (slashPos != std::wstring::npos) {
-                    std::wstring path = uriStr.substr(slashPos);
-                    // If root "/" or virtual subroute without file extension (e.g. /projects, /dashboard)
-                    if (path == L"/" || (path.find(L'.') == std::wstring::npos && path.length() > 1)) {
-                        LogDebug("[NAV] NavigationStarting intercepted virtual subroute: " + archaeophd::DataRootManager::WideToUtf8(path) + " -> redirecting to index.html");
-                        args->put_Cancel(TRUE);
-                        sender->Navigate(L"https://appassets.example/index.html");
-                        return S_OK;
-                    }
-                }
-            }
+            LogDebug("[NAV] NavigationStarting: " + archaeophd::DataRootManager::WideToUtf8(uriStr));
         }
         return S_OK;
     }
@@ -745,6 +729,10 @@ public:
                  " status=" + std::to_string(errorStatus) +
                  " attemptedFallback=" + (m_attemptedFallback ? "TRUE" : "FALSE") + 
                  " g_runLiveUiTests=" + (g_runLiveUiTests ? "TRUE" : "FALSE"));
+
+        if (isSuccess) {
+            m_attemptedFallback = false;
+        }
 
         if (!isSuccess) {
             LPWSTR currentUri = nullptr;

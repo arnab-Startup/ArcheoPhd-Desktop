@@ -12,8 +12,33 @@
     if (screen) {
       screen.classList.add('hidden');
     }
+
+    // 1. Primary: Use React Router navigator directly (Zero network, Zero reload)
+    if (typeof window.__appNavigate === 'function') {
+      try {
+        window.__appNavigate(path);
+        return;
+      } catch (e) {}
+    }
+    if (window.__historyNavigator && typeof window.__historyNavigator.push === 'function') {
+      try {
+        window.__historyNavigator.push(path);
+        return;
+      } catch (e) {}
+    }
+
+    // 2. Secondary: Find matching navigation link in React sidebar DOM and click it
+    var matchingLink = document.querySelector('aside a[href="' + path + '"], a[href="' + path + '"]');
+    if (matchingLink) {
+      try {
+        matchingLink.click();
+        return;
+      } catch (e) {}
+    }
+
+    // 3. Fallback: history push with valid state object (never pass null state to avoid React Router crash)
     try {
-      window.history.pushState(null, '', path);
+      window.history.pushState({ key: 'apd_' + Date.now(), idx: 1 }, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (e) {
       window.location.href = path;
