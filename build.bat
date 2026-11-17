@@ -49,6 +49,13 @@ g++ -std=c++20 -O2 -s -mwindows -static -static-libgcc -static-libstdc++ ^
     -I engine\validation ^
     -I third_party\llama.cpp\include ^
     -I third_party\llama.cpp\ggml\include ^
+    src\app_context.cpp ^
+    src\runtime_locator.cpp ^
+    src\window.cpp ^
+    src\navigation_handlers.cpp ^
+    src\ipc_bridge_handler.cpp ^
+    src\live_ui_tester.cpp ^
+    src\webview_host.cpp ^
     src\main.cpp ^
     src\resource.res ^
     third_party\llama.cpp\build\src\libllama.a ^
