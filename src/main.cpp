@@ -34,7 +34,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
     LogDebug("[WINMAIN] Initializing COM...");
     HRESULT hrCo = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     LogDebug("[WINMAIN] COM initialized: hr=" + std::to_string(hrCo));
-    if (FAILED(hrCo)) {
+    if (FAILED(hrCo) && hrCo != (HRESULT)0x80010106L) {
         MessageBoxW(nullptr, L"Failed to initialize COM apartment.", L"ArchaeoPhD Error", MB_ICONERROR);
         return 1;
     }

@@ -16,15 +16,19 @@ std::unique_ptr<archaeophd::NativeContradictionEngine> g_contradictions = nullpt
 std::unique_ptr<archaeophd::NativeThesisAuditor> g_thesisAuditor = nullptr;
 
 void LogDebug(const std::string& msg) {
-    std::ofstream f("live_debug.log", std::ios::app);
-    if (f.is_open()) {
-        f << msg << std::endl;
-        f.flush();
+    HANDLE hFile = CreateFileA("live_debug.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hFile != INVALID_HANDLE_VALUE) {
+        std::string line = msg + "\r\n";
+        DWORD written = 0;
+        WriteFile(hFile, line.c_str(), (DWORD)line.size(), &written, nullptr);
+        CloseHandle(hFile);
     }
-    std::ofstream f2("release/live_debug.log", std::ios::app);
-    if (f2.is_open()) {
-        f2 << msg << std::endl;
-        f2.flush();
+    HANDLE hFile2 = CreateFileA("release/live_debug.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hFile2 != INVALID_HANDLE_VALUE) {
+        std::string line = msg + "\r\n";
+        DWORD written = 0;
+        WriteFile(hFile2, line.c_str(), (DWORD)line.size(), &written, nullptr);
+        CloseHandle(hFile2);
     }
 }
 

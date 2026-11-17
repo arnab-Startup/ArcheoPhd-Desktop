@@ -45,6 +45,7 @@ LRESULT CALLBACK MainWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 }
 
 void SetupDpiAwareness() {
+    LogDebug("[DPI] Entering SetupDpiAwareness...");
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
     typedef void* DPI_AWARENESS_CONTEXT;
     #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
@@ -58,6 +59,7 @@ void SetupDpiAwareness() {
             pfnSetDpi(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         }
     }
+    LogDebug("[DPI] Exiting SetupDpiAwareness...");
 }
 
 void EnsureStartMenuShortcutRegistered() {
@@ -91,6 +93,7 @@ void EnsureStartMenuShortcutRegistered() {
 }
 
 HWND CreateMainWorkstationWindow(HINSTANCE hInstance, int nCmdShow) {
+    LogDebug("[WINDOW] Entering CreateMainWorkstationWindow... nCmdShow=" + std::to_string(nCmdShow));
     WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = MainWindowProc;
@@ -103,9 +106,10 @@ HWND CreateMainWorkstationWindow(HINSTANCE hInstance, int nCmdShow) {
     wc.hIconSm = (HICON)LoadImageW(hInstance, MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
 
     if (!RegisterClassExW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-        LogDebug("[WINMAIN] RegisterClassExW failed: err=" + std::to_string(GetLastError()));
+        LogDebug("[WINDOW] RegisterClassExW failed: err=" + std::to_string(GetLastError()));
         return nullptr;
     }
+    LogDebug("[WINDOW] Class registered successfully.");
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -122,13 +126,17 @@ HWND CreateMainWorkstationWindow(HINSTANCE hInstance, int nCmdShow) {
         nullptr, nullptr, hInstance, nullptr
     );
 
-    if (!hWnd) return nullptr;
+    if (!hWnd) {
+        LogDebug("[WINDOW] CreateWindowExW failed: err=" + std::to_string(GetLastError()));
+        return nullptr;
+    }
+    LogDebug("[WINDOW] CreateWindowExW succeeded. hWnd=" + std::to_string((uintptr_t)hWnd));
 
     if (wc.hIcon) SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
     if (wc.hIconSm) SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)wc.hIconSm);
     SetWindowTextW(hWnd, WINDOW_TITLE_TEXT);
 
-    ShowWindow(hWnd, nCmdShow);
+    ShowWindow(hWnd, (nCmdShow <= 0 || nCmdShow == SW_HIDE) ? SW_SHOWNORMAL : nCmdShow);
     UpdateWindow(hWnd);
 
     return hWnd;
