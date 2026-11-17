@@ -151,5 +151,12 @@ inline const wchar_t* GetNativeBridgeScript() {
         L"      window.chrome.webview.postMessage({ id: id, action: action, payload: payload || {}, projectId: projectId || 'default' });"
         L"    });"
         L"  }"
+        L"};"
+        L"window.APD_BRIDGE = window.APD_BRIDGE || {};"
+        L"window.APD_BRIDGE.call = function(action, payload, projectId) {"
+        L"  return window.nativeBridge.call(action, payload, projectId);"
+        L"};"
+        L"window.APD_BRIDGE.callNative = function(action, payload, projectId) {"
+        L"  return window.nativeBridge.call(action, payload, projectId);"
         L"};";
 }
