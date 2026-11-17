@@ -79,6 +79,9 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo To run the desktop application:
     echo   .\release\ArchaeoPhD.exe
+    if exist "%LOCALAPPDATA%\ArchaeoPhD" (
+        powershell -ExecutionPolicy Bypass -File scripts\sync_local_appdata.ps1 >nul 2>&1
+    )
 ) else (
     echo.
     echo [ERROR] Build failed with exit code %ERRORLEVEL%.
