@@ -4,6 +4,33 @@
 
   <head>
     <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var errStr = '[FATAL JS ERROR] ' + msg + ' at ' + url + ':' + line + ':' + col;
+        console.error(errStr, error);
+        try {
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(JSON.stringify({
+              action: 'js_error',
+              payload: { message: String(msg), url: String(url), line: line, col: col, stack: (error && error.stack) || '' }
+            }));
+          }
+        } catch(e){}
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event.reason;
+        var errStr = '[UNHANDLED PROMISE REJECTION] ' + (reason ? (reason.stack || reason.message || reason) : 'Unknown');
+        console.error(errStr);
+        try {
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(JSON.stringify({
+              action: 'js_error',
+              payload: { message: errStr, stack: (reason && reason.stack) || '' }
+            }));
+          }
+        } catch(e){}
+      });
+    </script>
+    <script>
       (function(){
         try {
           var rawMsgs = localStorage.getItem('archaeophd_local_messages');

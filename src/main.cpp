@@ -838,9 +838,14 @@ public:
 
         CoTaskMemFree(msgJson);
 
-        // Intercept UI test completion message from live click-through
+        // Intercept UI test completion message and JS diagnostic errors
         try {
             json req = json::parse(rawJson);
+            if (req.value("action", "") == "js_error") {
+                json p = req.value("payload", json::object());
+                LogDebug("[JS_ERROR] " + p.dump());
+                return S_OK;
+            }
             if (req.value("action", "") == "ui_test_step") {
                 json p = req.value("payload", json::object());
                 LogDebug("[TEST_STEP] " + p.value("step", "") + " -> " + (p.value("ok", false) ? "PASS" : "FAIL") + " (" + p.value("details", "") + ")");
@@ -1123,9 +1128,9 @@ public:
             settings->put_AreDefaultScriptDialogsEnabled(FALSE);
             settings->put_IsWebMessageEnabled(TRUE);
             settings->put_IsStatusBarEnabled(FALSE);            // Disables browser link hover URL popup
-            settings->put_AreDefaultContextMenusEnabled(FALSE);  // Disables browser right-click menu
-            settings->put_IsZoomControlEnabled(FALSE);           // Disables browser web zooming
-            settings->put_AreDevToolsEnabled(g_runLiveUiTests ? TRUE : FALSE);
+            settings->put_AreDefaultContextMenusEnabled(TRUE);  // Enables context menu for inspection
+            settings->put_IsZoomControlEnabled(FALSE);          // Disables browser web zooming
+            settings->put_AreDevToolsEnabled(TRUE);             // Enables F12 DevTools for diagnostics
             settings->Release();
         }
 
