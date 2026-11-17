@@ -669,7 +669,7 @@ function BE({ onNavigate: n }) {
                     onClick: n,
                     className: ({ isActive: h }) => "flex items-center gap-3 px-2.5 py-2 rounded-md text-sm transition-colors " + (h ? "bg-sidebar-primary text-sidebar-primary-foreground font-500" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"),
                     children: [
-                      a.jsx(di, { className: "w-4 h-4 shrink-0" }),
+                      a.jsx(yb, { className: "w-4 h-4 shrink-0" }),
                       "Help & Guide"
                     ]
                   })
