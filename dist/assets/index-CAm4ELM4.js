@@ -526,7 +526,7 @@ Error generating stack: `+ p.message + `
   {
     group: "Scholar Portfolio", items: [
       { to: "/dashboard", label: "Scholar Overview", icon: pb },
-      { to: "/projects", label: "My Research Projects", icon: tv }
+      { to: "/projects", label: "My Research Projects", icon: X1 }
     ]
   },
   {

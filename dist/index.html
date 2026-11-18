@@ -55,6 +55,12 @@
           return (this.call && this.call(action, payload, projectId)) || (window.nativeBridge && window.nativeBridge.call(action, payload, projectId)) || Promise.resolve(null);
         };
       })();
+    </script>
+    <script src="/shared/colors.js"></script>
+    <script src="/shared/icons.js"></script>
+    <script src="/shared/project-context.js"></script>
+    <script src="/shared/bridge-client.js"></script>
+    <script>
 
       window.onerror = function(msg, url, line, col, error) {
         var errStr = '[FATAL JS ERROR] ' + msg + ' at ' + url + ':' + line + ':' + col;
@@ -118,20 +124,26 @@
               }
             } catch(e){}
           }
+          var DEMO_PROJ = {
+            id: 'demo-southern-levant',
+            title: 'Excavations at Tell es-Sultan (Jericho) & Southern Levant Horizons',
+            name: 'Excavations at Tell es-Sultan (Jericho) & Southern Levant Horizons',
+            research_period: 'Early to Middle Bronze Age (ca. 2500 - 1550 BCE)',
+            research_region: 'Southern Levant (Jordan Rift Valley)',
+            research_question: 'Stratigraphic synchronization of Bronze Age destruction layers and ceramic typologies.',
+            keywords: ['Stratigraphy', 'Radiocarbon Dating', 'Kenyon Trench', 'Pottery Typology'],
+            is_demo: true,
+            is_system_demo: true,
+            created_date: '2026-01-01T00:00:00.000Z'
+          };
           var projStr = localStorage.getItem('archaeophd_local_projects');
-          if (projStr) {
-            try {
-              var projs = JSON.parse(projStr);
-              if (Array.isArray(projs)) {
-                var filtered = projs.filter(function(p) {
-                  var t = (p.title || '') + ' ' + (p.name || '');
-                  return t.indexOf('Southern Levant') === -1;
-                });
-                if (filtered.length !== projs.length) {
-                  localStorage.setItem('archaeophd_local_projects', JSON.stringify(filtered));
-                }
-              }
-            } catch(e){}
+          var projs = [];
+          try { projs = projStr ? JSON.parse(projStr) : []; } catch(e) { projs = []; }
+          if (!Array.isArray(projs)) projs = [];
+          var hasDemo = projs.some(function(p) { return p && (p.is_demo || p.id === 'demo-southern-levant'); });
+          if (!hasDemo) {
+            projs.unshift(DEMO_PROJ);
+            localStorage.setItem('archaeophd_local_projects', JSON.stringify(projs));
           }
           var claimsStr = localStorage.getItem('archaeophd_local_claims');
           if (claimsStr) {

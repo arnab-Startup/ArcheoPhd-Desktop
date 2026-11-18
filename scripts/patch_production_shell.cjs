@@ -78,7 +78,7 @@ if (beEnd === -1) {
 const replacementBE = `const FE_personal = [
   { group: "Scholar Portfolio", items: [
       { to: "/dashboard", label: "Overview", icon: pb },
-      { to: "/projects", label: "Research Projects", icon: tv },
+      { to: "/projects", label: "Research Projects", icon: X1 },
       { to: "/thesis", label: "Thesis Studio", icon: Xg },
       { to: "/ai-research", label: "AI Literature Research", icon: Os },
       { to: "/notes", label: "Scholar Fieldnotes", icon: sv }
