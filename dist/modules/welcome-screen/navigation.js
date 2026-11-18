@@ -104,6 +104,27 @@
     ribbonBtns.forEach(function (btn) {
       btn.onclick = function () {
         var route = btn.getAttribute('data-route') || '/dashboard';
+        var projectScopedRoutes = ['/thesis', '/ai-research', '/evidence-graph', '/sites', '/chronology'];
+        var isProjectScoped = projectScopedRoutes.some(function(r) { return route.indexOf(r) !== -1; });
+
+        if (isProjectScoped) {
+          var projs = [];
+          try {
+            projs = JSON.parse(localStorage.getItem('archaeophd_local_projects') || '[]');
+          } catch(e) {}
+          var realProjs = Array.isArray(projs) ? projs.filter(function(p) { return p && p.id && p.id !== 'default' && p.id !== 'null'; }) : [];
+          if (realProjs.length > 0) {
+            var cur = localStorage.getItem('archaeo_active_project');
+            var curValid = cur && cur !== 'default' && realProjs.some(function(p) { return p.id === cur; });
+            if (!curValid) {
+              localStorage.setItem('archaeo_active_project', realProjs[0].id);
+            }
+          } else {
+            // No projects created yet: guide user to project creation first
+            navigateTo('/projects/new');
+            return;
+          }
+        }
         navigateTo(route);
       };
     });

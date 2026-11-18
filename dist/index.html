@@ -4,6 +4,58 @@
 
   <head>
     <script>
+      (function() {
+        // Core Defensive Polyfills for APD_PROJECT and APD_BRIDGE
+        window.APD_PROJECT = window.APD_PROJECT || {};
+        window.APD_PROJECT.getActiveId = window.APD_PROJECT.getActiveId || function() {
+          return localStorage.getItem('archaeo_active_project') || 'default';
+        };
+        window.APD_PROJECT.getActiveProjectId = function() {
+          return (this.getActiveId && this.getActiveId()) || localStorage.getItem('archaeo_active_project') || 'default';
+        };
+        window.APD_PROJECT.setActiveId = window.APD_PROJECT.setActiveId || function(id) {
+          if (!id) return;
+          localStorage.setItem('archaeo_active_project', id);
+          window.dispatchEvent(new CustomEvent('archaeo_project_changed', { detail: { projectId: id } }));
+        };
+        window.APD_PROJECT.setActiveProjectId = function(id) {
+          return this.setActiveId(id);
+        };
+        window.APD_PROJECT.getActiveTitle = window.APD_PROJECT.getActiveTitle || function() {
+          try {
+            var projs = JSON.parse(localStorage.getItem('archaeophd_local_projects') || '[]');
+            var curId = (window.APD_PROJECT.getActiveProjectId && window.APD_PROJECT.getActiveProjectId()) || 'default';
+            var found = projs.find(function(p) { return p.id === curId; });
+            if (found && (found.title || found.name)) return found.title || found.name;
+          } catch(e) {}
+          return 'Archaeological Project';
+        };
+        window.APD_PROJECT.getActiveProjectTitle = function() {
+          return this.getActiveTitle();
+        };
+        window.APD_PROJECT.getAllProjects = window.APD_PROJECT.getAllProjects || function() {
+          try {
+            var projs = JSON.parse(localStorage.getItem('archaeophd_local_projects') || '[]');
+            if (Array.isArray(projs)) return projs;
+          } catch(e) {}
+          return [];
+        };
+        window.APD_PROJECT.listen = window.APD_PROJECT.listen || function(cb) {
+          if (typeof cb === 'function') window.addEventListener('archaeo_project_changed', function(e) { cb(e.detail ? e.detail.projectId : null); });
+        };
+
+        window.APD_BRIDGE = window.APD_BRIDGE || {};
+        window.APD_BRIDGE.call = window.APD_BRIDGE.call || function(action, payload, projectId) {
+          if (window.nativeBridge && typeof window.nativeBridge.call === 'function') {
+            return window.nativeBridge.call(action, payload, projectId);
+          }
+          return Promise.resolve(null);
+        };
+        window.APD_BRIDGE.callNative = function(action, payload, projectId) {
+          return (this.call && this.call(action, payload, projectId)) || (window.nativeBridge && window.nativeBridge.call(action, payload, projectId)) || Promise.resolve(null);
+        };
+      })();
+
       window.onerror = function(msg, url, line, col, error) {
         var errStr = '[FATAL JS ERROR] ' + msg + ' at ' + url + ':' + line + ':' + col;
         console.error(errStr, error);
