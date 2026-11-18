@@ -114,9 +114,11 @@ const FE_project = [
 function BE({ onNavigate: n }) {
   const { projects: r, activeProjectId: o, setActive: i, loading: c } = Zv(),
         { user: u } = Fs(),
-        f = Ls();
+        f = Ls(),
+        loc = Un();
 
-  const isProj = Boolean(o && o !== "default" && o !== "null" && o !== "");
+  const isPersonalRoute = Boolean(loc && (loc.pathname === "/projects" || loc.pathname === "/projects/new" || loc.pathname === "/settings" || loc.pathname === "/help"));
+  const isProj = Boolean(o && o !== "default" && o !== "null" && o !== "" && !isPersonalRoute);
   const currentProj = isProj ? r.find(h => h.id === o) : null;
   const navGroups = isProj ? FE_project : FE_personal;
   const realProjects = r.filter(h => h.id !== "default" && h.id !== "null");
@@ -137,14 +139,17 @@ function BE({ onNavigate: n }) {
           a.jsxs("button", {
             type: "button",
             onClick: () => {
-              try { localStorage.setItem("archaeo_active_project", "default"); } catch(e){}
-              i("default");
-              f("/dashboard");
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                f(-1);
+              }
             },
             className: "w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 mb-2.5 rounded-md border border-sidebar-border bg-background hover:bg-muted text-xs font-600 text-foreground transition-all cursor-pointer shadow-2xs",
+            title: "Back",
             children: [
               a.jsx(cl, { className: "w-3.5 h-3.5 rotate-180" }),
-              "← Personal Home"
+              "Back"
             ]
           }),
           a.jsxs("div", {

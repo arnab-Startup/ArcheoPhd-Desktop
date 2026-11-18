@@ -194,15 +194,17 @@ function ge(){
             e.jsx("button", {
               type: "button",
               onClick: () => {
-                try {
-                  localStorage.setItem("archaeo_active_project", "default");
-                } catch (err) {}
-                if (typeof o === "function") o("default");
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  window.location.href = "/projects";
+                }
               },
-              className: "inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-600 bg-muted hover:bg-muted/80 text-foreground transition-all cursor-pointer mr-1",
+              className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-muted text-xs font-500 text-foreground transition-all cursor-pointer mr-1 shadow-2xs",
+              title: "Back",
               children: [
                 e.jsx(S, {className: "w-3 h-3 rotate-180"}),
-                "Personal Dashboard"
+                "Back"
               ]
             }),
             e.jsx("span", {className: "inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-700 tracking-wider uppercase bg-primary/15 text-primary", children: "Archaeological Project Workspace"}),
@@ -225,21 +227,7 @@ function ge(){
             e.jsx("span", {className: "font-mono text-[11px] text-muted-foreground", children: "Stratigraphic Context · IntCal20 Calibrated"})
           ]})
         ]}),
-        e.jsxs("div", {className: "flex items-center gap-2", children: [
-          e.jsxs("button", {
-            type: "button",
-            onClick: () => {
-              try {
-                localStorage.setItem("archaeo_active_project", "default");
-              } catch (err) {}
-              if (typeof o === "function") o("default");
-            },
-            className: "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-500 text-foreground transition-all shadow-xs cursor-pointer",
-            children: [
-              e.jsx(S, {className: "w-3 h-3 rotate-180"}),
-              "Switch Project"
-            ]
-          }),
+        e.jsx("div", {className: "flex items-center gap-2", children: [
           e.jsxs(r, {to: "/claims", className: "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-500 hover:bg-primary/90 transition-all shadow-xs", children: [
             "Audit Claims",
             e.jsx(S, {className: "w-3 h-3"})
