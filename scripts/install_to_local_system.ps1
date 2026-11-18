@@ -55,16 +55,23 @@ Write-Host "[6/6] Updating Desktop and Start Menu shortcuts..."
 $wsh = New-Object -ComObject WScript.Shell
 $targetExe = Join-Path $destDir 'ArchaeoPhD.exe'
 
+$desktopFolder = [Environment]::GetFolderPath('Desktop')
+$programsFolder = [Environment]::GetFolderPath('Programs')
+
 $shortcutLocations = @(
-    (Join-Path ([Environment]::GetFolderPath('Desktop')) 'ArchaeoPhD.lnk'),
-    (Join-Path 'C:\Users\User\OneDrive\Desktop' 'ArchaeoPhD.lnk'),
-    (Join-Path ([Environment]::GetFolderPath('Programs')) 'ArchaeoPhD.lnk')
+    'C:\Users\User\OneDrive\Desktop\ArchaeoPhD.lnk'
 )
+if (![string]::IsNullOrEmpty($desktopFolder)) {
+    $shortcutLocations += (Join-Path $desktopFolder 'ArchaeoPhD.lnk')
+}
+if (![string]::IsNullOrEmpty($programsFolder)) {
+    $shortcutLocations += (Join-Path $programsFolder 'ArchaeoPhD.lnk')
+}
 
 foreach ($scPath in $shortcutLocations) {
-    $parentDir = Split-Path -Parent $scPath
-    if (Test-Path $parentDir) {
-        try {
+    try {
+        $parentDir = Split-Path -Parent $scPath
+        if (Test-Path $parentDir -ErrorAction SilentlyContinue) {
             $sc = $wsh.CreateShortcut($scPath)
             $sc.TargetPath = $targetExe
             $sc.WorkingDirectory = $destDir
@@ -72,9 +79,9 @@ foreach ($scPath in $shortcutLocations) {
             $sc.IconLocation = "$targetExe,0"
             $sc.Save()
             Write-Host "  Shortcut updated: $scPath"
-        } catch {
-            Write-Warning "Could not update shortcut: $scPath"
         }
+    } catch {
+        # Skip locations outside current permission sandbox
     }
 }
 
