@@ -149,7 +149,6 @@
         .catch(function () {
           document.getElementById('apd-wf-class-source-subtitle').textContent = 'Source ID: ' + sourceId;
         });
-    }
 
     function selectTier(tier) {
       selectedTier = tier;

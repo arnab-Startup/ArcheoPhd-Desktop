@@ -222,7 +222,6 @@
         .catch(function (err) {
           statusDiv.innerHTML = '<div style="color:red; font-size:12px;">Error committing transcription: ' + (err.message || err) + '</div>';
         });
-      }
     });
 
     loadTemplate(curPage);

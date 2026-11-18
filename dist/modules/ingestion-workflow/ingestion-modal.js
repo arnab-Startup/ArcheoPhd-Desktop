@@ -233,7 +233,6 @@
             window.APD_MODAL.toast('Ingestion failed: ' + (err.message || err), 'error');
           }
         });
-      }
     });
   }
 
