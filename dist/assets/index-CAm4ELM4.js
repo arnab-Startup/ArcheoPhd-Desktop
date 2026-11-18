@@ -589,34 +589,16 @@ function BE({ onNavigate: n }) {
       }),
 
       // Mode-Aware Context Header
-      isProj ? a.jsxs("div", {
+      isProj ? a.jsx("div", {
         className: "px-3 py-3 border-b border-sidebar-border bg-sidebar-accent/25",
-        children: [
-          a.jsxs("button", {
-            type: "button",
-            onClick: () => {
-              if (window.history.length > 1) {
-                window.history.back();
-              } else {
-                f(-1);
-              }
-            },
-            className: "w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 mb-2.5 rounded-md border border-sidebar-border bg-background hover:bg-muted text-xs font-600 text-foreground transition-all cursor-pointer shadow-2xs",
-            title: "Back",
-            children: [
-              a.jsx(cl, { className: "w-3.5 h-3.5 rotate-180" }),
-              "Back"
-            ]
-          }),
-          a.jsxs("div", {
-            className: "px-1.5",
-            children: [
-              a.jsx("div", { className: "text-[10px] font-700 uppercase tracking-wider text-primary", children: "Active Project" }),
-              a.jsx("div", { className: "text-sm font-600 text-foreground truncate mt-0.5", children: (currentProj && currentProj.title) ? currentProj.title : "Excavation Workspace" }),
-              a.jsx("div", { className: "text-[11px] text-muted-foreground truncate", children: (currentProj && currentProj.research_region) ? currentProj.research_region : "Field Project" })
-            ]
-          })
-        ]
+        children: a.jsxs("div", {
+          className: "px-1.5",
+          children: [
+            a.jsx("div", { className: "text-[10px] font-700 uppercase tracking-wider text-primary", children: "Active Project" }),
+            a.jsx("div", { className: "text-sm font-600 text-foreground truncate mt-0.5", children: (currentProj && currentProj.title) ? currentProj.title : "Excavation Workspace" }),
+            a.jsx("div", { className: "text-[11px] text-muted-foreground truncate", children: (currentProj && currentProj.research_region) ? currentProj.research_region : "Field Project" })
+          ]
+        })
       }) : a.jsxs("div", {
         className: "px-3 py-3 border-b border-sidebar-border",
         children: [
